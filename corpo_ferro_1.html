@@ -13,37 +13,42 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap">
     <title>Corpo di Ferro V5 - Fixed</title>
     <style>
+        /* ─── Variabili colore, font e tema ─── */
         :root {
             --black: #0A0A0A; --bg: #111; --g1: #1A1A1A; --g2: #252525; --g3: #333;
             --white: #F2F1ED; --muted: #888; --accent: #C8FF00; --red: #FF3D1F; --blue: #5BC8FF;
             --font: 'DM Sans', system-ui, sans-serif;
             color-scheme: dark;
         }
+        /* ─── Reset, base, focus e layout viewport ─── */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         *:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
         html { height: 100dvh; overflow: hidden; } body { height: 100dvh; overflow: hidden; background: var(--black); color: var(--white); font-family: var(--font); }
         body { display: flex; flex-direction: column; }
-        
+        /* ─── Header app ─── */
         .header { background: var(--black); padding: 14px 18px 10px; border-bottom: 1px solid var(--g2); flex-shrink: 0; padding-top: env(safe-area-inset-top, 14px); }
         .header-row { display: flex; align-items: center; justify-content: space-between; }
         .app-title { font-size: clamp(1.125rem, 1.0341rem + 0.4545vw, 1.375rem); font-weight: 700; letter-spacing: -0.5px; }
         .app-title span { color: var(--accent); }
         .header-date { font-size: 12px; color: var(--muted); }
-        
+        /* ─── Navigazione bottom ─── */
         .bottom-nav { background: var(--black); border-top: 1px solid var(--g2); display: flex; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom, 0); }
         .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px; gap: 3px; border: none; background: transparent; color: var(--muted); cursor: pointer; transition: color 0.15s; font-family: var(--font); }
         .nav-btn.active { color: var(--accent); }
         .nav-icon { font-size: 20px; line-height: 1; }
         .nav-label { font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; }
         
+        /* ─── Pagine scrollabili ─── */
         .pages { flex: 1; overflow: hidden; position: relative; }
         .page { position: absolute; inset: 0; overflow-y: auto; padding: 16px; display: none; }
         .page.active { display: block; }
         
+        /* ─── Card generiche ─── */
         .card { background: var(--g1); border: 1px solid var(--g2); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
         .card-header { padding: 13px 16px; border-bottom: 1px solid var(--g2); display: flex; align-items: center; justify-content: space-between; }
         .card-title { font-size: 14px; font-weight: 600; }
         .card-body { padding: 14px 16px; }
+        /* ─── Home: greeting, today card, statistiche, streak ─── */
         .section-title { font-size: clamp(1rem, 0.8929rem + 0.5357vw, 1.25rem); font-weight: 700; margin-bottom: 14px; }
         
         .greeting { font-size: clamp(1.25rem, 1.0682rem + 0.9091vw, 1.75rem); font-weight: 700; margin-bottom: 4px; }
@@ -68,6 +73,7 @@
         .streak-title { font-size: 14px; font-weight: 600; }
         .streak-sub { font-size: 12px; color: var(--muted); }
         
+        /* ─── Workout: exercise card, serie, pesi, sessione ─── */
         .ex-card { container-type: inline-size; container-name: ex; background: var(--g1); border: 1px solid var(--g2); border-radius: 14px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
         .ex-card.done { border-color: rgba(200, 255, 0, 0.3); background: rgba(200, 255, 0, 0.03); }
         .ex-head { padding: 13px 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
@@ -105,6 +111,7 @@
         .finish-session-btn { background: var(--accent); color: var(--black); border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; width: 100%; cursor: pointer; margin-top: 14px; font-family: var(--font); }
         .section-label-small { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; margin-top: 4px; }
         
+        /* ─── Timer overlay ─── */
         .timer-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.92); z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
         .timer-overlay.active { display: flex; }
         .timer-title { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
@@ -122,6 +129,7 @@
         .timer-pause { background: var(--accent); color: var(--black); font-weight: 700; }
         .timer-add { background: var(--g1); border: 1px solid var(--g3); color: var(--white); }
         
+        /* ─── Nutrizione: meal card, macro bars, acqua ─── */
         .meal-card { container-type: inline-size; container-name: meal; background: var(--g1); border: 1px solid var(--g2); border-radius: 14px; margin-bottom: 10px; }
         .meal-header { padding: 13px 15px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         .meal-time-badge { background: var(--g2); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; color: var(--accent); }
@@ -158,6 +166,7 @@
         .glass.filled { opacity: 1; }
         .water-btn { background: var(--blue); color: var(--black); border: none; border-radius: 10px; padding: 10px 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font); }
         
+        /* ─── Progressi: history, calendario, canvas, charts ─── */
         .week-history { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 16px; }
         .wh-day { background: var(--g1); border: 1px solid var(--g2); border-radius: 10px; padding: 10px 4px; text-align: center; }
         .wh-day.done-day { background: rgba(200, 255, 0, 0.08); border-color: rgba(200, 255, 0, 0.3); }
@@ -171,6 +180,7 @@
         .progress-section { margin-bottom: 20px; }
         .progress-title { font-size: clamp(0.875rem, 0.8295rem + 0.2273vw, 1rem); font-weight: 700; margin-bottom: 12px; }
         
+        /* ─── Impostazioni ─── */
         .settings-panel { background: var(--g1); border: 1px solid var(--g2); border-radius: 14px; margin-bottom: 12px; }
         .setting-row { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--g2); cursor: pointer; }
         .setting-row:last-child { border-bottom: none; }
@@ -182,6 +192,7 @@
         .toggle::after { content: ''; position: absolute; width: 18px; height: 18px; background: var(--white); border-radius: 50%; top: 3px; left: 3px; transition: left 0.2s; }
         .toggle.on::after { left: 23px; background: var(--black); }
         
+        /* ─── Congrats overlay (fine sessione) ─── */
         .congrats { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); z-index: 400; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
         .congrats.active { display: flex; }
         .congrats-emoji { font-size: clamp(2.5rem, 1.5rem + 5vw, 5rem); margin-bottom: 16px; animation: bounce 0.6s ease; }
@@ -191,6 +202,7 @@
         .congrats-sub { font-size: clamp(0.8125rem, 0.7589rem + 0.2679vw, 0.9375rem); color: var(--muted); margin-bottom: clamp(16px, 3vw, 30px); line-height: 1.6; }
         .congrats-btn { background: var(--accent); color: var(--black); border: none; border-radius: 12px; padding: 16px 32px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: var(--font); }
         
+        /* ─── Suggerimenti peso e barre volume ─── */
         .suggest-badge { background: rgba(200, 255, 0, 0.15); color: var(--accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-left: 8px; }
         .volume-bar-container { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding: 4px 0; }
         .volume-bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
@@ -275,6 +287,7 @@
             .volume-bar-container { height: 70px; gap: 4px; }
         }
 
+        /* ─── Container queries: adattamento card esercizio e pasto ─── */
         @container ex (max-width: 340px) {
             .ex-head { padding: 10px 12px; gap: 8px; }
             .ex-num { width: 28px; height: 28px; font-size: 11px; }
@@ -309,6 +322,7 @@
     </style>
 </head>
 <body>
+    <!-- ─── Header app ─── -->
     <div class="header">
         <div class="header-row">
             <div class="app-title">CORPO DI <span>FERRO</span> V5</div>
@@ -316,9 +330,11 @@
         </div>
     </div>
 
+    <!-- ─── Pages: contenitore pagine swipe ─── -->
     <div class="pages">
         
         <div class="page active" id="page-home">
+            <!-- ─── HOME ─── -->
             <div class="greeting">Ciao! <span>💪</span></div>
             <div class="greeting-sub" id="homeGreetingSub">Pronto per oggi?</div>
 
@@ -347,9 +363,12 @@
             </div>
         </div>
 
-        <div class="page" id="page-workout"></div>
+        <div class="page" id="page-workout">
+            <!-- ─── WORKOUT (renderizzato da JS) ─── -->
+        </div>
 
         <div class="page" id="page-nutrition">
+            <!-- ─── NUTRIZIONE ─── -->
             <div class="section-title">Alimentazione</div>
             
             <div class="macro-total">
@@ -391,6 +410,7 @@
         </div>
 
         <div class="page" id="page-progress">
+            <!-- ─── PROGRESSI ─── -->
             <div class="section-title">Progressi</div>
             <div class="stat-grid" style="margin-bottom:14px">
                 <div class="stat"><div class="stat-val" id="pStatTotal">0</div><div class="stat-lbl">Sessioni totali</div></div>
@@ -433,6 +453,7 @@
         </div>
 
         <div class="page" id="page-settings">
+            <!-- ─── IMPOSTAZIONI ─── -->
             <div class="section-title">Impostazioni</div>
             <div class="settings-panel">
                 <div class="setting-row">
@@ -484,6 +505,7 @@
         </div>
     </div>
 
+    <!-- ─── Navigazione bottom ─── -->
     <div class="bottom-nav">
         <button class="nav-btn active" data-page="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
         <button class="nav-btn" data-page="workout"><span class="nav-icon">💪</span><span class="nav-label">Workout</span></button>
@@ -492,6 +514,7 @@
         <button class="nav-btn" data-page="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Impo.</span></button>
     </div>
 
+    <!-- ─── Overlay timer (riposo tra serie) ─── -->
     <div class="timer-overlay" id="timerOverlay">
         <div class="timer-title">RIPOSO</div>
         <div class="timer-ex" id="timerExName"></div>
@@ -512,6 +535,7 @@
         </div>
     </div>
 
+    <!-- ─── Congrats overlay (sessione completata) ─── -->
     <div class="congrats" id="congrats">
         <div class="congrats-emoji">🏆</div>
         <div class="congrats-title">SESSIONE <span>COMPLETATA</span></div>
@@ -519,6 +543,7 @@
         <button class="congrats-btn" id="congratsCloseBtn">Continua 💪</button>
     </div>
 
+    <!-- ─── Modal custom (alert/confirm/prompt) ─── -->
     <div class="modal-overlay" id="customModal">
         <div class="modal-box">
             <div class="modal-message" id="modalMessage"></div>
@@ -533,7 +558,7 @@
     </div>
     <script>
         (function() {
-            // ─────────── DATA ───────────
+            // ─────────── DATI ALLENAMENTI: definizione sessioni A/B, esercizi, progressione ───────────
             function getCurrentSessions() {
                 const baseSessions = {
                     A: {
@@ -619,7 +644,7 @@
                 { weeks: '10+', label: 'Blocco 2 Avanzato', desc: 'Riparti dalla settimana 3 con pesi più alti. Aggiungi esercizi nuovi (push-up, lunges). Continua a progredire!' }
             ];
 
-            // ─────────── STATE ───────────
+            // ─────────── STATO APP: salvataggio localStorage, helper date/modal ───────────
             let state;
             try { state = JSON.parse(localStorage.getItem('cdf_state') || 'null'); } catch (e) { state = null; }
             if (!state) {
@@ -632,7 +657,7 @@
 
             function save() { try { localStorage.setItem('cdf_state', JSON.stringify(state)); } catch (e) {} }
 
-            // ─── Custom modal (alert/confirm/prompt replacement) ───
+            // ─── Modal custom (alert/confirm/prompt) ───
             const modalEl = document.getElementById('customModal');
             const modalMsg = document.getElementById('modalMessage');
             const modalInput = document.getElementById('modalInput');
@@ -687,7 +712,7 @@
                 else return { p: 120, c: 170, f: 65, kcal: 1900 }; // Proteine corrette a 120g per salute renale
             }
 
-            // ─────────── NAVIGATION ───────────
+            // ─────────── NAVIGAZIONE: cambio pagina, eventi nav ───────────
             function goPage(page) {
                 document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -707,7 +732,7 @@
                 btn.addEventListener('click', function() { goPage(this.dataset.page); });
             });
 
-            // ─────────── RENDER HOME ───────────
+            // ─────────── HOME: rendering giorno corrente, statistiche, streak ───────────
             function renderHome() {
                 const dow = getDayOfWeek();
                 const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
@@ -787,7 +812,7 @@
                 return streak;
             }
 
-            // ─────────── SESSION MANAGEMENT ───────────
+            // ─────────── SESSIONE: start, gestione peso, completamento ───────────
             function startSession(sessionKey) {
                 state.todaySession = { session: sessionKey, exercises: {}, done: false };
                 getCurrentSessions()[sessionKey].exercises.forEach(ex => {
@@ -980,7 +1005,7 @@
                 analyzeFatigue();
             }
 
-            // ─────────── TIMER ───────────
+            // ─────────── TIMER: conto alla rovescia tra serie ───────────
             let timerInterval = null; let timerTotal = 60; let timerRemaining = 60; let timerPaused = false;
 
             function startTimer(seconds, exName) {
@@ -1021,7 +1046,7 @@
                 document.getElementById('timerAddBtn').addEventListener('click', timerAddListener);
             }
 
-            // ─────────── NUTRITION ───────────
+            // ─────────── NUTRIZIONE: pasti, macro, acqua ───────────
             function renderNutrition() {
                 const today = todayStr();
                 if (state.mealsChecked.date !== today) { state.mealsChecked = { date: today, checked: [] }; save(); }
@@ -1110,7 +1135,7 @@
                 state.water.count = state.water.count === n ? n - 1 : n; save(); renderWater();
             }
 
-            // ─────────── PROGRESS ───────────
+            // ─────────── PROGRESSI: calendario, body measurements, volume chart ───────────
             function renderProgress() {
                 document.getElementById('pStatTotal').textContent = state.sessions.length;
                 const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
@@ -1250,7 +1275,7 @@
                 save(); renderProgress();
             }
 
-            // ─────────── SETTINGS ───────────
+            // ─────────── IMPOSTAZIONI: toggle suono, vibrazione, esportazione dati ───────────
             function renderSettings() {
                 document.getElementById('settingWeight').textContent = (state.settings.weight || 75) + ' kg';
                 document.getElementById('toggleSound').classList.toggle('on', state.settings.sound);
@@ -1329,7 +1354,7 @@
                 }
             }
 
-            // ─────────── SMART FEATURES ───────────
+            // ─────────── FEATURE SMART: insight, affaticamento, suggerimenti peso, trend volume ───────────
 
             function logFatigue(type, exId) { state.fatigue.push({ date: todayStr(), type, exId }); save(); }
             function getFatigueLevel() {
@@ -1445,7 +1470,7 @@
                 return { icon: '🎯', text: 'Continua così, un passo alla volta verso il corpo di ferro!', type: 'motivation' };
             }
 
-            // ─────────── INIT ───────────
+            // ─────────── INIT: mount app ───────────
             function init() {
                 renderHome();
                 bindTimerButtons();
