@@ -888,9 +888,13 @@
                             <button class="w-btn inc-btn">+</button>
                             ${suggestion ? `<button class="w-btn apply-suggestion" style="background:var(--accent);color:black;font-size:12px">✓</button>` : ''}
                         </div>`;
+                        if (exS.weight !== ex.weight) {
+                            const diff = exS.weight - ex.weight;
+                            html += `<div style="font-size:11px;color:${diff > 0 ? 'var(--accent)' : 'var(--red)'};margin-bottom:8px;padding:4px 8px;background:rgba(200,255,0,0.05);border-radius:6px">⚠️ Peso: ${exS.weight}kg (pianificato ${ex.weight}kg · ${diff > 0 ? '+' : ''}${diff}kg)</div>`;
+                        }
                     }
 
-                    html += `<div class="section-label-small">Serie completate (tocca per segnare)</div><div class="sets-grid">`;
+                    html += `<div class="section-label-small">${exS.completedSets.length}/${ex.sets} serie completate (tocca per segnare)</div><div class="sets-grid">`;
                     for (let i = 1; i <= ex.sets; i++) {
                         const setDone = exS.completedSets.includes(i);
                         html += `<button class="set-btn ${setDone ? 'done-set' : ''}" data-set="${i}">
@@ -903,7 +907,10 @@
                     html += `</div></div>`;
                 });
 
-                if (allDone) html += `<button class="finish-session-btn" id="finishSessionBtn">🏆 Termina sessione</button>`;
+                html += `<button class="finish-session-btn" id="finishSessionBtn" style="${allDone ? '' : 'background:var(--g2);color:var(--white);margin-top:16px'}">${allDone ? '🏆 Termina sessione' : '⚠️ Termina sessione comunque'}</button>`;
+                if (!allDone) {
+                    html += `<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;padding:0 20px">Non hai completato tutte le serie. I progressi registreranno i dati reali.</div>`;
+                }
                 wc.innerHTML = html;
 
                 // Event listeners (struttura preservata e pulita)
@@ -930,7 +937,13 @@
                 wc.querySelectorAll('.complete-ex-btn').forEach(btn => btn.addEventListener('click', function(e) {
                     e.stopPropagation(); completeExercise(this.closest('.ex-card').dataset.exid);
                 }));
-                if (allDone) document.getElementById('finishSessionBtn').addEventListener('click', finishSession, { once: true });
+                document.getElementById('finishSessionBtn').addEventListener('click', async function() {
+                    if (!allDone) {
+                        const confirmed = await showConfirm('Non hai completato tutte le serie previste. Vuoi terminare comunque? I dati reali verranno registrati.');
+                        if (!confirmed) return;
+                    }
+                    finishSession();
+                });
             }
 
             function changeWeightDirect(exId, newWeight) {
@@ -982,16 +995,32 @@
             }
 
             function finishSession() {
-                // Check for incomplete exercises
+                const sessionDef = getCurrentSessions()[state.todaySession.session];
+                // Check for incomplete exercises and weight discrepancies
                 Object.keys(state.todaySession.exercises).forEach(exId => {
                     const exS = state.todaySession.exercises[exId];
-                    const sessionDef = getCurrentSessions()[state.todaySession.session];
                     const exDef = sessionDef?.exercises.find(e => e.id === exId);
-                    if (exDef && exS.completedSets.length < exDef.sets) {
-                        logFatigue('incomplete_exercise', exId);
+                    if (exDef) {
+                        if (exS.completedSets.length < exDef.sets) {
+                            logFatigue('incomplete_exercise', exId);
+                        }
+                        if (exS.weight !== undefined && exS.weight !== exDef.weight) {
+                            logFatigue(exS.weight > exDef.weight ? 'weight_increased' : 'weight_reduced', exId);
+                        }
                     }
                 });
-                state.sessions.push({ date: todayStr(), session: state.todaySession.session, exercises: JSON.parse(JSON.stringify(state.todaySession.exercises)) });
+                // Save real data + planned reference
+                const sessionData = JSON.parse(JSON.stringify(state.todaySession.exercises));
+                if (sessionDef) {
+                    Object.keys(sessionData).forEach(exId => {
+                        const exDef = sessionDef.exercises.find(e => e.id === exId);
+                        if (exDef) {
+                            sessionData[exId].plannedSets = exDef.sets;
+                            sessionData[exId].weightPlanned = exDef.weight;
+                        }
+                    });
+                }
+                state.sessions.push({ date: todayStr(), session: state.todaySession.session, exercises: sessionData });
                 state.lastSessionType = state.todaySession.session;
                 state.todaySession.done = true; save();
                 
@@ -1244,6 +1273,35 @@
                 `;
                 if (level === 'red') cs.innerHTML += '<div style="color:var(--red);font-size:12px;margin-top:8px;text-align:center">⚠️ Rilevata possibile sovrallenamento — considera deload</div>';
                 if (deload.needed) cs.innerHTML += `<div style="background:rgba(255,61,31,0.1);border:1px solid var(--red);border-radius:10px;padding:12px;margin-top:8px;font-size:13px;color:var(--white);line-height:1.6">⚠️ ${deload.reason}</div>`;
+
+                // Per-exercise detail from last session
+                const lastSess = state.sessions[state.sessions.length - 1];
+                if (lastSess && lastSess.exercises) {
+                    const lastSessDef = getCurrentSessions()[lastSess.session];
+                    if (lastSessDef) {
+                        let detHtml = '<div class="card" style="padding:16px;margin-top:12px"><div style="font-size:14px;font-weight:600;margin-bottom:10px">Dettaglio ultima sessione (' + lastSess.date + ')</div>';
+                        lastSessDef.exercises.forEach(function(ex) {
+                            var exData = lastSess.exercises[ex.id];
+                            if (!exData) return;
+                            var setsDone = exData.completedSets.length;
+                            var setsPlanned = exData.plannedSets || ex.sets;
+                            var weightUsed = exData.weight || ex.weight;
+                            var weightPlanned = exData.weightPlanned || ex.weight;
+                            var setsOk = setsDone === setsPlanned;
+                            var weightOk = weightUsed === weightPlanned;
+                            var setColor = setsOk ? 'var(--accent)' : 'var(--red)';
+                            var weightColor = weightOk ? 'var(--muted)' : (weightUsed > weightPlanned ? 'var(--accent)' : 'var(--red)');
+                            detHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--g2);font-size:12px">';
+                            detHtml += '<div style="font-weight:500">' + ex.name + '</div>';
+                            detHtml += '<div style="display:flex;gap:12px">';
+                            detHtml += '<span style="color:' + setColor + '">' + setsDone + '/' + setsPlanned + ' serie' + (setsOk ? ' ✓' : '') + '</span>';
+                            detHtml += '<span style="color:' + weightColor + '">' + weightUsed + 'kg' + (!weightOk ? ' (pianificato ' + weightPlanned + 'kg)' : '') + '</span>';
+                            detHtml += '</div></div>';
+                        });
+                        detHtml += '</div>';
+                        cs.innerHTML += detHtml;
+                    }
+                }
             }
 
             function drawWeightChart() {
@@ -1362,7 +1420,9 @@
                 const skips = recent.filter(f => f.type === 'set_skipped').length;
                 const incompletes = recent.filter(f => f.type === 'incomplete_exercise').length;
                 const adjusts = recent.filter(f => f.type === 'weight_adjusted').length;
-                const score = skips * 2 + incompletes * 3 + adjusts * 1;
+                const weightUp = recent.filter(f => f.type === 'weight_increased').length;
+                const weightDown = recent.filter(f => f.type === 'weight_reduced').length;
+                const score = skips * 2 + incompletes * 3 + adjusts * 1 + weightUp * 3 + weightDown * 1;
                 if (score >= 10) return 'red';
                 if (score >= 5) return 'yellow';
                 return 'green';
