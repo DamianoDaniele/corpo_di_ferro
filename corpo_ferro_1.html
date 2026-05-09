@@ -204,11 +204,39 @@
         
         /* ─── Suggerimenti peso e barre volume ─── */
         .suggest-badge { background: rgba(200, 255, 0, 0.15); color: var(--accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-left: 8px; }
-        .volume-bar-container { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding: 4px 0; }
-        .volume-bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
-        .volume-bar-value { font-size: 9px; color: var(--accent); font-weight: 600; white-space: nowrap; }
-        .volume-bar { width: 100%; background: rgba(200, 255, 0, 0.2); border-radius: 4px 4px 0 0; min-height: 4px; }
-        .volume-bar-label { font-size: 9px; color: var(--muted); }
+        .volume-bar-container { display: flex; align-items: flex-end; gap: 4px; height: 130px; padding: 4px 0; position: relative; }
+        .volume-bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; position: relative; }
+        .volume-bar-value { font-size: 10px; color: var(--accent); font-weight: 600; white-space: nowrap; line-height: 1; }
+        .volume-bar-wrap { width: 100%; position: relative; flex: 1; display: flex; align-items: flex-end; justify-content: center; }
+        .volume-bar-planned { position: absolute; bottom: 0; width: 100%; background: rgba(200,255,0,0.08); border-radius: 4px 4px 0 0; min-height: 2px; }
+        .volume-bar-actual { width: 100%; border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.3s; }
+        .volume-bar-actual.ok { background: var(--accent); }
+        .volume-bar-actual.partial { background: #FFB350; }
+        .volume-bar-actual.low { background: var(--red); }
+        .volume-bar-label { font-size: 9px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .volume-bar-badge { font-size: 7px; font-weight: 700; padding: 1px 4px; border-radius: 3px; background: var(--g2); color: var(--muted); letter-spacing: 0.5px; line-height: 1.4; }
+        .volume-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+        .volume-stat { background: var(--g2); border-radius: 8px; padding: 8px; text-align: center; }
+        .volume-stat-val { font-size: 15px; font-weight: 700; color: var(--accent); line-height: 1.2; }
+        .volume-stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+        .volume-legend { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
+        .volume-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); }
+        .volume-legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
+        .rec-card { background: var(--g1); border: 1px solid var(--g2); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+        .rec-card.highlight { border-color: var(--accent); background: rgba(200,255,0,0.04); }
+        .rec-card.warning { border-color: var(--red); background: rgba(255,61,31,0.04); }
+        .rec-icon { font-size: 20px; margin-right: 10px; flex-shrink: 0; }
+        .rec-text { font-size: 13px; line-height: 1.6; color: var(--white); }
+        .rec-text strong { color: var(--accent); }
+        .consistency-ex-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--g2); font-size: 12px; }
+        .consistency-ex-row:last-child { border-bottom: none; }
+        .consistency-ex-name { flex: 1; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .consistency-dots { display: flex; gap: 3px; align-items: center; flex-shrink: 0; }
+        .consistency-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .consistency-dot.full { background: var(--accent); }
+        .consistency-dot.partial { background: #FFB350; }
+        .consistency-dot.miss { background: var(--g3); }
+        .phase-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.5px; text-transform: uppercase; }
 
         /* ─── Media Queries: adattamento schermi piccoli ─── */
         @media (prefers-reduced-motion: reduce) {
@@ -245,7 +273,7 @@
             .timer-btns { gap: 8px; }
             .timer-skip, .timer-pause, .timer-add { padding: 12px; font-size: 13px; }
             .timer-overlay { padding: 20px; }
-            .volume-bar-container { height: 90px; }
+            .volume-bar-container { height: 100px; }
             .macro-bars { gap: 10px; }
             .meal-foods { font-size: 12px; }
             .setting-row { padding: 12px 14px; }
@@ -284,7 +312,7 @@
             .note-box { font-size: 11px; padding: 8px 10px; }
             .macro-total { padding: 10px; }
             .macro-bar-row { gap: 6px; }
-            .volume-bar-container { height: 70px; gap: 4px; }
+            .volume-bar-container { height: 80px; gap: 3px; }
         }
 
         /* ─── Container queries: adattamento card esercizio e pasto ─── */
@@ -562,24 +590,25 @@
             function getCurrentSessions() {
                 const baseSessions = {
                     A: {
-                        name: 'Sessione A', sub: 'Sabato · Spinta + Core', day: 6,
+                        name: 'Sessione A', sub: 'Sabato · Petto + Spalle + Gambe', day: 6,
                         exercises: [
                             { id: 'mp', name: 'Military Press', meta: '8–10kg · 4 serie × 8–10 rip', sets: 4, reps: '8–10', repMid: 9, weight: 8, restSec: 120, tip: 'Gomiti leggermente davanti al corpo. Non inarcare la schiena.' },
-                            { id: 'cp', name: 'Chest Press in piedi', meta: '10–12kg · 4 serie × 10–12 rip', sets: 4, reps: '10–12', repMid: 11, weight: 10, restSec: 90, tip: 'Strizza il petto in cima 1 secondo. Busto fermo.' },
+                            { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: '10–12kg · 4 serie × 10–12 rip', sets: 4, reps: '10–12', repMid: 11, weight: 10, restSec: 90, tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
                             { id: 'al', name: 'Alzate laterali', meta: '5–7kg · 4 serie × 12–15 rip', sets: 4, reps: '12–15', repMid: 13.5, weight: 5, restSec: 60, tip: 'Discesa lenta 3 secondi. Polsi sotto i gomiti.' },
-                            { id: 'sk', name: 'Skull Crusher (Tricipiti)', meta: '7–9kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMid: 11, weight: 7, restSec: 90, tip: 'Sdraiato su panchetta/pavimento. Abbassa verso la fronte lentamente.' },
-                            { id: 'pl', name: 'Plank', meta: '4 serie × 30–45 sec · 45 sec riposo', sets: 4, reps: '30–45 sec', repMid: 37.5, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' },
-                            { id: 'cb', name: 'Crunch Bicicletta', meta: '3 serie × 20 totali', sets: 3, reps: '20 totali', repMid: 20, weight: 0, restSec: 45, tip: 'Lento e controllato. Senti la torsione sull\'addome, non sul collo.' }
+                            { id: 'sk', name: 'Skull Crusher (Tricipiti)', meta: '7–9kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMid: 11, weight: 7, restSec: 90, tip: 'Sdraiato a terra. Abbassa i manubri verso la fronte lentamente, gomiti fissi.' },
+                            { id: 'fr', name: 'French Press', meta: '7–9kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMid: 11, weight: 7, restSec: 60, tip: 'In piedi, manubrio sopra la testa con entrambe le mani. Piega solo gli avambracci, gomiti fissi.' },
+                            { id: 'sq', name: 'Goblet Squat', meta: '12–14kg · 4 serie × 10–12 rip', sets: 4, reps: '10–12', repMid: 11, weight: 12, restSec: 120, tip: 'Tieni il manubrio al petto. Scendi lento, talloni a terra. Cosce parallele al suolo.' },
+                            { id: 'pl', name: 'Plank', meta: '3 serie × 30–45 sec · 45 sec riposo', sets: 3, reps: '30–45 sec', repMid: 37.5, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     },
                     B: {
-                        name: 'Sessione B', sub: 'Domenica · Trazione + Gambe', day: 0,
+                        name: 'Sessione B', sub: 'Domenica · Braccia + Schiena + Core', day: 0,
                         exercises: [
-                            { id: 'sq', name: 'Squat con manubri', meta: '12–14kg · 5 serie × 8–12 rip', sets: 5, reps: '8–12', repMid: 10, weight: 12, restSec: 120, tip: 'Scendi lento 3 sec. Cosce parallele al suolo. Spingi con i talloni.' },
-                            { id: 'rd', name: 'Romanian Deadlift', meta: '14–16kg · 4 serie × 10–12 rip', sets: 4, reps: '10–12', repMid: 11, weight: 14, restSec: 120, tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali.' },
-                            { id: 'rw', name: 'Rowing manubrio', meta: '14–16kg · 4 serie × 10–12 rip', sets: 4, reps: '10–12', repMid: 11, weight: 14, restSec: 90, tip: 'Pensa a portare il gomito verso il soffitto, non a piegare il braccio.' },
+                            { id: 'rd', name: 'Romanian Deadlift', meta: '14–16kg · 4 serie × 10–12 rip', sets: 4, reps: '10–12', repMid: 11, weight: 14, restSec: 120, tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
+                            { id: 'rw', name: 'Rowing manubrio', meta: '14–16kg · 4 serie × 10–12 rip', sets: 4, reps: '10–12', repMid: 11, weight: 14, restSec: 90, tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
+                            { id: 'cf', name: 'Croci con manubri', meta: '8–10kg · 3 serie × 12–15 rip', sets: 3, reps: '12–15', repMid: 13.5, weight: 8, restSec: 60, tip: 'Sdraiati a terra, braccia aperte a T con leggero piego. Chiudi stringendo il petto.' },
                             { id: 'cu', name: 'Curl Bicipiti', meta: '9–11kg · 4 serie × 10–12 rip', sets: 4, reps: '10–12', repMid: 11, weight: 9, restSec: 90, tip: 'Gomiti incollati ai fianchi. Abbassa lento 3 sec — qui crescono i bicipiti.' },
-                            { id: 'pl2', name: 'Plank Laterale', meta: '3 serie × 20 sec per lato', sets: 3, reps: '20 sec/lato', repMid: 20, weight: 0, restSec: 30, tip: 'Corpo allineato. Strizza il core. Fai entrambi i lati.' },
+                            { id: 'hc', name: 'Hammer Curl', meta: '7–9kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMid: 11, weight: 7, restSec: 60, tip: 'Palmi rivolti verso l\'interno. Gomiti fissi. Solo avambracci in movimento.' },
                             { id: 'mc', name: 'Mountain Climber', meta: '3 serie × 30 sec', sets: 3, reps: '30 sec', repMid: 30, weight: 0, restSec: 45, tip: 'Ritmo costante. Core sempre contratto. Non alzare i fianchi.' }
                         ]
                     }
@@ -589,9 +618,9 @@
                 const weekNum = Math.ceil(totalSessions / 2) || 1;
 
                 // Adjust sets based on progression
-                const progIdx = Math.min(Math.floor((weekNum - 1) / 2), PROGRESSION.length - 2);
-                if (progIdx >= 6) { // 7-8 weeks: 5 sets on compounds
-                    ['mp','cp','sq','rd','rw'].forEach(id => {
+                const progIdx = Math.min(Math.floor((weekNum - 1) / 2), PROGRESSION.length - 1);
+                if (progIdx >= 3 && weekNum <= 8) { // Weeks 7-8 (Peak): 5 sets on compounds
+                    ['mp','cp','rw','rd'].forEach(id => {
                         const ex = baseSessions.A.exercises.find(e => e.id === id) || baseSessions.B.exercises.find(e => e.id === id);
                         if (ex) ex.sets = 5;
                     });
@@ -605,10 +634,10 @@
                     // Introduce variations for advanced progression
                     baseSessions.A.exercises.find(e => e.id === 'mp').name = 'Military Press (Variante: Piedi uniti)';
                     baseSessions.A.exercises.find(e => e.id === 'mp').meta = '10–12kg · 5 serie × 8–10 rip';
-                    baseSessions.A.exercises.find(e => e.id === 'cp').name = 'Chest Press (Variante: Un braccio alla volta)';
+                    baseSessions.A.exercises.find(e => e.id === 'cp').name = 'Distensioni sdraiate (Variante: Un braccio alla volta)';
                     baseSessions.A.exercises.find(e => e.id === 'cp').meta = '12–14kg · 5 serie × 10–12 rip';
-                    baseSessions.B.exercises.find(e => e.id === 'sq').name = 'Squat (Variante: Salto in alto)';
-                    baseSessions.B.exercises.find(e => e.id === 'sq').meta = '14–16kg · 5 serie × 8–12 rip';
+                    baseSessions.A.exercises.find(e => e.id === 'sq').name = 'Goblet Squat (Variante: Pausa in basso 2 sec)';
+                    baseSessions.A.exercises.find(e => e.id === 'sq').meta = '12–14kg · 4 serie × 10–12 rip';
                     baseSessions.B.exercises.find(e => e.id === 'rd').name = 'Romanian Deadlift (Variante: Singola gamba)';
                     baseSessions.B.exercises.find(e => e.id === 'rd').meta = '16–18kg · 4 serie × 10–12 rip';
                 }
@@ -779,6 +808,53 @@
                         </div>
                     </div>`;
                 }
+
+                // Recommendation card for next session
+                var recEl = document.getElementById('smartRecommendation');
+                if (!recEl) {
+                    recEl = document.createElement('div'); recEl.id = 'smartRecommendation';
+                    insightEl.parentNode.insertBefore(recEl, insightEl.nextSibling);
+                }
+                var fatigue = getFatigueLevel();
+                var trend = getVolumeTrend();
+                var deload = getDeloadRecommendation();
+                var recHtml = '';
+                var nextSession = getNextSessionType();
+                var nextS = getCurrentSessions()[nextSession];
+                // Find exercises with suggestions
+                var exSuggestions = [];
+                if (nextS && !todayDone) {
+                    nextS.exercises.forEach(function(ex) {
+                        var sug = getSuggestedWeight(ex.id, ex.weight);
+                        if (sug !== null) {
+                            exSuggestions.push({ name: ex.name, from: ex.weight, to: sug });
+                        }
+                    });
+                }
+                if (deload.needed) {
+                    recHtml = '<div class="rec-card warning"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">⚠️</div><div class="rec-text">' + deload.reason + '</div></div></div>';
+                } else if (fatigue === 'red') {
+                    recHtml = '<div class="rec-card warning"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">🔴</div><div class="rec-text"><strong>Affaticamento alto.</strong> Considera una settimana di carichi ridotti (-10/15%) o un giorno extra di recupero prima della prossima sessione.</div></div></div>';
+                } else if (fatigue === 'yellow') {
+                    recHtml = '<div class="rec-card"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">🟡</div><div class="rec-text"><strong>Fatica media.</strong> Mantieni i carichi, concentrati sulla tecnica. Assicura sonno e alimentazione adeguati.</div></div></div>';
+                } else if (exSuggestions.length > 0) {
+                    var sugText = exSuggestions.map(function(s) { return '<strong>' + s.name + '</strong>: ' + s.from + ' → ' + s.to + 'kg'; }).join(', ');
+                    recHtml = '<div class="rec-card highlight"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">🔥</div><div class="rec-text">Pronto per progredire! Suggerito aumento peso: ' + sugText + '</div></div></div>';
+                } else if (trend.direction === 'crescita' && trend.pct > 5) {
+                    recHtml = '<div class="rec-card highlight"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">📈</div><div class="rec-text"><strong>Volume in crescita del ' + trend.pct + '%!</strong> Ottimo momento per mantenere lo slancio. Continua così.</div></div></div>';
+                } else if (trend.direction === 'calo') {
+                    recHtml = '<div class="rec-card"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">📉</div><div class="rec-text">Volume in calo del ' + Math.abs(trend.pct) + '%. <strong>Valuta recupero extra</strong> o riduci leggermente i carichi per ritrovare consistenza.</div></div></div>';
+                } else if (state.sessions.length >= 2) {
+                    recHtml = '<div class="rec-card"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">🎯</div><div class="rec-text">Allenamento costante. <strong>Obiettivo: ' + (state.settings.objective === 'cut' ? 'Definizione' : 'Massa') + '.</strong> Prossima sessione: ' + nextS.name + '. Mantieni il ritmo!</div></div></div>';
+                }
+                if (recHtml) recEl.innerHTML = recHtml;
 
                 const wh = document.getElementById('weekHistory');
                 const dayNames = ['D', 'L', 'M', 'M', 'G', 'V', 'S'];
@@ -1175,28 +1251,71 @@
                 const last8 = allSessions.slice(-8);
                 volumeChart.innerHTML = '';
                 if (last8.length === 0) {
-                    volumeChart.innerHTML = '<div style="color:var(--muted);font-size:13px">Nessun dato ancora</div>';
+                    volumeChart.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Nessun dato ancora</div>';
                 } else {
-                    const volumes = last8.map(s => {
-                        const sessionDef = getCurrentSessions()[s.session];
-                        if (!sessionDef) return 0;
-                        return sessionDef.exercises.reduce((acc, ex) => {
-                            const exData = s.exercises?.[ex.id];
-                            if (!exData || exData.completedSets.length === 0) return acc;
-                            return acc + (exData.weight || ex.weight) * exData.completedSets.length * ex.repMid;
-                        }, 0);
+                    // Calculate actual AND planned volume for each session
+                    var volData = last8.map(function(s) {
+                        var sessionDef = getCurrentSessions()[s.session];
+                        if (!sessionDef) return { actual: 0, planned: 0 };
+                        var actual = 0, planned = 0;
+                        sessionDef.exercises.forEach(function(ex) {
+                            var exData = s.exercises[ex.id];
+                            if (exData && exData.completedSets.length > 0) {
+                                actual += (exData.weight || ex.weight) * exData.completedSets.length * ex.repMid;
+                            }
+                            var pSets = (exData && exData.plannedSets) || ex.sets;
+                            var pWeight = (exData && exData.weightPlanned) || ex.weight;
+                            planned += pWeight * pSets * ex.repMid;
+                        });
+                        return { actual: actual, planned: planned };
                     });
-                    const maxVol = Math.max(...volumes, 1);
-                    const container = document.createElement('div'); container.className = 'volume-bar-container';
-                    last8.forEach((s, i) => {
-                        const h = (volumes[i] / maxVol) * 100;
-                        container.innerHTML += `<div class="volume-bar-item">
-                            <div class="volume-bar-value">${Math.round(volumes[i])}</div>
-                            <div class="volume-bar" style="height:${h}%"></div>
-                            <div class="volume-bar-label">${s.date.slice(5)}</div>
-                        </div>`;
+                    var maxVol = 1;
+                    volData.forEach(function(v) { if (v.planned > maxVol) maxVol = v.planned; });
+                    // Summary stats
+                    var totalActual = 0, totalPlanned = 0, bestIdx = 0, bestVol = 0;
+                    volData.forEach(function(v, i) {
+                        totalActual += v.actual;
+                        totalPlanned += v.planned;
+                        if (v.actual > bestVol) { bestVol = v.actual; bestIdx = i; }
+                    });
+                    var avgActual = Math.round(totalActual / volData.length);
+                    var ratio = totalPlanned > 0 ? Math.round((totalActual / totalPlanned) * 100) : 0;
+                    var bestSession = last8[bestIdx];
+                    var bestLabel = bestSession ? bestSession.date.slice(5) + ' (' + bestSession.session + ')' : '';
+                    // Color for ratio
+                    var ratioColor = ratio >= 95 ? 'var(--accent)' : (ratio >= 75 ? '#FFB350' : 'var(--red)');
+                    // Summary grid
+                    volumeChart.innerHTML = '<div class="volume-summary">'
+                        + '<div class="volume-stat"><div class="volume-stat-val">' + Math.round(totalActual/1000) + 'k</div><div class="volume-stat-lbl">Volume tot.</div></div>'
+                        + '<div class="volume-stat"><div class="volume-stat-val">' + avgActual + '</div><div class="volume-stat-lbl">Media/sessione</div></div>'
+                        + '<div class="volume-stat"><div class="volume-stat-val" style="color:' + ratioColor + '">' + ratio + '%</div><div class="volume-stat-lbl">Rapporto reale/plan</div></div>'
+                        + '<div class="volume-stat"><div class="volume-stat-val" style="font-size:12px">' + bestLabel + '</div><div class="volume-stat-lbl">Miglior sessione</div></div>'
+                        + '</div>';
+                    // Bar chart
+                    var container = document.createElement('div'); container.className = 'volume-bar-container';
+                    last8.forEach(function(s, i) {
+                        var v = volData[i];
+                        var hActual = maxVol > 0 ? (v.actual / maxVol) * 100 : 0;
+                        var hPlanned = maxVol > 0 ? (v.planned / maxVol) * 100 : 0;
+                        var pctActual = v.planned > 0 ? Math.round((v.actual / v.planned) * 100) : 0;
+                        var barClass = pctActual >= 95 ? 'ok' : (pctActual >= 75 ? 'partial' : 'low');
+                        container.innerHTML += '<div class="volume-bar-item">'
+                            + '<div class="volume-bar-value">' + Math.round(v.actual) + '</div>'
+                            + '<div class="volume-bar-badge">' + s.session + '</div>'
+                            + '<div class="volume-bar-wrap">'
+                            + '<div class="volume-bar-planned" style="height:' + hPlanned + '%"></div>'
+                            + '<div class="volume-bar-actual ' + barClass + '" style="height:' + hActual + '%"></div>'
+                            + '</div>'
+                            + '<div class="volume-bar-label">' + s.date.slice(5) + '</div>'
+                            + '</div>';
                     });
                     volumeChart.appendChild(container);
+                    // Legend
+                    var legend = document.createElement('div'); legend.className = 'volume-legend';
+                    legend.innerHTML = '<div class="volume-legend-item"><div class="volume-legend-swatch" style="background:var(--accent)"></div>Reale</div>'
+                        + '<div class="volume-legend-item"><div class="volume-legend-swatch" style="background:rgba(200,255,0,0.15)"></div>Pianificato</div>'
+                        + '<div class="volume-legend-item"><div class="volume-legend-swatch" style="background:#FFB350"></div>Parziale</div>';
+                    volumeChart.appendChild(legend);
                 }
 
                 const cal = document.getElementById('calDays');
@@ -1235,51 +1354,91 @@
 
                 const totalSessions = state.sessions.length; const weekNum = Math.ceil(totalSessions / 2) || 1;
                 let progIdx = Math.min(Math.floor((weekNum - 1) / 2), PROGRESSION.length - 2);
-                document.getElementById('weekProg').innerHTML = `<div style="background:rgba(200,255,0,0.08);border:1px solid rgba(200,255,0,0.25);border-radius:12px;padding:14px">
-                    <div style="font-size:11px;letter-spacing:2px;color:var(--accent);margin-bottom:4px;text-transform:uppercase">Stai qui</div>
-                    <div style="font-size:15px;font-weight:700;margin-bottom:4px">Settimana stimata ${weekNum} · ${PROGRESSION[progIdx].label}</div>
-                    <div style="font-size:13px;color:var(--muted);line-height:1.6">${PROGRESSION[progIdx].desc}</div>
-                </div>`;
+                var phaseColors = { 'Adattamento': '#5BC8FF', 'Volume': 'var(--accent)', 'Intensità': '#FFB350', 'Peak': 'var(--red)', 'Deload': '#888', 'Blocco': 'var(--accent)' };
+                var phaseColor = phaseColors[PROGRESSION[progIdx].label] || 'var(--accent)';
+                document.getElementById('weekProg').innerHTML = '<div style="background:rgba(200,255,0,0.08);border:1px solid rgba(200,255,0,0.25);border-radius:12px;padding:14px">'
+                    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+                    + '<span class="phase-badge" style="background:' + phaseColor + '20;color:' + phaseColor + '">' + PROGRESSION[progIdx].label + '</span>'
+                    + '<div style="font-size:11px;letter-spacing:2px;color:var(--accent);text-transform:uppercase">Sett. ' + weekNum + '</div>'
+                    + '</div>'
+                    + '<div style="font-size:15px;font-weight:700;margin-bottom:4px">' + PROGRESSION[progIdx].label + '</div>'
+                    + '<div style="font-size:13px;color:var(--muted);line-height:1.6">' + PROGRESSION[progIdx].desc + '</div>'
+                    + '</div>';
 
-                const cs = document.getElementById('consistencyStats');
-                const recentSessions = state.sessions.slice(-5);
-                let totalSets = 0, completedSets = 0;
-                recentSessions.forEach(s => {
-                    const sessionDef = getCurrentSessions()[s.session];
+                var cs = document.getElementById('consistencyStats');
+                var recentSessions = state.sessions.slice(-5);
+                // Build per-exercise data over last 5 sessions
+                var exMap = {};
+                var totalSets = 0, completedSets = 0;
+                recentSessions.forEach(function(s) {
+                    var sessionDef = getCurrentSessions()[s.session];
                     if (!sessionDef) return;
-                    sessionDef.exercises.forEach(ex => {
-                        totalSets += ex.sets;
-                        const exData = s.exercises?.[ex.id];
-                        if (exData) completedSets += exData.completedSets.length;
+                    sessionDef.exercises.forEach(function(ex) {
+                        if (!exMap[ex.id]) exMap[ex.id] = { name: ex.name, sets: [] };
+                        var exData = s.exercises[ex.id];
+                        var done = exData ? exData.completedSets.length : 0;
+                        var planned = exData && exData.plannedSets ? exData.plannedSets : ex.sets;
+                        exMap[ex.id].sets.push({ done: done, planned: planned });
+                        totalSets += planned;
+                        completedSets += done;
                     });
                 });
-                const consistency = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
-                const level = getFatigueLevel();
-                const trend = getVolumeTrend();
-                const deload = getDeloadRecommendation();
-                cs.innerHTML = `
-                    <div class="card" style="padding:16px;margin-bottom:12px">
-                        <div style="font-size:14px;font-weight:600;margin-bottom:8px">Consistenza Serie: ${consistency}%</div>
-                        <div style="font-size:12px;color:var(--muted)">Serie completate nelle ultime 5 sessioni</div>
-                    </div>
-                    <div class="card" style="padding:16px;margin-bottom:12px">
-                        <div style="font-size:14px;font-weight:600;margin-bottom:8px">Trend Volume: ${trend.direction === 'crescita' ? '📈' : trend.direction === 'calo' ? '📉' : '➡️'} ${trend.pct > 0 ? '+' : ''}${trend.pct}%</div>
-                        <div style="font-size:12px;color:var(--muted)">Confronto ultime 3 sessioni vs precedenti</div>
-                    </div>
-                    <div class="card" style="padding:16px;margin-bottom:12px">
-                        <div style="font-size:14px;font-weight:600;margin-bottom:8px">Livello Affaticamento: ${level === 'green' ? '🟢 Bassa' : level === 'yellow' ? '🟡 Media' : '🔴 Alta'}</div>
-                        <div style="font-size:12px;color:var(--muted)">Basato su salti serie, esercizi incompleti e cambi peso</div>
-                    </div>
-                `;
-                if (level === 'red') cs.innerHTML += '<div style="color:var(--red);font-size:12px;margin-top:8px;text-align:center">⚠️ Rilevata possibile sovrallenamento — considera deload</div>';
-                if (deload.needed) cs.innerHTML += `<div style="background:rgba(255,61,31,0.1);border:1px solid var(--red);border-radius:10px;padding:12px;margin-top:8px;font-size:13px;color:var(--white);line-height:1.6">⚠️ ${deload.reason}</div>`;
+                var consistency = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
+                var level = getFatigueLevel();
+                var trend = getVolumeTrend();
+                var deload = getDeloadRecommendation();
+                var consColor = consistency >= 95 ? 'var(--accent)' : (consistency >= 75 ? '#FFB350' : 'var(--red)');
+                cs.innerHTML = '';
+                // Overall consistency card
+                cs.innerHTML += '<div class="card" style="padding:16px;margin-bottom:12px">'
+                    + '<div style="font-size:14px;font-weight:600;margin-bottom:8px">Consistenza Serie: <span style="color:' + consColor + '">' + consistency + '%</span></div>'
+                    + '<div style="height:6px;background:var(--g2);border-radius:99px;overflow:hidden;margin-bottom:12px">'
+                    + '<div style="height:100%;width:' + consistency + '%;background:' + consColor + ';border-radius:99px;transition:width 0.3s"></div></div>'
+                    + '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Serie completate nelle ultime 5 sessioni</div>';
+                // Per-exercise breakdown with dots
+                Object.keys(exMap).forEach(function(exId) {
+                    var ex = exMap[exId];
+                    var exDone = 0, exPlanned = 0;
+                    ex.sets.forEach(function(s) { exDone += s.done; exPlanned += s.planned; });
+                    var exPct = exPlanned > 0 ? Math.round((exDone / exPlanned) * 100) : 0;
+                    var exColor = exPct >= 95 ? 'var(--accent)' : (exPct >= 75 ? '#FFB350' : 'var(--red)');
+                    cs.innerHTML += '<div class="consistency-ex-row">'
+                        + '<div class="consistency-ex-name">' + ex.name + '</div>'
+                        + '<div class="consistency-dots">';
+                    ex.sets.forEach(function(s) {
+                        var dotClass = 'miss';
+                        if (s.done >= s.planned) dotClass = 'full';
+                        else if (s.done > 0) dotClass = 'partial';
+                        cs.innerHTML += '<div class="consistency-dot ' + dotClass + '" title="' + s.done + '/' + s.planned + '"></div>';
+                    });
+                    cs.innerHTML += '</div>'
+                        + '<div style="font-size:11px;font-weight:600;color:' + exColor + ';min-width:40px;text-align:right">' + exPct + '%</div>'
+                        + '</div>';
+                });
+                cs.innerHTML += '</div>';
+                // Trend + Fatigue grid
+                cs.innerHTML += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+                cs.innerHTML += '<div class="card" style="padding:12px">'
+                    + '<div style="font-size:12px;font-weight:600;margin-bottom:4px">Trend Volume</div>'
+                    + '<div style="font-size:20px;font-weight:700;color:' + (trend.pct > 5 ? 'var(--accent)' : trend.pct < -5 ? 'var(--red)' : 'var(--muted)') + '">' + (trend.direction === 'crescita' ? '📈' : trend.direction === 'calo' ? '📉' : '➡️') + ' ' + (trend.pct > 0 ? '+' : '') + trend.pct + '%</div>'
+                    + '<div style="font-size:10px;color:var(--muted);margin-top:2px">Ultime 3 vs precedenti 3</div>'
+                    + '</div>';
+                cs.innerHTML += '<div class="card" style="padding:12px">'
+                    + '<div style="font-size:12px;font-weight:600;margin-bottom:4px">Affaticamento</div>'
+                    + '<div style="font-size:20px;font-weight:700;color:' + (level === 'green' ? 'var(--accent)' : level === 'yellow' ? '#FFB350' : 'var(--red)') + '">' + (level === 'green' ? '🟢' : level === 'yellow' ? '🟡' : '🔴') + ' ' + (level === 'green' ? 'Bassa' : level === 'yellow' ? 'Media' : 'Alta') + '</div>'
+                    + '<div style="font-size:10px;color:var(--muted);margin-top:2px">Salti, incompleti, cambi peso</div>'
+                    + '</div>';
+                cs.innerHTML += '</div>';
+                // Deload warnings
+                if (level === 'red') cs.innerHTML += '<div style="color:var(--red);font-size:12px;margin-bottom:8px;text-align:center">⚠️ Rilevata possibile sovrallenamento — considera deload</div>';
+                if (deload.needed) cs.innerHTML += '<div style="background:rgba(255,61,31,0.1);border:1px solid var(--red);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--white);line-height:1.6">⚠️ ' + deload.reason + '</div>';
 
-                // Per-exercise detail from last session
-                const lastSess = state.sessions[state.sessions.length - 1];
+                // Per-exercise detail from last session (con volume)
+                var lastSess = state.sessions[state.sessions.length - 1];
                 if (lastSess && lastSess.exercises) {
-                    const lastSessDef = getCurrentSessions()[lastSess.session];
+                    var lastSessDef = getCurrentSessions()[lastSess.session];
                     if (lastSessDef) {
-                        let detHtml = '<div class="card" style="padding:16px;margin-top:12px"><div style="font-size:14px;font-weight:600;margin-bottom:10px">Dettaglio ultima sessione (' + lastSess.date + ')</div>';
+                        var detHtml = '<div class="card" style="padding:16px"><div style="font-size:14px;font-weight:600;margin-bottom:10px">Dettaglio ultima sessione (' + lastSess.date + ')</div>';
                         lastSessDef.exercises.forEach(function(ex) {
                             var exData = lastSess.exercises[ex.id];
                             if (!exData) return;
@@ -1291,13 +1450,16 @@
                             var weightOk = weightUsed === weightPlanned;
                             var setColor = setsOk ? 'var(--accent)' : 'var(--red)';
                             var weightColor = weightOk ? 'var(--muted)' : (weightUsed > weightPlanned ? 'var(--accent)' : 'var(--red)');
-                            detHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--g2);font-size:12px">';
-                            detHtml += '<div style="font-weight:500">' + ex.name + '</div>';
-                            detHtml += '<div style="display:flex;gap:12px">';
-                            detHtml += '<span style="color:' + setColor + '">' + setsDone + '/' + setsPlanned + ' serie' + (setsOk ? ' ✓' : '') + '</span>';
-                            detHtml += '<span style="color:' + weightColor + '">' + weightUsed + 'kg' + (!weightOk ? ' (pianificato ' + weightPlanned + 'kg)' : '') + '</span>';
+                            var volActual = weightUsed * setsDone * ex.repMid;
+                            detHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--g2);font-size:12px">';
+                            detHtml += '<div style="font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + ex.name + '</div>';
+                            detHtml += '<div style="display:flex;gap:10px;flex-shrink:0">';
+                            detHtml += '<span style="color:' + setColor + '">' + setsDone + '/' + setsPlanned + '</span>';
+                            detHtml += '<span style="color:' + weightColor + '">' + weightUsed + 'kg' + (!weightOk ? ' (' + weightPlanned + ')' : '') + '</span>';
+                            detHtml += '<span style="color:var(--muted)">' + Math.round(volActual) + '</span>';
                             detHtml += '</div></div>';
                         });
+                        detHtml += '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Volume: peso × serie × repMid</div>';
                         detHtml += '</div>';
                         cs.innerHTML += detHtml;
                     }
