@@ -591,6 +591,7 @@
         (function() {
             // ─────────── DATI ALLENAMENTI: definizione sessioni A/B, esercizi, progressione ───────────
             function getCurrentSessions() {
+                // Definisce la struttura delle sessioni A (Push) e B (Pull) con esercizi, serie, ripetizioni, pesi
                 const baseSessions = {
                     A: {
                         name: 'Spinta (Push)', sub: 'Sabato · Petto, spalle, tricipiti, quadricipiti', day: 6,
@@ -611,13 +612,13 @@
                         ]
                     }
                 };
-
+                // Calcola il numero totale di sessioni completate e la settimana di progressione corrente
                 const totalSessions = state.sessions.length;
                 const weekNum = Math.ceil(totalSessions / 2) || 1;
-
-                // Adjust sets based on progression
+                // Determina l'indice della fase di progressione in base alla settimana (cambio ogni 2 settimane)
                 const progIdx = Math.min(Math.floor((weekNum - 1) / 2), PROGRESSION.length - 1);
-                if (progIdx >= 3 && weekNum <= 8) { // Weeks 7-8 (Peak): 5 sets on compounds (both sessions)
+                // Settimane 7-8 (Peak): imposta 5 serie per esercizi composti (cp, rw, rd)
+                if (progIdx >= 3 && weekNum <= 8) {
                     ['cp','rw','rd'].forEach(id => {
                         Object.values(baseSessions).forEach(session => {
                             const ex = session.exercises.find(e => e.id === id);
@@ -625,14 +626,14 @@
                         });
                     });
                 }
-                if (weekNum === 9) { // Deload: 2 sets everywhere
+                // Settimana 9 (Deload): riduce tutte le serie a 2
+                if (weekNum === 9) {
                     Object.values(baseSessions).forEach(session => {
                         session.exercises.forEach(ex => ex.sets = 2);
                     });
                 }
-
+                // Dalla settimana 9 in poi: applica variazioni avanzate agli esercizi
                 if (weekNum >= 9) {
-                    // Introduce variations for advanced progression (both sessions)
                     Object.values(baseSessions).forEach(session => {
                         const cp = session.exercises.find(e => e.id === 'cp');
                         if (cp) { cp.name = 'Distensioni sdraiate (Variante: Un braccio alla volta)'; cp.meta = '12–14kg · 3 serie × 10–12 rip'; }
@@ -642,14 +643,13 @@
                         if (rd) { rd.name = 'Stacco Rumeno (Variante: Singola gamba)'; rd.meta = '16–18kg · 3 serie × 10–12 rip'; }
                     });
                 }
-
+                // Dalla settimana 10 in poi: aggiunge un nuovo esercizio (Push-up Diamond) alla sessione A
                 if (weekNum >= 10) {
-                    // Add new exercises or further variations
                     baseSessions.A.exercises.push({
                         id: 'pu', name: 'Push-up (Variante: Diamond)', meta: 'Corpo · 3 serie × 10–15 rip', sets: 3, reps: '10–15', repMin: 10, repMid: 12.5, weight: 0, restSec: 60, tip: 'Mani a diamante sotto il petto. Corpo dritto. Ottimo per tricipiti e petto interno.'
                     });
                 }
-
+                // Restituisce le sessioni con le modifiche di progressione applicate
                 return baseSessions;
             }
 
@@ -672,113 +672,112 @@
             ];
 
             // ─────────── STATO APP: salvataggio localStorage, helper date/modal ───────────
-            let state;
-            try { state = JSON.parse(localStorage.getItem('cdf_state') || 'null'); } catch (e) { state = null; }
-            if (!state) {
+            let state;  // Variabile globale per lo stato dell'app
+            try { state = JSON.parse(localStorage.getItem('cdf_state') || 'null'); } catch (e) { state = null; }  // Carica stato da localStorage
+            if (!state) {  // Se nessuno stato salvato, inizializza con valori predefiniti
                 state = {
                 sessions: [], todaySession: null, water: { date: '', count: 0 }, mealsChecked: { date: '', checked: [] },
                 settings: { sound: true, vibration: true, weight: 75, objective: 'cut' }, fatigue: [], bodyMeasurements: [],
                 lastSessionType: null
                 };
             }
-
+            // Salva lo stato corrente in localStorage (ignora errori silenziosamente)
             function save() { try { localStorage.setItem('cdf_state', JSON.stringify(state)); } catch (e) {} }
 
             // ─── Modal custom (alert/confirm/prompt) ───
-            const modalEl = document.getElementById('customModal');
-            const modalMsg = document.getElementById('modalMessage');
-            const modalInput = document.getElementById('modalInput');
-            const modalInputWrap = document.getElementById('modalInputWrap');
-            const modalConfirm = document.getElementById('modalConfirmBtn');
-            const modalCancel = document.getElementById('modalCancelBtn');
+            const modalEl = document.getElementById('customModal');  // Overlay modale
+            const modalMsg = document.getElementById('modalMessage');  // Messaggio testo
+            const modalInput = document.getElementById('modalInput');  // Campo input per prompt
+            const modalInputWrap = document.getElementById('modalInputWrap');  // Wrapper input
+            const modalConfirm = document.getElementById('modalConfirmBtn');  // Pulsante conferma
+            const modalCancel = document.getElementById('modalCancelBtn');  // Pulsante annulla
 
-            function showAlert(msg) {
+            function showAlert(msg) {  // Mostra un alert modale semplice con solo OK
                 return new Promise(resolve => {
-                    modalMsg.textContent = msg;
-                    modalInputWrap.style.display = 'none';
-                    modalCancel.style.display = 'none';
-                    modalConfirm.textContent = 'OK';
-                    modalEl.classList.add('active');
-                    modalConfirm.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(); }, { once: true });
+                    modalMsg.textContent = msg;  // Imposta il messaggio
+                    modalInputWrap.style.display = 'none';  // Nasconde campo input
+                    modalCancel.style.display = 'none';  // Nasconde pulsante Annulla
+                    modalConfirm.textContent = 'OK';  // Testo pulsante
+                    modalEl.classList.add('active');  // Mostra overlay
+                    modalConfirm.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(); }, { once: true });  // Alla conferma, chiude
                 });
             }
 
-            function showConfirm(msg) {
+            function showConfirm(msg) {  // Mostra un modale di conferma con Annulla/Conferma
                 return new Promise(resolve => {
-                    modalMsg.textContent = msg;
-                    modalInputWrap.style.display = 'none';
-                    modalCancel.style.display = 'block';
-                    modalConfirm.textContent = 'Conferma';
-                    modalEl.classList.add('active');
-                    modalConfirm.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(true); }, { once: true });
-                    modalCancel.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(false); }, { once: true });
+                    modalMsg.textContent = msg;  // Imposta il messaggio
+                    modalInputWrap.style.display = 'none';  // Nasconde input
+                    modalCancel.style.display = 'block';  // Mostra Annulla
+                    modalConfirm.textContent = 'Conferma';  // Testo pulsante
+                    modalEl.classList.add('active');  // Mostra overlay
+                    modalConfirm.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(true); }, { once: true });  // True = confermato
+                    modalCancel.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(false); }, { once: true });  // False = annullato
                 });
             }
 
-            function showPrompt(msg, defaultValue) {
+            function showPrompt(msg, defaultValue) {  // Mostra un modale con campo input
                 return new Promise(resolve => {
-                    modalMsg.textContent = msg;
-                    modalInputWrap.style.display = 'block';
-                    modalInput.value = defaultValue || '';
-                    modalCancel.style.display = 'block';
-                    modalConfirm.textContent = 'Conferma';
-                    modalEl.classList.add('active');
-                    setTimeout(() => modalInput.focus(), 100);
-                    modalConfirm.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(modalInput.value); }, { once: true });
-                    modalCancel.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(null); }, { once: true });
-                    modalInput.addEventListener('keydown', function handler(e) { if (e.key === 'Enter') { modalEl.classList.remove('active'); resolve(modalInput.value); } }, { once: true });
+                    modalMsg.textContent = msg;  // Messaggio
+                    modalInputWrap.style.display = 'block';  // Mostra input
+                    modalInput.value = defaultValue || '';  // Valore predefinito
+                    modalCancel.style.display = 'block';  // Mostra Annulla
+                    modalConfirm.textContent = 'Conferma';  // Testo pulsante
+                    modalEl.classList.add('active');  // Mostra overlay
+                    setTimeout(() => modalInput.focus(), 100);  // Focus sul campo dopo apertura
+                    modalConfirm.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(modalInput.value); }, { once: true });  // Restituisce valore
+                    modalCancel.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(null); }, { once: true });  // Restituisce null
+                    modalInput.addEventListener('keydown', function handler(e) { if (e.key === 'Enter') { modalEl.classList.remove('active'); resolve(modalInput.value); } }, { once: true });  // Invio conferma
                 });
             }
-            function todayStr() { return new Date().toISOString().split('T')[0]; }
-            function getDayOfWeek() { return new Date().getDay(); }
-            function getNextSessionType() { return state.lastSessionType === 'A' ? 'B' : 'A'; }
+            function todayStr() { return new Date().toISOString().split('T')[0]; }  // Restituisce data odierna in formato YYYY-MM-DD
+            function getDayOfWeek() { return new Date().getDay(); }  // Restituisce giorno della settimana (0=Dom, 6=Sab)
+            function getNextSessionType() { return state.lastSessionType === 'A' ? 'B' : 'A'; }  // Alterna A/B: se ultima era A, prossima B
 
-            function getMacroTargets() {
+            function getMacroTargets() {  // Restituisce target macro in base all'obiettivo (cut/bulk)
                 const obj = state.settings.objective || 'cut';
-                if (obj === 'bulk') return { p: 160, c: 220, f: 70, kcal: 2400 };
-                else return { p: 120, c: 170, f: 65, kcal: 1900 }; // Proteine corrette a 120g per salute renale
+                if (obj === 'bulk') return { p: 160, c: 220, f: 70, kcal: 2400 };  // Target per massa
+                else return { p: 120, c: 170, f: 65, kcal: 1900 };  // Target per definizione
             }
 
             // ─────────── NAVIGAZIONE: cambio pagina, eventi nav ───────────
-            function goPage(page) {
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                const targetPage = document.getElementById('page-' + page);
-                if (targetPage) targetPage.classList.add('active');
-                const targetBtn = document.querySelector(`.nav-btn[data-page="${page}"]`);
-                if (targetBtn) targetBtn.classList.add('active');
-
+            function goPage(page) {  // Cambia la pagina attiva e renderizza il contenuto corrispondente
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));  // Nasconde tutte le pagine
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));  // Toglie active dai bottoni nav
+                const targetPage = document.getElementById('page-' + page);  // Trova la pagina target
+                if (targetPage) targetPage.classList.add('active');  // Mostra la pagina target
+                const targetBtn = document.querySelector(`.nav-btn[data-page="${page}"]`);  // Trova il bottone nav corrispondente
+                if (targetBtn) targetBtn.classList.add('active');  // Evidenzia il bottone
+                // Renderizza la vista corrispondente alla pagina
                 if (page === 'home') renderHome();
                 if (page === 'workout') renderWorkout();
                 if (page === 'nutrition') renderNutrition();
                 if (page === 'progress') renderProgress();
                 if (page === 'settings') renderSettings();
             }
-
+            // Associa click dei bottoni nav al cambio pagina
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.addEventListener('click', function() { goPage(this.dataset.page); });
             });
 
             // ─────────── HOME: rendering giorno corrente, statistiche, streak ───────────
-            function renderHome() {
-                const dow = getDayOfWeek();
+            function renderHome() {  // Renderizza la schermata home con stato sessione, insight, raccomandazioni
+                const dow = getDayOfWeek();  // Giorno corrente (0-6)
                 const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
-                document.getElementById('headerDate').textContent = days[dow] + ' ' + new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+                document.getElementById('headerDate').textContent = days[dow] + ' ' + new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });  // Data header
+                const card = document.getElementById('todayWorkoutCard');  // Card workout oggi
+                let sessionToday = getNextSessionType();  // Prossima sessione A/B
+                const todayDone = state.sessions.find(s => s.date === todayStr());  // Sessione già completata oggi?
 
-                const card = document.getElementById('todayWorkoutCard');
-                let sessionToday = getNextSessionType();
-                const todayDone = state.sessions.find(s => s.date === todayStr());
-
-                if (todayDone) {
+                if (todayDone) {  // Se già allenato oggi, mostra riepilogo
                     card.innerHTML = `<div class="today-card" style="border-color:rgba(200, 255, 0, 0.5)">
                         <div class="today-label">✅ Completata oggi</div>
                         <div class="today-title">Sessione ${todayDone.session}</div>
                         <div class="today-sub">Ottimo lavoro! Riposa e recupera 💪</div>
                     </div>`;
                     document.getElementById('homeGreetingSub').textContent = 'Sessione completata! Ben fatto 🏆';
-                } else {
-                    const s = getCurrentSessions()[sessionToday];
-                    const isRestDay = (dow === 2 || dow === 4);
+                } else {  // Se non ancora allenato, mostra prossimo allenamento
+                    const s = getCurrentSessions()[sessionToday];  // Dati della prossima sessione
+                    const isRestDay = (dow === 2 || dow === 4);  // Martedì (2) e Giovedì (4) sono giorni di riposo suggeriti
                     const restNote = isRestDay ? '<div style="font-size:12px;color:var(--muted);margin-top:8px">🚶 Oggi sarebbe camminata — puoi allenarti lo stesso se preferisci</div>' : '';
                     card.innerHTML = `<div class="today-card">
                         <div class="today-label">Prossimo allenamento</div>
@@ -786,15 +785,14 @@
                         <div class="today-sub">${s.sub} · ${s.exercises.length} esercizi${restNote}</div>
                         <button class="start-btn" id="startSessionBtn">Inizia sessione →</button>
                     </div>`;
-                    document.getElementById('startSessionBtn').addEventListener('click', () => startSession(sessionToday), { once: true });
+                    document.getElementById('startSessionBtn').addEventListener('click', () => startSession(sessionToday), { once: true });  // Bottone avvia sessione
                     document.getElementById('homeGreetingSub').textContent = isRestDay ? 'Giorno di riposo — ma puoi allenarti! 🔥' : 'Pronto per la prossima sessione? 🔥';
                 }
-
+                // Statistiche riepilogo: sessioni totali e questa settimana
                 document.getElementById('statSessions').textContent = state.sessions.length;
-                const weekStart = getWeekStart();
+                const weekStart = getWeekStart();  // Inizio settimana corrente
                 document.getElementById('statWeek').textContent = state.sessions.filter(s => s.date >= weekStart).length;
-
-                // Smart insight
+                // Insight motivazionale intelligente
                 const insight = getSmartInsight();
                 const insightEl = document.getElementById('smartInsight');
                 if (insightEl) {
@@ -806,21 +804,19 @@
                         </div>
                     </div>`;
                 }
-
-                // Recommendation card for next session
+                // Card raccomandazione intelligente per la prossima sessione
                 var recEl = document.getElementById('smartRecommendation');
-                if (!recEl) {
+                if (!recEl) {  // Crea elemento se non esiste
                     recEl = document.createElement('div'); recEl.id = 'smartRecommendation';
                     insightEl.parentNode.insertBefore(recEl, insightEl.nextSibling);
                 }
-                var fatigue = getFatigueLevel();
-                var trend = getVolumeTrend();
-                var deload = getDeloadRecommendation();
+                var fatigue = getFatigueLevel();  // Livello affaticamento
+                var trend = getVolumeTrend();  // Trend volume
+                var deload = getDeloadRecommendation();  // Raccomandazione deload
                 var recHtml = '';
                 var nextSession = getNextSessionType();
                 var nextS = getCurrentSessions()[nextSession];
-                // Find exercises with suggestions
-                var exSuggestions = [];
+                var exSuggestions = [];  // Esercizi con suggerimento aumento peso
                 if (nextS && !todayDone) {
                     nextS.exercises.forEach(function(ex) {
                         var sug = getSuggestedWeight(ex.id, ex.weight);
@@ -829,6 +825,7 @@
                         }
                     });
                 }
+                // Sceglie il messaggio raccomandazione in base a priorità: deload > fatigue > suggerimenti peso > trend
                 if (deload.needed) {
                     recHtml = '<div class="rec-card warning"><div style="display:flex;align-items:flex-start">'
                         + '<div class="rec-icon">⚠️</div><div class="rec-text">' + deload.reason + '</div></div></div>';
@@ -853,16 +850,16 @@
                         + '<div class="rec-icon">🎯</div><div class="rec-text">Allenamento costante. <strong>Obiettivo: ' + (state.settings.objective === 'cut' ? 'Definizione' : 'Massa') + '.</strong> Prossima sessione: ' + nextS.name + '. Mantieni il ritmo!</div></div></div>';
                 }
                 if (recHtml) recEl.innerHTML = recHtml;
-
+                // Cronologia settimana corrente: 7 giorni con icone stato
                 const wh = document.getElementById('weekHistory');
                 const dayNames = ['D', 'L', 'M', 'M', 'G', 'V', 'S'];
                 const dayIcons = ['💪', '🚶', '🚶', '😴', '🚶', '😴', '💪'];
                 wh.innerHTML = '';
                 for (let i = 1; i <= 7; i++) {
                     const dd = new Date();
-                    dd.setDate(dd.getDate() - ((dow - i + 7) % 7));
+                    dd.setDate(dd.getDate() - ((dow - i + 7) % 7));  // Calcola data del giorno i giorni fa
                     const ds = dd.toISOString().split('T')[0];
-                    const done = state.sessions.find(s => s.date === ds);
+                    const done = state.sessions.find(s => s.date === ds);  // Sessione fatta in quel giorno?
                     const isToday = ds === todayStr();
                     wh.innerHTML += `<div class="wh-day ${done ? 'done-day' : ''}" style="${isToday ? 'border:1px solid var(--accent)' : ''}">
                         <div class="wh-name">${dayNames[i % 7]}</div>
@@ -871,48 +868,48 @@
                 }
             }
 
-            function getWeekStart() {
+            function getWeekStart() {  // Restituisce la data di inizio della settimana corrente (domenica)
                 const d = new Date(); d.setDate(d.getDate() - d.getDay()); return d.toISOString().split('T')[0];
             }
 
-            function calculateStreak() {
-                let streak = 0; let d = new Date(); d.setDate(d.getDate() - d.getDay());
-                for (let i = 0; i < 52; i++) {
+            function calculateStreak() {  // Calcola le settimane consecutive con almeno una sessione
+                let streak = 0; let d = new Date(); d.setDate(d.getDate() - d.getDay());  // Parte da domenica scorsa
+                for (let i = 0; i < 52; i++) {  // Controlla fino a 52 settimane indietro
                     const weekEnd = new Date(d); weekEnd.setDate(weekEnd.getDate() + 6);
-                    const found = state.sessions.some(s => s.date >= d.toISOString().split('T')[0] && s.date <= weekEnd.toISOString().split('T')[0]);
-                    if (found) streak++; else if (i > 0) break;
-                    d.setDate(d.getDate() - 7);
+                    const found = state.sessions.some(s => s.date >= d.toISOString().split('T')[0] && s.date <= weekEnd.toISOString().split('T')[0]);  // Cerca sessioni nella settimana
+                    if (found) streak++; else if (i > 0) break;  // Se trova una settimana vuota dopo la prima, si ferma
+                    d.setDate(d.getDate() - 7);  // Settimana precedente
                 }
                 return streak;
             }
 
             // ─────────── SESSIONE: start, gestione peso, completamento ───────────
-            function startSession(sessionKey) {
-                state.todaySession = { session: sessionKey, exercises: {}, done: false };
+            function startSession(sessionKey) {  // Avvia una nuova sessione di allenamento
+                state.todaySession = { session: sessionKey, exercises: {}, done: false };  // Crea oggetto sessione
                 getCurrentSessions()[sessionKey].exercises.forEach(ex => {
-                    state.todaySession.exercises[ex.id] = { completedSets: [], weight: ex.weight, actualReps: ex.repMin };
+                    state.todaySession.exercises[ex.id] = { completedSets: [], weight: ex.weight, actualReps: ex.repMin };  // Inizializza ogni esercizio
                 });
-                save(); goPage('workout');
-                setTimeout(() => showFatigueStatus(), 500);
+                save(); goPage('workout');  // Salva e vai alla pagina workout
+                setTimeout(() => showFatigueStatus(), 500);  // Mostra stato affaticamento dopo 500ms
             }
 
-            function getSuggestedWeight(exId, currentWeight) {
-                const sessionsWithEx = state.sessions.filter(s => s.exercises && s.exercises[exId] && s.exercises[exId].completedSets.length > 0);
-                if (sessionsWithEx.length < 1) return null;
-                const lastSession = sessionsWithEx[sessionsWithEx.length - 1];
+            function getSuggestedWeight(exId, currentWeight) {  // Suggerisce aumento peso se l'esercizio è stato completato costantemente
+                const sessionsWithEx = state.sessions.filter(s => s.exercises && s.exercises[exId] && s.exercises[exId].completedSets.length > 0);  // Sessioni con questo esercizio
+                if (sessionsWithEx.length < 1) return null;  // Nessuna sessione precedente
+                const lastSession = sessionsWithEx[sessionsWithEx.length - 1];  // Ultima sessione
                 const lastEx = lastSession.exercises[exId];
                 const sessionDef = getCurrentSessions()[lastSession.session];
                 const exerciseDef = sessionDef?.exercises.find(e => e.id === exId);
-                if (!exerciseDef || lastEx.completedSets.length < exerciseDef.sets) return null;
+                if (!exerciseDef || lastEx.completedSets.length < exerciseDef.sets) return null;  // Non ha completato tutte le serie
                 const fatigue = getFatigueLevel();
-                if (fatigue !== 'green') return null;
+                if (fatigue !== 'green') return null;  // Non suggerire se affaticato
                 const prevWeight = lastEx.weight || currentWeight;
-                return prevWeight + 0.5;
+                return prevWeight + 0.5;  // Suggerisce +0.5kg
             }
 
-            function renderWorkout() {
+            function renderWorkout() {  // Renderizza la schermata di allenamento attivo
                 const wc = document.getElementById('page-workout');
-                if (!state.todaySession) {
+                if (!state.todaySession) {  // Nessuna sessione attiva: mostra schermata iniziale
                     let sessionKey = getNextSessionType();
                     wc.innerHTML = `<div style="text-align:center;padding:40px 20px">
                         <div style="font-size:48px;margin-bottom:16px">💪</div>
@@ -923,26 +920,26 @@
                     document.getElementById('startNowBtn').addEventListener('click', () => startSession(sessionKey), { once: true });
                     return;
                 }
-
-                const s = getCurrentSessions()[state.todaySession.session];
-                const exState = state.todaySession.exercises;
-                const totalSets = s.exercises.reduce((acc, ex) => acc + ex.sets, 0);
-                const completedSets = s.exercises.reduce((acc, ex) => acc + Math.min((exState[ex.id]?.completedSets.length || 0), ex.sets), 0);
-                const pct = Math.round((completedSets / totalSets) * 100);
-                const allDone = s.exercises.every(ex => exState[ex.id] && exState[ex.id].completedSets.length >= ex.sets);
-
+                // Sessione attiva: prepara dati per il rendering
+                const s = getCurrentSessions()[state.todaySession.session];  // Definizione sessione corrente
+                const exState = state.todaySession.exercises;  // Stato esercizi
+                const totalSets = s.exercises.reduce((acc, ex) => acc + ex.sets, 0);  // Totale serie pianificate
+                const completedSets = s.exercises.reduce((acc, ex) => acc + Math.min((exState[ex.id]?.completedSets.length || 0), ex.sets), 0);  // Serie completate (cappate alle pianificate)
+                const pct = Math.round((completedSets / totalSets) * 100);  // Percentuale completamento
+                const allDone = s.exercises.every(ex => exState[ex.id] && exState[ex.id].completedSets.length >= ex.sets);  // Tutte le serie complete?
+                // Intestazione sessione con progress bar
                 let html = `<div class="session-header">
                     <div class="session-name">${s.name}</div>
                     <div class="session-sub">${s.sub} · ⏱ ~${getEstimatedDuration(state.todaySession.session)} min</div>
                     <div class="session-progress"><div class="session-progress-fill" style="width:${pct}%"></div></div>
                     <div class="session-progress-label">${pct}% completato</div>
                 </div>`;
-
+                // Card per ogni esercizio
                 s.exercises.forEach((ex, idx) => {
                     const exS = exState[ex.id] || { completedSets: [], weight: ex.weight, actualReps: ex.repMin };
-                    const isDone = exS.completedSets.length >= ex.sets;
-                    const suggestion = !isDone ? getSuggestedWeight(ex.id, exS.weight) : null;
-
+                    const isDone = exS.completedSets.length >= ex.sets;  // Esercizio completato?
+                    const suggestion = !isDone ? getSuggestedWeight(ex.id, exS.weight) : null;  // Suggerimento peso
+                    // Intestazione esercizio con nome, PB, stato
                     html += `<div class="ex-card ${isDone ? 'done' : ''}" data-exid="${ex.id}">
                         <div class="ex-head">
                             <div class="ex-num">${isDone ? '✓' : (idx + 1)}</div>
@@ -953,7 +950,7 @@
                             <div class="ex-check">${isDone ? '✅' : '○'}</div>
                         </div>
                         <div class="ex-body">`;
-
+                    // Controlli peso (solo per esercizi con peso > 0)
                     if (ex.weight > 0) {
                         html += `<div class="weight-row">
                             <div class="weight-label">Peso per manubrio</div>
@@ -962,19 +959,19 @@
                             <button class="w-btn inc-btn">+</button>
                             ${suggestion ? `<button class="w-btn apply-suggestion" style="background:var(--accent);color:black;font-size:12px">✓</button>` : ''}
                         </div>`;
-                        if (exS.weight !== ex.weight) {
+                        if (exS.weight !== ex.weight) {  // Mostra warning se peso diverso dal pianificato
                             const diff = exS.weight - ex.weight;
                             html += `<div style="font-size:11px;color:${diff > 0 ? 'var(--accent)' : 'var(--red)'};margin-bottom:8px;padding:4px 8px;background:rgba(200,255,0,0.05);border-radius:6px">⚠️ Peso: ${exS.weight}kg (pianificato ${ex.weight}kg · ${diff > 0 ? '+' : ''}${diff}kg)</div>`;
                         }
                     }
-
+                    // Controlli ripetizioni modificabili
                     html += `<div class="rep-row">
                         <div class="weight-label">Ripetizioni</div>
                         <button class="w-btn rep-dec-btn">−</button>
                         <div class="weight-val">${exS.actualReps ?? ex.repMin}<span style="font-size:10px;color:var(--muted);margin-left:4px"> (pian: ${ex.reps})</span></div>
                         <button class="w-btn rep-inc-btn">+</button>
                     </div>`;
-
+                    // Griglia serie: pulsanti per ogni serie pianificata
                     html += `<div class="section-label-small">${exS.completedSets.length}/${ex.sets} serie completate (tocca per segnare)</div><div class="sets-grid">`;
                     for (let i = 1; i <= ex.sets; i++) {
                         const setDone = exS.completedSets.includes(i);
@@ -983,48 +980,48 @@
                         </button>`;
                     }
                     html += `</div>`;
-                    if (ex.tip) html += `<div class="note-box">💡 ${ex.tip}</div>`;
-                    if (!isDone) html += `<button class="complete-ex-btn">Segna tutto completato</button>`;
+                    if (ex.tip) html += `<div class="note-box">💡 ${ex.tip}</div>`;  // Suggerimento esecuzione
+                    if (!isDone) html += `<button class="complete-ex-btn">Segna tutto completato</button>`;  // Bottone completa tutte le serie
                     html += `</div></div>`;
                 });
-
+                // Bottone termina sessione (stile diverso se mancano serie)
                 html += `<button class="finish-session-btn" id="finishSessionBtn" style="${allDone ? '' : 'background:var(--g2);color:var(--white);margin-top:16px'}">${allDone ? '🏆 Termina sessione' : '⚠️ Termina sessione comunque'}</button>`;
                 if (!allDone) {
                     html += `<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;padding:0 20px">Non hai completato tutte le serie. I progressi registreranno i dati reali.</div>`;
                 }
-                wc.innerHTML = html;
+                wc.innerHTML = html;  // Inietta HTML nel DOM
 
-                // Event listeners (struttura preservata e pulita)
-                wc.querySelectorAll('.ex-head').forEach(head => head.addEventListener('click', function(e) {
+                // Event listeners per tutti i controlli interattivi
+                wc.querySelectorAll('.ex-head').forEach(head => head.addEventListener('click', function(e) {  // Click testata esercizio: apre/chiude dettagli
                     if (e.target.tagName === 'BUTTON') return;
                     this.closest('.ex-card').classList.toggle('open');
                 }));
-                wc.querySelectorAll('.dec-btn').forEach(btn => btn.addEventListener('click', function(e) {
+                wc.querySelectorAll('.dec-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Diminuisce peso
                     e.stopPropagation(); changeWeight(this.closest('.ex-card').dataset.exid, -1);
                 }));
-                wc.querySelectorAll('.inc-btn').forEach(btn => btn.addEventListener('click', function(e) {
+                wc.querySelectorAll('.inc-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Aumenta peso
                     e.stopPropagation(); changeWeight(this.closest('.ex-card').dataset.exid, 1);
                 }));
-                wc.querySelectorAll('.apply-suggestion').forEach(btn => btn.addEventListener('click', function(e) {
+                wc.querySelectorAll('.apply-suggestion').forEach(btn => btn.addEventListener('click', function(e) {  // Applica suggerimento peso
                     e.stopPropagation(); 
                     const exId = this.closest('.ex-card').dataset.exid;
                     const suggestion = getSuggestedWeight(exId, state.todaySession.exercises[exId].weight);
                     if (suggestion) changeWeightDirect(exId, suggestion);
                 }));
-                wc.querySelectorAll('.set-btn').forEach(btn => btn.addEventListener('click', function(e) {
+                wc.querySelectorAll('.set-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Marca/toglie serie come completata
                     e.stopPropagation();
                     toggleSet(this.closest('.ex-card').dataset.exid, parseInt(this.dataset.set));
                 }));
-                wc.querySelectorAll('.rep-dec-btn').forEach(btn => btn.addEventListener('click', function(e) {
+                wc.querySelectorAll('.rep-dec-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Diminuisce ripetizioni
                     e.stopPropagation(); changeReps(this.closest('.ex-card').dataset.exid, -1);
                 }));
-                wc.querySelectorAll('.rep-inc-btn').forEach(btn => btn.addEventListener('click', function(e) {
+                wc.querySelectorAll('.rep-inc-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Aumenta ripetizioni
                     e.stopPropagation(); changeReps(this.closest('.ex-card').dataset.exid, 1);
                 }));
-                wc.querySelectorAll('.complete-ex-btn').forEach(btn => btn.addEventListener('click', function(e) {
+                wc.querySelectorAll('.complete-ex-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Completa tutte le serie dell'esercizio
                     e.stopPropagation(); completeExercise(this.closest('.ex-card').dataset.exid);
                 }));
-                document.getElementById('finishSessionBtn').addEventListener('click', async function() {
+                document.getElementById('finishSessionBtn').addEventListener('click', async function() {  // Termina sessione con conferma se incompleta
                     if (!allDone) {
                         const confirmed = await showConfirm('Non hai completato tutte le serie previste. Vuoi terminare comunque? I dati reali verranno registrati.');
                         if (!confirmed) return;
@@ -1033,48 +1030,46 @@
                 });
             }
 
-            function changeWeightDirect(exId, newWeight) {
+            function changeWeightDirect(exId, newWeight) {  // Imposta peso direttamente e logga cambiamento
                 if (!state.todaySession) return;
                 const oldWeight = state.todaySession.exercises[exId].weight;
                 state.todaySession.exercises[exId].weight = newWeight;
-                if (oldWeight !== newWeight) logFatigue('weight_adjusted', exId);
+                if (oldWeight !== newWeight) logFatigue('weight_adjusted', exId);  // Logga solo se effettivamente cambiato
                 save(); renderWorkout();
                 const card = document.querySelector(`.ex-card[data-exid="${exId}"]`);
-                if (card) card.classList.add('open');
+                if (card) card.classList.add('open');  // Riapre i dettagli dell'esercizio
             }
-            function changeWeight(exId, delta) {
+            function changeWeight(exId, delta) {  // Modifica peso incrementando/decrementando (delta = -1 o +1)
                 if (!state.todaySession) return;
                 const exS = state.todaySession.exercises[exId];
-                changeWeightDirect(exId, Math.max(0, (exS.weight || 0) + delta));
+                changeWeightDirect(exId, Math.max(0, (exS.weight || 0) + delta));  // Minimo 0kg
             }
 
-            function changeReps(exId, delta) {
+            function changeReps(exId, delta) {  // Modifica ripetizioni incrementando/decrementando (delta = -1 o +1)
                 if (!state.todaySession) return;
                 const exS = state.todaySession.exercises[exId];
                 const sessionDef = getCurrentSessions()[state.todaySession.session];
                 const exDef = sessionDef?.exercises.find(e => e.id === exId);
                 const curReps = exS.actualReps ?? exDef?.repMin ?? 10;
-                exS.actualReps = Math.max(1, curReps + delta);
+                exS.actualReps = Math.max(1, curReps + delta);  // Minimo 1 ripetizione
                 save(); renderWorkout();
                 const card = document.querySelector(`.ex-card[data-exid="${exId}"]`);
                 if (card) card.classList.add('open');
             }
 
-            // BUG FIX: Ripristinato l'innesco automatico del timer!
-            function toggleSet(exId, setNum) {
+            function toggleSet(exId, setNum) {  // Marca/toglie una serie come completata
                 if (!state.todaySession) return;
                 const exS = state.todaySession.exercises[exId];
-                const idx = exS.completedSets.indexOf(setNum);
+                const idx = exS.completedSets.indexOf(setNum);  // Cerca se la serie è già completata
                 
-                if (idx >= 0) {
+                if (idx >= 0) {  // Se già completata, la rimuove
                     exS.completedSets.splice(idx, 1);
-                } else {
-                    if (setNum > 1 && !exS.completedSets.includes(setNum - 1)) {
+                } else {  // Altrimenti la aggiunge
+                    if (setNum > 1 && !exS.completedSets.includes(setNum - 1)) {  // Logga se salta una serie precedente
                         logFatigue('set_skipped', exId);
                     }
                     exS.completedSets.push(setNum);
-                    
-                    // Avvia il timer
+                    // Avvia il timer di riposo
                     const sessionDef = getCurrentSessions()[state.todaySession.session];
                     const exDef = sessionDef.exercises.find(e => e.id === exId);
                     if(exDef) startTimer(exDef.restSec, exDef.name);
@@ -1085,123 +1080,123 @@
                 if (card) card.classList.add('open');
             }
 
-            function completeExercise(exId) {
+            function completeExercise(exId) {  // Marca tutte le serie pianificate come completate
                 if (!state.todaySession) return;
                 const exDef = getCurrentSessions()[state.todaySession.session].exercises.find(e => e.id === exId);
                 if (!exDef) return;
-                state.todaySession.exercises[exId].completedSets = Array.from({ length: exDef.sets }, (_, i) => i + 1);
+                state.todaySession.exercises[exId].completedSets = Array.from({ length: exDef.sets }, (_, i) => i + 1);  // Serie 1..N
                 save(); renderWorkout(); startTimer(exDef.restSec, exDef.name);
             }
 
-            function finishSession() {
+            function finishSession() {  // Termina la sessione salvando dati reali e riferimenti pianificati
                 const sessionDef = getCurrentSessions()[state.todaySession.session];
-                // Check for incomplete exercises and weight discrepancies
+                // Logga fatica per esercizi incompleti e variazioni peso
                 Object.keys(state.todaySession.exercises).forEach(exId => {
                     const exS = state.todaySession.exercises[exId];
                     const exDef = sessionDef?.exercises.find(e => e.id === exId);
                     if (exDef) {
-                        if (exS.completedSets.length < exDef.sets) {
+                        if (exS.completedSets.length < exDef.sets) {  // Serie incomplete
                             logFatigue('incomplete_exercise', exId);
                         }
-                        if (exS.weight !== undefined && exS.weight !== exDef.weight) {
+                        if (exS.weight !== undefined && exS.weight !== exDef.weight) {  // Peso diverso dal pianificato
                             logFatigue(exS.weight > exDef.weight ? 'weight_increased' : 'weight_reduced', exId);
                         }
                     }
                 });
-                // Save real data + planned reference
+                // Salva dati reali + riferimenti pianificati per analisi future
                 const sessionData = JSON.parse(JSON.stringify(state.todaySession.exercises));
                 if (sessionDef) {
                     Object.keys(sessionData).forEach(exId => {
                         const exDef = sessionDef.exercises.find(e => e.id === exId);
                         if (exDef) {
-                            sessionData[exId].plannedSets = exDef.sets;
-                            sessionData[exId].weightPlanned = exDef.weight;
-                            sessionData[exId].repPlanned = exDef.repMin;
+                            sessionData[exId].plannedSets = exDef.sets;  // Serie pianificate
+                            sessionData[exId].weightPlanned = exDef.weight;  // Peso pianificato
+                            sessionData[exId].repPlanned = exDef.repMin;  // Ripetizioni pianificate (minimo range)
                         }
                     });
                 }
-                state.sessions.push({ date: todayStr(), session: state.todaySession.session, exercises: sessionData });
-                state.lastSessionType = state.todaySession.session;
-                state.todaySession.done = true; save();
-                
+                state.sessions.push({ date: todayStr(), session: state.todaySession.session, exercises: sessionData });  // Salva sessione completata
+                state.lastSessionType = state.todaySession.session;  // Aggiorna ultimo tipo sessione
+                state.todaySession.done = true; save();  // Marca come completata
+                // Mostra overlay congratulazioni
                 const congDiv = document.getElementById('congrats');
                 congDiv.classList.add('active');
                 document.getElementById('congratsSub').innerHTML = `Hai completato la ${getCurrentSessions()[state.todaySession.session].name}!<br>Continua così — stai costruendo il corpo di ferro. 💪`;
-                document.getElementById('congratsCloseBtn').addEventListener('click', function handler() {
+                document.getElementById('congratsCloseBtn').addEventListener('click', function handler() {  // Bottone chiude congratulazioni e torna home
                     congDiv.classList.remove('active'); state.todaySession = null;
                     save(); renderWorkout(); renderHome(); goPage('home');
                 }, { once: true });
-                analyzeFatigue();
+                analyzeFatigue();  // Analizza fatica accumulata
             }
 
             // ─────────── TIMER: conto alla rovescia tra serie ───────────
             let timerInterval = null; let timerTotal = 60; let timerRemaining = 60; let timerPaused = false;
 
-            function startTimer(seconds, exName) {
-                if (timerInterval) clearInterval(timerInterval);
-                timerTotal = seconds; timerRemaining = seconds; timerPaused = false;
-                document.getElementById('timerExName').textContent = 'Dopo: ' + exName;
-                document.getElementById('timerPauseBtn').textContent = 'Pausa';
-                updateTimerUI();
-                document.getElementById('timerOverlay').classList.add('active');
-                timerInterval = setInterval(tickTimer, 1000);
+            function startTimer(seconds, exName) {  // Avvia il timer di riposo tra le serie
+                if (timerInterval) clearInterval(timerInterval);  // Resetta timer precedente
+                timerTotal = seconds; timerRemaining = seconds; timerPaused = false;  // Imposta durata
+                document.getElementById('timerExName').textContent = 'Dopo: ' + exName;  // Nome esercizio
+                document.getElementById('timerPauseBtn').textContent = 'Pausa';  // Testo pulsante pausa
+                updateTimerUI();  // Aggiorna UI circolare
+                document.getElementById('timerOverlay').classList.add('active');  // Mostra overlay
+                timerInterval = setInterval(tickTimer, 1000);  // Tick ogni secondo
             }
 
-            function tickTimer() {
-                if (timerPaused) return;
-                timerRemaining--; updateTimerUI();
-                if (timerRemaining <= 0) {
+            function tickTimer() {  // Decrementa il timer ogni secondo
+                if (timerPaused) return;  // Se in pausa, non fare nulla
+                timerRemaining--; updateTimerUI();  // Decrementa e aggiorna UI
+                if (timerRemaining <= 0) {  // Tempo scaduto
                     clearInterval(timerInterval);
-                    document.getElementById('timerOverlay').classList.remove('active');
-                    if (state.settings.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    document.getElementById('timerOverlay').classList.remove('active');  // Nascondi overlay
+                    if (state.settings.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);  // Vibra se abilitato
                 }
             }
 
-            function updateTimerUI() {
-                document.getElementById('timerSecs').textContent = timerRemaining;
+            function updateTimerUI() {  // Aggiorna il display circolare del timer
+                document.getElementById('timerSecs').textContent = timerRemaining;  // Secondi rimanenti
                 const pct = timerRemaining / timerTotal;
-                document.getElementById('timerCircle').style.strokeDashoffset = (2 * Math.PI * 90) * (1 - pct);
+                document.getElementById('timerCircle').style.strokeDashoffset = (2 * Math.PI * 90) * (1 - pct);  // Animazione arco
             }
 
             // Timer button listeners (moved to init() to use addEventListener)
             let timerPauseListener, timerSkipListener, timerAddListener;
-            function bindTimerButtons() {
-                if (timerPauseListener) return;
-                timerPauseListener = () => { timerPaused = !timerPaused; document.getElementById('timerPauseBtn').textContent = timerPaused ? 'Riprendi' : 'Pausa'; };
-                timerSkipListener = () => { if (timerInterval) clearInterval(timerInterval); document.getElementById('timerOverlay').classList.remove('active'); };
-                timerAddListener = () => { timerRemaining += 15; timerTotal += 15; updateTimerUI(); };
+            function bindTimerButtons() {  // Collega listener ai pulsanti timer (una sola volta)
+                if (timerPauseListener) return;  // Già collegati
+                timerPauseListener = () => { timerPaused = !timerPaused; document.getElementById('timerPauseBtn').textContent = timerPaused ? 'Riprendi' : 'Pausa'; };  // Pausa/Riprendi
+                timerSkipListener = () => { if (timerInterval) clearInterval(timerInterval); document.getElementById('timerOverlay').classList.remove('active'); };  // Salta riposo
+                timerAddListener = () => { timerRemaining += 15; timerTotal += 15; updateTimerUI(); };  // Aggiungi 15 secondi
                 document.getElementById('timerPauseBtn').addEventListener('click', timerPauseListener);
                 document.getElementById('timerSkipBtn').addEventListener('click', timerSkipListener);
                 document.getElementById('timerAddBtn').addEventListener('click', timerAddListener);
             }
 
             // ─────────── NUTRIZIONE: pasti, macro, acqua ───────────
-            function renderNutrition() {
+            function renderNutrition() {  // Renderizza la pagina nutrizione con pasti, macro e acqua
                 const today = todayStr();
-                if (state.mealsChecked.date !== today) { state.mealsChecked = { date: today, checked: [] }; save(); }
-                if (state.water.date !== today) { state.water = { date: today, count: 0 }; save(); }
-
+                if (state.mealsChecked.date !== today) { state.mealsChecked = { date: today, checked: [] }; save(); }  // Reset check pasto per nuovo giorno
+                if (state.water.date !== today) { state.water = { date: today, count: 0 }; save(); }  // Reset acqua per nuovo giorno
+                // Target macro in base all'obiettivo
                 const targets = getMacroTargets();
                 document.getElementById('macroTitle').textContent = `Macros giornalieri — ${targets.kcal} kcal`;
                 document.getElementById('targetP').textContent = targets.p;
                 document.getElementById('targetC').textContent = targets.c;
                 document.getElementById('targetF').textContent = targets.f;
                 document.getElementById('targetK').textContent = targets.kcal;
-
+                // Calcola macro consumati dai pasti spuntati
                 let tp = 0, tc = 0, tf = 0, tk = 0;
                 state.mealsChecked.checked.forEach(idx => {
                     tp += MEALS[idx].p; tc += MEALS[idx].c; tf += MEALS[idx].f; tk += MEALS[idx].kcal;
                 });
                 document.getElementById('valP').textContent = tp; document.getElementById('valC').textContent = tc;
                 document.getElementById('valF').textContent = tf; document.getElementById('valK').textContent = tk;
-                
+                // Barre progresso macro (cappate a 100%)
                 document.getElementById('barP').style.width = Math.min(100, (tp / targets.p) * 100) + '%';
                 document.getElementById('barC').style.width = Math.min(100, (tc / targets.c) * 100) + '%';
                 document.getElementById('barF').style.width = Math.min(100, (tf / targets.f) * 100) + '%';
                 document.getElementById('barK').style.width = Math.min(100, (tk / targets.kcal) * 100) + '%';
 
-                renderWater();
-
+                renderWater();  // Renderizza sezione acqua
+                // Lista pasti
                 const ml = document.getElementById('mealsList'); ml.innerHTML = '';
                 MEALS.forEach((meal, i) => {
                     const checked = state.mealsChecked.checked.includes(i);
@@ -1228,7 +1223,7 @@
                         </div>
                     </div>`;
                 });
-
+                // Event listener pasti: toggle apertura e check pasto
                 ml.querySelectorAll('.meal-header').forEach(header => header.addEventListener('click', function() {
                     this.closest('.meal-card').classList.toggle('open');
                 }));
@@ -1237,86 +1232,83 @@
                 }));
 
                 const btnWater = document.getElementById('addWaterBtn');
-                if(btnWater) btnWater.addEventListener('click', addWater, { once: true });
+                if(btnWater) btnWater.addEventListener('click', addWater, { once: true });  // Bottone aggiungi acqua
             }
 
-            function toggleMealCheck(i) {
+            function toggleMealCheck(i) {  // Spunta/toglie un pasto come consumato
                 const idx = state.mealsChecked.checked.indexOf(i);
-                if (idx >= 0) state.mealsChecked.checked.splice(idx, 1); else state.mealsChecked.checked.push(i);
+                if (idx >= 0) state.mealsChecked.checked.splice(idx, 1); else state.mealsChecked.checked.push(i);  // Toggle
                 save(); renderNutrition();
             }
 
-            function renderWater() {
+            function renderWater() {  // Renderizza bicchieri acqua
                 document.getElementById('waterCount').textContent = state.water.count;
-                document.getElementById('waterLiters').textContent = (state.water.count * 0.25).toFixed(2);
+                document.getElementById('waterLiters').textContent = (state.water.count * 0.25).toFixed(2);  // 250ml a bicchiere
                 const wg = document.getElementById('waterGlasses'); wg.innerHTML = '';
-                for (let i = 0; i < 10; i++) {
+                for (let i = 0; i < 10; i++) {  // Max 10 bicchieri (2.5L)
                     wg.innerHTML += `<button class="glass ${i < state.water.count ? 'filled' : ''}" data-glass="${i+1}">💧</button>`;
                 }
                 wg.querySelectorAll('.glass').forEach(g => g.addEventListener('click', function() { setWater(parseInt(this.dataset.glass)); }));
             }
-            function addWater() {
+            function addWater() {  // Aggiunge un bicchiere d'acqua
                 if (state.water.date !== todayStr()) state.water = { date: todayStr(), count: 0 };
-                state.water.count = Math.min(10, state.water.count + 1); save(); renderWater();
+                state.water.count = Math.min(10, state.water.count + 1); save(); renderWater();  // Max 10
             }
-            function setWater(n) {
+            function setWater(n) {  // Imposta numero bicchieri (toggle se clicca lo stesso)
                 if (state.water.date !== todayStr()) state.water = { date: todayStr(), count: 0 };
                 state.water.count = state.water.count === n ? n - 1 : n; save(); renderWater();
             }
 
             // ─────────── PROGRESSI: calendario, body measurements, volume chart ───────────
-            function renderProgress() {
-                document.getElementById('pStatTotal').textContent = state.sessions.length;
+            function renderProgress() {  // Renderizza la pagina progressi con volume, calendario, misure, consistenza
+                document.getElementById('pStatTotal').textContent = state.sessions.length;  // Sessioni totali
                 const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-                document.getElementById('pStatMonth').textContent = state.sessions.filter(s => s.date >= monthStart).length;
-
+                document.getElementById('pStatMonth').textContent = state.sessions.filter(s => s.date >= monthStart).length;  // Sessioni questo mese
+                // Grafico volume: ultime 8 sessioni, volume reale vs pianificato
                 const volumeChart = document.getElementById('volumeChart');
-                const allSessions = [...state.sessions].sort((a, b) => a.date.localeCompare(b.date));
-                const last8 = allSessions.slice(-8);
+                const allSessions = [...state.sessions].sort((a, b) => a.date.localeCompare(b.date));  // Ordina per data
+                const last8 = allSessions.slice(-8);  // Ultime 8 sessioni
                 volumeChart.innerHTML = '';
                 if (last8.length === 0) {
                     volumeChart.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Nessun dato ancora</div>';
                 } else {
-                    // Calculate actual AND planned volume for each session
-                    var volData = last8.map(function(s) {
+                    var volData = last8.map(function(s) {  // Calcola volume attuale e pianificato per ogni sessione
                         var sessionDef = getCurrentSessions()[s.session];
                         if (!sessionDef) return { actual: 0, planned: 0 };
                         var actual = 0, planned = 0;
                         sessionDef.exercises.forEach(function(ex) {
                             var exData = s.exercises[ex.id];
                             if (exData && exData.completedSets.length > 0) {
-                                actual += (exData.weight || ex.weight) * exData.completedSets.length * (exData.actualReps || ex.repMid);
+                                actual += (exData.weight || ex.weight) * exData.completedSets.length * (exData.actualReps || ex.repMid);  // Volume reale: peso × serie × rip
                             }
-                            var pSets = (exData && exData.plannedSets) || ex.sets;
-                            var pWeight = (exData && exData.weightPlanned) || ex.weight;
-                            var pReps = (exData && exData.repPlanned) || ex.repMid;
-                            planned += pWeight * pSets * pReps;
+                            var pSets = (exData && exData.plannedSets) || ex.sets;  // Serie pianificate
+                            var pWeight = (exData && exData.weightPlanned) || ex.weight;  // Peso pianificato
+                            var pReps = (exData && exData.repPlanned) || ex.repMid;  // Rip pianificate (fallback repMid per vecchie sessioni)
+                            planned += pWeight * pSets * pReps;  // Volume pianificato
                         });
                         return { actual: actual, planned: planned };
                     });
                     var maxVol = 1;
-                    volData.forEach(function(v) { if (v.planned > maxVol) maxVol = v.planned; });
-                    // Summary stats
+                    volData.forEach(function(v) { if (v.planned > maxVol) maxVol = v.planned; });  // Trova il volume max per scala barre
                     var totalActual = 0, totalPlanned = 0, bestIdx = 0, bestVol = 0;
-                    volData.forEach(function(v, i) {
+                    volData.forEach(function(v, i) {  // Sommari e miglior sessione
                         totalActual += v.actual;
                         totalPlanned += v.planned;
                         if (v.actual > bestVol) { bestVol = v.actual; bestIdx = i; }
                     });
-                    var avgActual = Math.round(totalActual / volData.length);
-                    var ratio = totalPlanned > 0 ? Math.round((totalActual / totalPlanned) * 100) : 0;
+                    var avgActual = Math.round(totalActual / volData.length);  // Media volume per sessione
+                    var ratio = totalPlanned > 0 ? Math.round((totalActual / totalPlanned) * 100) : 0;  // Rapporto reale/pianificato
                     var bestSession = last8[bestIdx];
                     var bestLabel = bestSession ? bestSession.date.slice(5) + ' (' + bestSession.session + ')' : '';
-                    // Color for ratio
-                    var ratioColor = ratio >= 95 ? 'var(--accent)' : (ratio >= 75 ? '#FFB350' : 'var(--red)');
-                    // Summary grid
+                    var ratioColor = ratio >= 95 ? 'var(--accent)' : (ratio >= 75 ? '#FFB350' : 'var(--red)');  // Colore in base al rapporto
+                    // Griglia riepilogo statistiche volume
                     volumeChart.innerHTML = '<div class="volume-summary">'
                         + '<div class="volume-stat"><div class="volume-stat-val">' + Math.round(totalActual/1000) + 'k</div><div class="volume-stat-lbl">Volume tot.</div></div>'
                         + '<div class="volume-stat"><div class="volume-stat-val">' + avgActual + '</div><div class="volume-stat-lbl">Media/sessione</div></div>'
                         + '<div class="volume-stat"><div class="volume-stat-val" style="color:' + ratioColor + '">' + ratio + '%</div><div class="volume-stat-lbl">Rapporto reale/plan</div></div>'
                         + '<div class="volume-stat"><div class="volume-stat-val" style="font-size:12px">' + bestLabel + '</div><div class="volume-stat-lbl">Miglior sessione</div></div>'
                         + '</div>';
-                    // Bar chart
+                    // Bar chart volume: barre per ogni sessione (altezza proporzionale)
                     var container = document.createElement('div'); container.className = 'volume-bar-container';
                     last8.forEach(function(s, i) {
                         var v = volData[i];
@@ -1335,40 +1327,40 @@
                             + '</div>';
                     });
                     volumeChart.appendChild(container);
-                    // Legend
+                    // Legenda grafico
                     var legend = document.createElement('div'); legend.className = 'volume-legend';
                     legend.innerHTML = '<div class="volume-legend-item"><div class="volume-legend-swatch" style="background:var(--accent)"></div>Reale</div>'
                         + '<div class="volume-legend-item"><div class="volume-legend-swatch" style="background:rgba(200,255,0,0.15)"></div>Pianificato</div>'
                         + '<div class="volume-legend-item"><div class="volume-legend-swatch" style="background:#FFB350"></div>Parziale</div>';
                     volumeChart.appendChild(legend);
                 }
-
+                // Calendario mensile con giorni di allenamento evidenziati
                 const cal = document.getElementById('calDays');
                 const now = new Date(); const y = now.getFullYear(), m = now.getMonth();
                 const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m + 1, 0).getDate();
                 cal.innerHTML = '';
-                ['D', 'L', 'M', 'M', 'G', 'V', 'S'].forEach(d => cal.innerHTML += `<div style="font-size:9px;color:var(--muted);text-align:center;padding:4px 0">${d}</div>`);
-                for (let i = 0; i < firstDay; i++) cal.innerHTML += `<div></div>`;
+                ['D', 'L', 'M', 'M', 'G', 'V', 'S'].forEach(d => cal.innerHTML += `<div style="font-size:9px;color:var(--muted);text-align:center;padding:4px 0">${d}</div>`);  // Intestazione giorni
+                for (let i = 0; i < firstDay; i++) cal.innerHTML += `<div></div>`;  // Spazi vuoti prima del primo giorno
                 for (let d = 1; d <= daysInMonth; d++) {
                     const ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                    const done = state.sessions.find(s => s.date === ds);
+                    const done = state.sessions.find(s => s.date === ds);  // Cerca sessione in quel giorno
                     cal.innerHTML += `<div class="cal-day ${done ? 'has-workout' : ''} ${ds === todayStr() ? 'today' : ''}">${d}</div>`;
                 }
-
+                // Sezione misure corporee: tabella ultime 5 + grafico peso
                 const measurementsDiv = document.getElementById('bodyMeasurements');
                 measurementsDiv.innerHTML = '';
                 if (state.bodyMeasurements.length > 0) {
                     measurementsDiv.innerHTML += '<div style="margin-bottom:10px"><canvas id="weightChartCanvas" style="width:100%;height:clamp(80px,15vw,130px);background:var(--g1);border-radius:8px"></canvas></div>';
                     measurementsDiv.innerHTML += '<table style="width:100%;font-size:12px;color:var(--muted);text-align:left"><tr><th>Data</th><th>Peso</th><th>Vita</th><th>Petto</th></tr>';
-                    [...state.bodyMeasurements].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).forEach(m => {
+                    [...state.bodyMeasurements].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).forEach(m => {  // Ultime 5 misure
                         measurementsDiv.innerHTML += `<tr><td>${m.date}</td><td>${m.weight}kg</td><td>${m.waist || '-'}cm</td><td>${m.chest || '-'}cm</td></tr>`;
                     });
                     measurementsDiv.innerHTML += '</table>';
-                    setTimeout(drawWeightChart, 10);
+                    setTimeout(drawWeightChart, 10);  // Disegna grafico peso dopo render
                 }
                 measurementsDiv.innerHTML += '<button class="start-btn" id="addMeasurementBtn" style="margin-top:12px">+ Aggiungi misura</button>';
                 document.getElementById('addMeasurementBtn').addEventListener('click', addMeasurement, { once: true });
-
+                // Piano progressione: elenco fasi
                 const pp = document.getElementById('progressionPlan'); pp.innerHTML = '';
                 PROGRESSION.forEach(p => {
                     pp.innerHTML += `<div class="card" style="margin-bottom:8px"><div class="card-body" style="display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:start">
@@ -1376,7 +1368,7 @@
                         <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">${p.label}</div><div style="font-size:12px;color:var(--muted);line-height:1.6">${p.desc}</div></div>
                     </div></div>`;
                 });
-
+                // Fase corrente di progressione
                 const totalSessions = state.sessions.length; const weekNum = Math.ceil(totalSessions / 2) || 1;
                 let progIdx = Math.min(Math.floor((weekNum - 1) / 2), PROGRESSION.length - 2);
                 var phaseColors = { 'Adattamento': '#5BC8FF', 'Volume': 'var(--accent)', 'Intensità': '#FFB350', 'Peak': 'var(--red)', 'Deload': '#888', 'Blocco': 'var(--accent)' };
@@ -1389,11 +1381,10 @@
                     + '<div style="font-size:15px;font-weight:700;margin-bottom:4px">' + PROGRESSION[progIdx].label + '</div>'
                     + '<div style="font-size:13px;color:var(--muted);line-height:1.6">' + PROGRESSION[progIdx].desc + '</div>'
                     + '</div>';
-
+                // Sezione consistenza e affaticamento
                 var cs = document.getElementById('consistencyStats');
-                var recentSessions = state.sessions.slice(-5);
-                // Build per-exercise data over last 5 sessions
-                var exMap = {};
+                var recentSessions = state.sessions.slice(-5);  // Ultime 5 sessioni
+                var exMap = {};  // Mappa esercizio → array dati consistenza
                 var totalSets = 0, completedSets = 0;
                 recentSessions.forEach(function(s) {
                     var sessionDef = getCurrentSessions()[s.session];
@@ -1401,26 +1392,26 @@
                     sessionDef.exercises.forEach(function(ex) {
                         if (!exMap[ex.id]) exMap[ex.id] = { name: ex.name, sets: [] };
                         var exData = s.exercises[ex.id];
-                        var done = exData ? exData.completedSets.length : 0;
-                        var planned = exData && exData.plannedSets ? exData.plannedSets : ex.sets;
+                        var done = exData ? exData.completedSets.length : 0;  // Serie completate realmente
+                        var planned = exData && exData.plannedSets ? exData.plannedSets : ex.sets;  // Serie pianificate
                         exMap[ex.id].sets.push({ done: done, planned: planned });
                         totalSets += planned;
                         completedSets += done;
                     });
                 });
-                var consistency = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
+                var consistency = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;  // % consistenza globale
                 var level = getFatigueLevel();
                 var trend = getVolumeTrend();
                 var deload = getDeloadRecommendation();
                 var consColor = consistency >= 95 ? 'var(--accent)' : (consistency >= 75 ? '#FFB350' : 'var(--red)');
                 cs.innerHTML = '';
-                // Overall consistency card
+                // Card consistenza globale
                 cs.innerHTML += '<div class="card" style="padding:16px;margin-bottom:12px">'
                     + '<div style="font-size:14px;font-weight:600;margin-bottom:8px">Consistenza Serie: <span style="color:' + consColor + '">' + consistency + '%</span></div>'
                     + '<div style="height:6px;background:var(--g2);border-radius:99px;overflow:hidden;margin-bottom:12px">'
                     + '<div style="height:100%;width:' + consistency + '%;background:' + consColor + ';border-radius:99px;transition:width 0.3s"></div></div>'
                     + '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Serie completate nelle ultime 5 sessioni</div>';
-                // Per-exercise breakdown with dots
+                // Breakdown per esercizio con pallini di consistenza
                 Object.keys(exMap).forEach(function(exId) {
                     var ex = exMap[exId];
                     var exDone = 0, exPlanned = 0;
@@ -1430,7 +1421,7 @@
                     cs.innerHTML += '<div class="consistency-ex-row">'
                         + '<div class="consistency-ex-name">' + ex.name + '</div>'
                         + '<div class="consistency-dots">';
-                    ex.sets.forEach(function(s) {
+                    ex.sets.forEach(function(s) {  // Pallino per ogni sessione: full/partial/miss
                         var dotClass = 'miss';
                         if (s.done >= s.planned) dotClass = 'full';
                         else if (s.done > 0) dotClass = 'partial';
@@ -1441,7 +1432,7 @@
                         + '</div>';
                 });
                 cs.innerHTML += '</div>';
-                // Trend + Fatigue grid
+                // Grid trend volume + affaticamento
                 cs.innerHTML += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
                 cs.innerHTML += '<div class="card" style="padding:12px">'
                     + '<div style="font-size:12px;font-weight:600;margin-bottom:4px">Trend Volume</div>'
@@ -1454,11 +1445,10 @@
                     + '<div style="font-size:10px;color:var(--muted);margin-top:2px">Salti, incompleti, cambi peso</div>'
                     + '</div>';
                 cs.innerHTML += '</div>';
-                // Deload warnings
+                // Warning deload
                 if (level === 'red') cs.innerHTML += '<div style="color:var(--red);font-size:12px;margin-bottom:8px;text-align:center">⚠️ Rilevata possibile sovrallenamento — considera deload</div>';
                 if (deload.needed) cs.innerHTML += '<div style="background:rgba(255,61,31,0.1);border:1px solid var(--red);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--white);line-height:1.6">⚠️ ' + deload.reason + '</div>';
-
-                // Per-exercise detail from last session (con volume)
+                // Dettaglio per esercizio dell'ultima sessione, con volume calcolato
                 var lastSess = state.sessions[state.sessions.length - 1];
                 if (lastSess && lastSess.exercises) {
                     var lastSessDef = getCurrentSessions()[lastSess.session];
@@ -1471,22 +1461,22 @@
                             var setsPlanned = exData.plannedSets || ex.sets;
                             var weightUsed = exData.weight || ex.weight;
                             var weightPlanned = exData.weightPlanned || ex.weight;
-                            var repsActual = exData.actualReps || ex.repMid;
-                            var repsPlanned = exData.repPlanned || ex.repMid;
+                            var repsActual = exData.actualReps || ex.repMid;  // Rip reali (fallback repMid)
+                            var repsPlanned = exData.repPlanned || ex.repMid;  // Rip pianificate (fallback repMid)
                             var setsOk = setsDone === setsPlanned;
                             var weightOk = weightUsed === weightPlanned;
                             var repsOk = repsActual === repsPlanned;
                             var setColor = setsOk ? 'var(--accent)' : 'var(--red)';
                             var weightColor = weightOk ? 'var(--muted)' : (weightUsed > weightPlanned ? 'var(--accent)' : 'var(--red)');
                             var repsColor = repsOk ? 'var(--muted)' : (repsActual > repsPlanned ? 'var(--accent)' : 'var(--red)');
-                            var volActual = weightUsed * setsDone * repsActual;
+                            var volActual = weightUsed * setsDone * repsActual;  // Volume: peso × serie × rip reali
                             detHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--g2);font-size:12px">';
                             detHtml += '<div style="font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + ex.name + '</div>';
                             detHtml += '<div style="display:flex;gap:8px;flex-shrink:0">';
-                            detHtml += '<span style="color:' + setColor + '">' + setsDone + '/' + setsPlanned + '</span>';
-                            detHtml += '<span style="color:' + weightColor + '">' + weightUsed + 'kg' + (!weightOk ? ' (' + weightPlanned + ')' : '') + '</span>';
-                            detHtml += '<span style="color:' + repsColor + '">' + repsActual + 'rip' + (!repsOk ? ' (' + repsPlanned + ')' : '') + '</span>';
-                            detHtml += '<span style="color:var(--muted)">' + Math.round(volActual) + '</span>';
+                            detHtml += '<span style="color:' + setColor + '">' + setsDone + '/' + setsPlanned + '</span>';  // Serie
+                            detHtml += '<span style="color:' + weightColor + '">' + weightUsed + 'kg' + (!weightOk ? ' (' + weightPlanned + ')' : '') + '</span>';  // Peso
+                            detHtml += '<span style="color:' + repsColor + '">' + repsActual + 'rip' + (!repsOk ? ' (' + repsPlanned + ')' : '') + '</span>';  // Rip
+                            detHtml += '<span style="color:var(--muted)">' + Math.round(volActual) + '</span>';  // Volume
                             detHtml += '</div></div>';
                         });
                         detHtml += '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Volume: peso × serie × rip</div>';
@@ -1496,7 +1486,7 @@
                 }
             }
 
-            function drawWeightChart() {
+            function drawWeightChart() {  // Disegna il grafico dell'andamento peso corporeo su canvas
                 const canvas = document.getElementById('weightChartCanvas'); if (!canvas) return;
                 const rect = canvas.parentElement.getBoundingClientRect();
                 const dpr = window.devicePixelRatio || 1;
@@ -1517,7 +1507,7 @@
                 ctx.stroke();
             }
 
-            async function addMeasurement() {
+            async function addMeasurement() {  // Aggiunge una nuova misurazione corporea (peso, vita, petto)
                 const weight = await showPrompt('Peso corporeo (kg):', state.settings.weight || 75); if (!weight) return;
                 const waist = await showPrompt('Circonferenza vita (cm):', ''); const chest = await showPrompt('Circonferenza petto (cm):', '');
                 state.bodyMeasurements.push({ date: todayStr(), weight: parseFloat(weight), waist: waist ? parseFloat(waist) : null, chest: chest ? parseFloat(chest) : null });
@@ -1526,7 +1516,7 @@
             }
 
             // ─────────── IMPOSTAZIONI: toggle suono, vibrazione, esportazione dati ───────────
-            function renderSettings() {
+            function renderSettings() {  // Renderizza la pagina impostazioni (peso, suono, vibrazione, obiettivo)
                 document.getElementById('settingWeight').textContent = (state.settings.weight || 75) + ' kg';
                 document.getElementById('toggleSound').classList.toggle('on', state.settings.sound);
                 document.getElementById('toggleVibration').classList.toggle('on', state.settings.vibration);
@@ -1534,13 +1524,13 @@
                 document.getElementById('objectiveSub').textContent = state.settings.objective === 'cut' ? 'Definizione' : 'Massa';
             }
 
-            function toggleSetting(key) { state.settings[key] = !state.settings[key]; save(); renderSettings(); }
-            function toggleObjective() { state.settings.objective = state.settings.objective === 'cut' ? 'bulk' : 'cut'; save(); renderSettings(); if (document.getElementById('page-nutrition').classList.contains('active')) renderNutrition(); }
+            function toggleSetting(key) { state.settings[key] = !state.settings[key]; save(); renderSettings(); }  // Alterna un'impostazione booleana
+            function toggleObjective() { state.settings.objective = state.settings.objective === 'cut' ? 'bulk' : 'cut'; save(); renderSettings(); if (document.getElementById('page-nutrition').classList.contains('active')) renderNutrition(); }  // Alterna obiettivo cut/bulk
             
-            window.resetToday = async function() { if (await showConfirm('Resettare la sessione di oggi?')) { state.todaySession = null; save(); renderWorkout(); } };
-            window.resetAll = async function() { if (await showConfirm('Cancellare tutti i dati? Questa azione non è reversibile.')) { try { localStorage.removeItem('cdf_state'); } catch (e) {} location.reload(); } };
+            window.resetToday = async function() { if (await showConfirm('Resettare la sessione di oggi?')) { state.todaySession = null; save(); renderWorkout(); } };  // Resetta la sessione di oggi
+            window.resetAll = async function() { if (await showConfirm('Cancellare tutti i dati? Questa azione non è reversibile.')) { try { localStorage.removeItem('cdf_state'); } catch (e) {} location.reload(); } };  // Cancella tutti i dati e ricarica
 
-            window.exportAppData = async function() {
+            window.exportAppData = async function() {  // Esporta tutti i dati in file JSON (backup)
                 const data = JSON.stringify(state, null, 2);
                 const blob = new Blob([data], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -1553,7 +1543,7 @@
                 setTimeout(() => URL.revokeObjectURL(url), 10000);
             }
 
-            function normalizeImportedState(loaded) {
+            function normalizeImportedState(loaded) {  // Normalizza i dati importati con valori di default per campi mancanti
                 return {
                     sessions: Array.isArray(loaded.sessions) ? loaded.sessions : [],
                     todaySession: loaded.todaySession || null,
@@ -1572,7 +1562,7 @@
                 };
             }
 
-            window.importAppData = async function() {
+            window.importAppData = async function() {  // Importa dati da file JSON (ripristino backup)
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.accept = '.json,application/json';
@@ -1606,8 +1596,8 @@
 
             // ─────────── FEATURE SMART: insight, affaticamento, suggerimenti peso, trend volume ───────────
 
-            function logFatigue(type, exId) { state.fatigue.push({ date: todayStr(), type, exId }); save(); }
-            function getFatigueLevel() {
+            function logFatigue(type, exId) { state.fatigue.push({ date: todayStr(), type, exId }); save(); }  // Registra un evento di affaticamento
+            function getFatigueLevel() {  // Calcola il livello di affaticamento in base agli eventi recenti
                 const recent = state.fatigue.slice(-10);
                 const skips = recent.filter(f => f.type === 'set_skipped').length;
                 const incompletes = recent.filter(f => f.type === 'incomplete_exercise').length;
@@ -1619,8 +1609,8 @@
                 if (score >= 5) return 'yellow';
                 return 'green';
             }
-            function analyzeFatigue() {}
-            function showFatigueStatus() {
+            function analyzeFatigue() {}  // Placeholder per analisi affaticamento approfondita
+            function showFatigueStatus() {  // Mostra notifica temporanea con stato affaticamento
                 const level = getFatigueLevel(); let msg = '';
                 if (level === 'green') msg = '🟢 Energia alta: spingi forte e progredisci!';
                 else if (level === 'yellow') msg = '🟡 Fatica media: mantieni la consistenza, considera recupero extra.';
@@ -1656,7 +1646,7 @@
                 if (all.length < 4) return { direction: 'stabile', pct: 0 };
                 const recent = all.slice(-3);
                 const older = all.slice(-6, -3);
-                function calcVol(arr) {
+                function calcVol(arr) {  // Calcola volume medio di un gruppo di sessioni
                     return arr.reduce((acc, s) => {
                         const sd = getCurrentSessions()[s.session];
                         if (!sd) return acc;
@@ -1723,7 +1713,7 @@
             }
 
             // ─────────── INIT: mount app ───────────
-            function init() {
+            function init() {  // Inizializza l'app: renderizza home, collega listener, osserva resize
                 renderHome();
                 bindTimerButtons();
                 document.querySelectorAll('[data-action]').forEach(el => {
