@@ -93,7 +93,8 @@
         .set-val { font-size: 16px; font-weight: 700; color: var(--white); }
         .set-btn.done-set .set-val { color: var(--accent); }
         
-        .weight-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .weight-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .rep-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .weight-label { font-size: 12px; color: var(--muted); flex: 1; }
         .weight-val { font-size: 16px; font-weight: 600; color: var(--white); background: var(--g2); border: 1px solid var(--g3); border-radius: 8px; padding: 6px 12px; min-width: 70px; text-align: center; }
         .w-btn { background: var(--g2); border: 1px solid var(--g3); border-radius: 8px; width: 44px; height: 44px; font-size: 18px; color: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; border: none; font-family: var(--font); }
@@ -254,6 +255,7 @@
             .sets-grid { grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 6px; }
             .set-btn { padding: 8px 4px; }
             .weight-row { gap: 6px; }
+            .rep-row { gap: 6px; }
             .weight-val { padding: 4px 10px; min-width: 56px; }
             .w-btn { width: 44px; height: 44px; }
             .meal-header { padding: 11px 13px; }
@@ -323,6 +325,7 @@
             .sets-grid { grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 6px; }
             .set-btn { padding: 8px 4px; }
             .weight-row { gap: 6px; }
+            .rep-row { gap: 6px; }
             .weight-val { padding: 4px 10px; min-width: 56px; font-size: 14px; }
             .w-btn { width: 40px; height: 40px; font-size: 16px; }
         }
@@ -592,19 +595,19 @@
                     A: {
                         name: 'Spinta (Push)', sub: 'Sabato · Petto, spalle, tricipiti, quadricipiti', day: 6,
                         exercises: [
-                            { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: '10–12kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMid: 11, weight: 10, restSec: 90, tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
-                            { id: 'af', name: 'Affondi con manubri', meta: '10–12kg · 3 serie × 10–12 per gamba', sets: 3, reps: '10–12/gamba', repMid: 11, weight: 10, restSec: 90, tip: 'Passo lungo, ginocchio anteriore a 90°. Tronco dritto. Spingi col tallone per risalire.' },
-                            { id: 'hc', name: 'Curl a martello', meta: '7–9kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMid: 11, weight: 7, restSec: 60, tip: 'Palmi rivolti verso l\'interno. Gomiti fissi. Solo avambracci in movimento.' },
-                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMid: 37.5, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
+                            { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: '10–12kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, weight: 10, restSec: 90, tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
+                            { id: 'af', name: 'Affondi con manubri', meta: '10–12kg · 3 serie × 10–12 per gamba', sets: 3, reps: '10–12/gamba', repMin: 10, repMid: 11, weight: 10, restSec: 90, tip: 'Passo lungo, ginocchio anteriore a 90°. Tronco dritto. Spingi col tallone per risalire.' },
+                            { id: 'hc', name: 'Curl a martello', meta: '7–9kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, weight: 7, restSec: 60, tip: 'Palmi rivolti verso l\'interno. Gomiti fissi. Solo avambracci in movimento.' },
+                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     },
                     B: {
                         name: 'Trazione (Pull)', sub: 'Domenica · Schiena, bicipiti, glutei, femorali', day: 0,
                         exercises: [
-                            { id: 'rw', name: 'Rowing manubrio', meta: '14–16kg · 3 serie × 8–10 rip', sets: 3, reps: '8–10', repMid: 9, weight: 14, restSec: 120, tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
-                            { id: 'rd', name: 'Stacco Rumeno', meta: '14–16kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMid: 11, weight: 14, restSec: 90, tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
-                            { id: 'cu', name: 'Curl Alternato con manubri', meta: '8–10kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMid: 11, weight: 8, restSec: 60, tip: 'Gomiti incollati ai fianchi. Alterna le braccia. Abbassa lentamente — qui crescono i bicipiti.' },
-                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMid: 37.5, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
+                            { id: 'rw', name: 'Rowing manubrio', meta: '14–16kg · 3 serie × 8–10 rip', sets: 3, reps: '8–10', repMin: 8, repMid: 9, weight: 14, restSec: 120, tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
+                            { id: 'rd', name: 'Stacco Rumeno', meta: '14–16kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, weight: 14, restSec: 90, tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
+                            { id: 'cu', name: 'Curl Alternato con manubri', meta: '8–10kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, weight: 8, restSec: 60, tip: 'Gomiti incollati ai fianchi. Alterna le braccia. Abbassa lentamente — qui crescono i bicipiti.' },
+                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     }
                 };
@@ -643,7 +646,7 @@
                 if (weekNum >= 10) {
                     // Add new exercises or further variations
                     baseSessions.A.exercises.push({
-                        id: 'pu', name: 'Push-up (Variante: Diamond)', meta: 'Corpo · 3 serie × 10–15 rip', sets: 3, reps: '10–15', repMid: 12.5, weight: 0, restSec: 60, tip: 'Mani a diamante sotto il petto. Corpo dritto. Ottimo per tricipiti e petto interno.'
+                        id: 'pu', name: 'Push-up (Variante: Diamond)', meta: 'Corpo · 3 serie × 10–15 rip', sets: 3, reps: '10–15', repMin: 10, repMid: 12.5, weight: 0, restSec: 60, tip: 'Mani a diamante sotto il petto. Corpo dritto. Ottimo per tricipiti e petto interno.'
                     });
                 }
 
@@ -887,7 +890,7 @@
             function startSession(sessionKey) {
                 state.todaySession = { session: sessionKey, exercises: {}, done: false };
                 getCurrentSessions()[sessionKey].exercises.forEach(ex => {
-                    state.todaySession.exercises[ex.id] = { completedSets: [], weight: ex.weight };
+                    state.todaySession.exercises[ex.id] = { completedSets: [], weight: ex.weight, actualReps: ex.repMin };
                 });
                 save(); goPage('workout');
                 setTimeout(() => showFatigueStatus(), 500);
@@ -936,7 +939,7 @@
                 </div>`;
 
                 s.exercises.forEach((ex, idx) => {
-                    const exS = exState[ex.id] || { completedSets: [], weight: ex.weight };
+                    const exS = exState[ex.id] || { completedSets: [], weight: ex.weight, actualReps: ex.repMin };
                     const isDone = exS.completedSets.length >= ex.sets;
                     const suggestion = !isDone ? getSuggestedWeight(ex.id, exS.weight) : null;
 
@@ -964,6 +967,13 @@
                             html += `<div style="font-size:11px;color:${diff > 0 ? 'var(--accent)' : 'var(--red)'};margin-bottom:8px;padding:4px 8px;background:rgba(200,255,0,0.05);border-radius:6px">⚠️ Peso: ${exS.weight}kg (pianificato ${ex.weight}kg · ${diff > 0 ? '+' : ''}${diff}kg)</div>`;
                         }
                     }
+
+                    html += `<div class="rep-row">
+                        <div class="weight-label">Ripetizioni</div>
+                        <button class="w-btn rep-dec-btn">−</button>
+                        <div class="weight-val">${exS.actualReps ?? ex.repMin}<span style="font-size:10px;color:var(--muted);margin-left:4px"> (pian: ${ex.reps})</span></div>
+                        <button class="w-btn rep-inc-btn">+</button>
+                    </div>`;
 
                     html += `<div class="section-label-small">${exS.completedSets.length}/${ex.sets} serie completate (tocca per segnare)</div><div class="sets-grid">`;
                     for (let i = 1; i <= ex.sets; i++) {
@@ -1005,6 +1015,12 @@
                     e.stopPropagation();
                     toggleSet(this.closest('.ex-card').dataset.exid, parseInt(this.dataset.set));
                 }));
+                wc.querySelectorAll('.rep-dec-btn').forEach(btn => btn.addEventListener('click', function(e) {
+                    e.stopPropagation(); changeReps(this.closest('.ex-card').dataset.exid, -1);
+                }));
+                wc.querySelectorAll('.rep-inc-btn').forEach(btn => btn.addEventListener('click', function(e) {
+                    e.stopPropagation(); changeReps(this.closest('.ex-card').dataset.exid, 1);
+                }));
                 wc.querySelectorAll('.complete-ex-btn').forEach(btn => btn.addEventListener('click', function(e) {
                     e.stopPropagation(); completeExercise(this.closest('.ex-card').dataset.exid);
                 }));
@@ -1030,6 +1046,18 @@
                 if (!state.todaySession) return;
                 const exS = state.todaySession.exercises[exId];
                 changeWeightDirect(exId, Math.max(0, (exS.weight || 0) + delta));
+            }
+
+            function changeReps(exId, delta) {
+                if (!state.todaySession) return;
+                const exS = state.todaySession.exercises[exId];
+                const sessionDef = getCurrentSessions()[state.todaySession.session];
+                const exDef = sessionDef?.exercises.find(e => e.id === exId);
+                const curReps = exS.actualReps ?? exDef?.repMin ?? 10;
+                exS.actualReps = Math.max(1, curReps + delta);
+                save(); renderWorkout();
+                const card = document.querySelector(`.ex-card[data-exid="${exId}"]`);
+                if (card) card.classList.add('open');
             }
 
             // BUG FIX: Ripristinato l'innesco automatico del timer!
@@ -1088,6 +1116,7 @@
                         if (exDef) {
                             sessionData[exId].plannedSets = exDef.sets;
                             sessionData[exId].weightPlanned = exDef.weight;
+                            sessionData[exId].repPlanned = exDef.repMin;
                         }
                     });
                 }
@@ -1256,11 +1285,12 @@
                         sessionDef.exercises.forEach(function(ex) {
                             var exData = s.exercises[ex.id];
                             if (exData && exData.completedSets.length > 0) {
-                                actual += (exData.weight || ex.weight) * exData.completedSets.length * ex.repMid;
+                                actual += (exData.weight || ex.weight) * exData.completedSets.length * (exData.actualReps || ex.repMid);
                             }
                             var pSets = (exData && exData.plannedSets) || ex.sets;
                             var pWeight = (exData && exData.weightPlanned) || ex.weight;
-                            planned += pWeight * pSets * ex.repMid;
+                            var pReps = (exData && exData.repPlanned) || ex.repMid;
+                            planned += pWeight * pSets * pReps;
                         });
                         return { actual: actual, planned: planned };
                     });
@@ -1441,20 +1471,25 @@
                             var setsPlanned = exData.plannedSets || ex.sets;
                             var weightUsed = exData.weight || ex.weight;
                             var weightPlanned = exData.weightPlanned || ex.weight;
+                            var repsActual = exData.actualReps || ex.repMid;
+                            var repsPlanned = exData.repPlanned || ex.repMid;
                             var setsOk = setsDone === setsPlanned;
                             var weightOk = weightUsed === weightPlanned;
+                            var repsOk = repsActual === repsPlanned;
                             var setColor = setsOk ? 'var(--accent)' : 'var(--red)';
                             var weightColor = weightOk ? 'var(--muted)' : (weightUsed > weightPlanned ? 'var(--accent)' : 'var(--red)');
-                            var volActual = weightUsed * setsDone * ex.repMid;
+                            var repsColor = repsOk ? 'var(--muted)' : (repsActual > repsPlanned ? 'var(--accent)' : 'var(--red)');
+                            var volActual = weightUsed * setsDone * repsActual;
                             detHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--g2);font-size:12px">';
                             detHtml += '<div style="font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + ex.name + '</div>';
-                            detHtml += '<div style="display:flex;gap:10px;flex-shrink:0">';
+                            detHtml += '<div style="display:flex;gap:8px;flex-shrink:0">';
                             detHtml += '<span style="color:' + setColor + '">' + setsDone + '/' + setsPlanned + '</span>';
                             detHtml += '<span style="color:' + weightColor + '">' + weightUsed + 'kg' + (!weightOk ? ' (' + weightPlanned + ')' : '') + '</span>';
+                            detHtml += '<span style="color:' + repsColor + '">' + repsActual + 'rip' + (!repsOk ? ' (' + repsPlanned + ')' : '') + '</span>';
                             detHtml += '<span style="color:var(--muted)">' + Math.round(volActual) + '</span>';
                             detHtml += '</div></div>';
                         });
-                        detHtml += '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Volume: peso × serie × repMid</div>';
+                        detHtml += '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Volume: peso × serie × rip</div>';
                         detHtml += '</div>';
                         cs.innerHTML += detHtml;
                     }
@@ -1627,7 +1662,7 @@
                         if (!sd) return acc;
                         return acc + sd.exercises.reduce((a, ex) => {
                             const d = s.exercises?.[ex.id];
-                            return a + (d ? (d.weight || ex.weight) * d.completedSets.length * ex.repMid : 0);
+                            return a + (d ? (d.weight || ex.weight) * d.completedSets.length * (d.actualReps || ex.repMid) : 0);
                         }, 0);
                     }, 0) / Math.max(arr.length, 1);
                 }
