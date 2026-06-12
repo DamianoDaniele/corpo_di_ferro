@@ -97,7 +97,8 @@
         .rep-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .weight-label { font-size: 12px; color: var(--muted); flex: 1; }
         .weight-val { font-size: 16px; font-weight: 600; color: var(--white); background: var(--g2); border: 1px solid var(--g3); border-radius: 8px; padding: 6px 12px; min-width: 70px; text-align: center; }
-        .w-btn { background: var(--g2); border: 1px solid var(--g3); border-radius: 8px; width: 44px; height: 44px; font-size: 18px; color: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; border: none; font-family: var(--font); }
+        .w-btn { -webkit-appearance: none; appearance: none; background: var(--g2); border: none; border-radius: 8px; width: 44px; height: 44px; font-size: 18px; color: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: var(--font); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .w-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; fill: none; pointer-events: none; flex-shrink: 0; }
         .w-btn:active { background: var(--g3); }
         
         .note-box { background: var(--g2); border-radius: 8px; padding: 10px 12px; font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
@@ -954,10 +955,10 @@
                     if (ex.weight > 0) {
                         html += `<div class="weight-row">
                             <div class="weight-label">Peso per manubrio</div>
-                            <button class="w-btn dec-btn">−</button>
+                            <button class="w-btn dec-btn"><svg viewBox="0 0 24 24"><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
                             <div class="weight-val">${exS.weight}kg</div>
-                            <button class="w-btn inc-btn">+</button>
-                            ${suggestion ? `<button class="w-btn apply-suggestion" style="background:var(--accent);color:black;font-size:12px">✓</button>` : ''}
+                            <button class="w-btn inc-btn"><svg viewBox="0 0 24 24"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
+                            ${suggestion ? `<button class="w-btn apply-suggestion" style="background:var(--accent);color:black;font-size:12px"><svg viewBox="0 0 24 24" style="stroke:black"><polyline points="4 12 10 18 20 6"/></svg></button>` : ''}
                         </div>`;
                         if (exS.weight !== ex.weight) {  // Mostra warning se peso diverso dal pianificato
                             const diff = exS.weight - ex.weight;
@@ -967,9 +968,9 @@
                     // Controlli ripetizioni modificabili
                     html += `<div class="rep-row">
                         <div class="weight-label">Ripetizioni</div>
-                        <button class="w-btn rep-dec-btn">−</button>
+                        <button class="w-btn rep-dec-btn"><svg viewBox="0 0 24 24"><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
                         <div class="weight-val">${exS.actualReps ?? ex.repMin}<span style="font-size:10px;color:var(--muted);margin-left:4px"> (pian: ${ex.reps})</span></div>
-                        <button class="w-btn rep-inc-btn">+</button>
+                        <button class="w-btn rep-inc-btn"><svg viewBox="0 0 24 24"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
                     </div>`;
                     // Griglia serie: pulsanti per ogni serie pianificata
                     html += `<div class="section-label-small">${exS.completedSets.length}/${ex.sets} serie completate (tocca per segnare)</div><div class="sets-grid">`;
