@@ -982,7 +982,6 @@
                     }
                     html += `</div>`;
                     if (ex.tip) html += `<div class="note-box">💡 ${ex.tip}</div>`;  // Suggerimento esecuzione
-                    if (!isDone) html += `<button class="complete-ex-btn">Segna tutto completato</button>`;  // Bottone completa tutte le serie
                     html += `</div></div>`;
                 });
                 // Bottone termina sessione (stile diverso se mancano serie)
@@ -1018,9 +1017,6 @@
                 }));
                 wc.querySelectorAll('.rep-inc-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Aumenta ripetizioni
                     e.stopPropagation(); changeReps(this.closest('.ex-card').dataset.exid, 1);
-                }));
-                wc.querySelectorAll('.complete-ex-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Completa tutte le serie dell'esercizio
-                    e.stopPropagation(); completeExercise(this.closest('.ex-card').dataset.exid);
                 }));
                 document.getElementById('finishSessionBtn').addEventListener('click', async function() {  // Termina sessione con conferma se incompleta
                     if (!allDone) {
@@ -1065,20 +1061,74 @@
                 
                 if (idx >= 0) {  // Se già completata, la rimuove
                     exS.completedSets.splice(idx, 1);
-                } else {  // Altrimenti la aggiunge
-                    if (setNum > 1 && !exS.completedSets.includes(setNum - 1)) {  // Logga se salta una serie precedente
-                        logFatigue('set_skipped', exId);
+                    save(); renderWorkout();
+                    const card = document.querySelector(`.ex-card[data-exid="${exId}"]`);
+                    if (card) card.classList.add('open');
+                    return;
+                } 
+                
+                // Altrimenti la aggiunge
+                if (setNum > 1 && !exS.completedSets.includes(setNum - 1)) {  // Logga se salta una serie precedente
+                    logFatigue('set_skipped', exId);
+                }
+                exS.completedSets.push(setNum);
+                
+                // Determina nome da mostrare nel timer: prossimo esercizio se è l'ultima serie, altrimenti corrente
+                const sessionDef = getCurrentSessions()[state.todaySession.session];
+                const exDef = sessionDef.exercises.find(e => e.id === exId);
+                let timerExName = exDef ? exDef.name : '';
+                
+                if (exDef && exS.completedSets.length >= exDef.sets) {
+                    // È l'ultima serie: trova prossimo esercizio incompleto
+                    const currentIndex = sessionDef.exercises.findIndex(e => e.id === exId);
+                    for (let i = currentIndex + 1; i < sessionDef.exercises.length; i++) {
+                        const nextEx = sessionDef.exercises[i];
+                        const nextExS = state.todaySession.exercises[nextEx.id];
+                        if (nextExS && nextExS.completedSets.length < nextEx.sets) {
+                            timerExName = nextEx.name;
+                            break;
+                        }
                     }
-                    exS.completedSets.push(setNum);
-                    // Avvia il timer di riposo
-                    const sessionDef = getCurrentSessions()[state.todaySession.session];
-                    const exDef = sessionDef.exercises.find(e => e.id === exId);
-                    if(exDef) startTimer(exDef.restSec, exDef.name);
                 }
                 
+                // Avvia il timer di riposo
+                if (exDef) startTimer(exDef.restSec, timerExName);
+                
                 save(); renderWorkout();
+                
+                // Auto-advance se esercizio completato
+                if (exDef && exS.completedSets.length >= exDef.sets) {
+                    advanceToNextExercise(exId);
+                    return;
+                }
+                
                 const card = document.querySelector(`.ex-card[data-exid="${exId}"]`);
                 if (card) card.classList.add('open');
+            }
+
+            function advanceToNextExercise(completedExId) {
+                if (!state.todaySession) return;
+                
+                const sessionDef = getCurrentSessions()[state.todaySession.session];
+                const exercises = sessionDef.exercises;
+                const currentIndex = exercises.findIndex(e => e.id === completedExId);
+                
+                for (let i = currentIndex + 1; i < exercises.length; i++) {
+                    const nextEx = exercises[i];
+                    const nextExS = state.todaySession.exercises[nextEx.id];
+                    if (nextExS && nextExS.completedSets.length < nextEx.sets) {
+                        setTimeout(() => {
+                            const nextCard = document.querySelector(`.ex-card[data-exid="${nextEx.id}"]`);
+                            if (nextCard) {
+                                nextCard.classList.add('open');
+                                nextCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }, 50);
+                        return;
+                    }
+                }
+                
+                renderWorkout();
             }
 
             function completeExercise(exId) {  // Marca tutte le serie pianificate come completate
