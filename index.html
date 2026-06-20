@@ -1131,13 +1131,13 @@
                 renderWorkout();
             }
 
-            function completeExercise(exId) {  // Marca tutte le serie pianificate come completate
-                if (!state.todaySession) return;
-                const exDef = getCurrentSessions()[state.todaySession.session].exercises.find(e => e.id === exId);
-                if (!exDef) return;
-                state.todaySession.exercises[exId].completedSets = Array.from({ length: exDef.sets }, (_, i) => i + 1);  // Serie 1..N
-                save(); renderWorkout(); startTimer(exDef.restSec, exDef.name);
-            }
+            // function completeExercise(exId) {  // Marca tutte le serie pianificate come completate - RIMOSSO: bottone UI eliminato
+            //     if (!state.todaySession) return;
+            //     const exDef = getCurrentSessions()[state.todaySession.session].exercises.find(e => e.id === exId);
+            //     if (!exDef) return;
+            //     state.todaySession.exercises[exId].completedSets = Array.from({ length: exDef.sets }, (_, i) => i + 1);  // Serie 1..N
+            //     save(); renderWorkout(); startTimer(exDef.restSec, exDef.name);
+            // }
 
             function finishSession() {  // Termina la sessione salvando dati reali e riferimenti pianificati
                 const sessionDef = getCurrentSessions()[state.todaySession.session];
