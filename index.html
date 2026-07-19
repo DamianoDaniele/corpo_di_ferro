@@ -496,6 +496,10 @@
                     <div><div class="setting-label">Obiettivo</div><div class="setting-sub" id="objectiveSub">Definizione</div></div>
                     <div class="setting-value" id="objectiveValue" style="cursor:pointer">🔥 Cut</div>
                 </div>
+                <div class="setting-row" data-action="setMaxWeight">
+                    <div><div class="setting-label">Peso massimo manubri</div><div class="setting-sub">Tetto per gli aumenti automatici di peso</div></div>
+                    <div class="setting-value" id="settingMaxWeight">10 kg</div>
+                </div>
                 <div class="setting-row">
                     <div><div class="setting-label">Suono timer</div><div class="setting-sub">Bip alla fine del riposo</div></div>
                     <div class="toggle" id="toggleSound"></div>
@@ -597,19 +601,19 @@
                     A: {
                         name: 'Spinta (Push)', sub: 'Sabato · Petto, spalle, tricipiti, quadricipiti', day: 6,
                         exercises: [
-                            { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: '10–12kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, weight: 10, restSec: 90, tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
-                            { id: 'af', name: 'Affondi con manubri', meta: '10–12kg · 3 serie × 10–12 per gamba', sets: 3, reps: '10–12/gamba', repMin: 10, repMid: 11, weight: 10, restSec: 90, tip: 'Passo lungo, ginocchio anteriore a 90°. Tronco dritto. Spingi col tallone per risalire.' },
-                            { id: 'hc', name: 'Curl a martello', meta: '7–9kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, weight: 7, restSec: 60, tip: 'Palmi rivolti verso l\'interno. Gomiti fissi. Solo avambracci in movimento.' },
-                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
+                            { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: '10–12kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 10, restSec: 90, tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
+                            { id: 'af', name: 'Affondi con manubri', meta: '10–12kg · 3 serie × 10–12 per gamba', sets: 3, reps: '10–12/gamba', repMin: 10, repMid: 11, repMax: 12, weight: 10, restSec: 90, tip: 'Passo lungo, ginocchio anteriore a 90°. Tronco dritto. Spingi col tallone per risalire.' },
+                            { id: 'hc', name: 'Curl a martello', meta: '7–9kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 7, restSec: 60, tip: 'Palmi rivolti verso l\'interno. Gomiti fissi. Solo avambracci in movimento.' },
+                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     },
                     B: {
                         name: 'Trazione (Pull)', sub: 'Domenica · Schiena, bicipiti, glutei, femorali', day: 0,
                         exercises: [
-                            { id: 'rw', name: 'Rowing manubrio', meta: '14–16kg · 3 serie × 8–10 rip', sets: 3, reps: '8–10', repMin: 8, repMid: 9, weight: 14, restSec: 120, tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
-                            { id: 'rd', name: 'Stacco Rumeno', meta: '14–16kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, weight: 14, restSec: 90, tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
-                            { id: 'cu', name: 'Curl Alternato con manubri', meta: '8–10kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, weight: 8, restSec: 60, tip: 'Gomiti incollati ai fianchi. Alterna le braccia. Abbassa lentamente — qui crescono i bicipiti.' },
-                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
+                            { id: 'rw', name: 'Rowing manubrio', meta: '14–16kg · 3 serie × 8–10 rip', sets: 3, reps: '8–10', repMin: 8, repMid: 9, repMax: 10, weight: 14, restSec: 120, tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
+                            { id: 'rd', name: 'Stacco Rumeno', meta: '14–16kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 14, restSec: 90, tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
+                            { id: 'cu', name: 'Curl Alternato con manubri', meta: '8–10kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 8, restSec: 60, tip: 'Gomiti incollati ai fianchi. Alterna le braccia. Abbassa lentamente — qui crescono i bicipiti.' },
+                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     }
                 };
@@ -647,7 +651,7 @@
                 // Dalla settimana 10 in poi: aggiunge un nuovo esercizio (Push-up Diamond) alla sessione A
                 if (weekNum >= 10) {
                     baseSessions.A.exercises.push({
-                        id: 'pu', name: 'Push-up (Variante: Diamond)', meta: 'Corpo · 3 serie × 10–15 rip', sets: 3, reps: '10–15', repMin: 10, repMid: 12.5, weight: 0, restSec: 60, tip: 'Mani a diamante sotto il petto. Corpo dritto. Ottimo per tricipiti e petto interno.'
+                        id: 'pu', name: 'Push-up (Variante: Diamond)', meta: 'Corpo · 3 serie × 10–15 rip', sets: 3, reps: '10–15', repMin: 10, repMid: 12.5, repMax: 15, weight: 0, restSec: 60, tip: 'Mani a diamante sotto il petto. Corpo dritto. Ottimo per tricipiti e petto interno.'
                     });
                 }
                 // Restituisce le sessioni con le modifiche di progressione applicate
@@ -678,10 +682,14 @@
             if (!state) {  // Se nessuno stato salvato, inizializza con valori predefiniti
                 state = {
                 sessions: [], todaySession: null, water: { date: '', count: 0 }, mealsChecked: { date: '', checked: [] },
-                settings: { sound: true, vibration: true, weight: 75, objective: 'cut' }, fatigue: [], bodyMeasurements: [],
-                lastSessionType: null
+                settings: { sound: true, vibration: true, weight: 75, objective: 'cut', maxWeight: 10 }, fatigue: [], bodyMeasurements: [],
+                lastSessionType: null, plan: {}
                 };
             }
+            // Migrazione per stati salvati prima del motore adattivo
+            if (!state.plan || typeof state.plan !== 'object') state.plan = {};  // Piano adattivo per esercizio
+            if (state.settings.maxWeight === undefined) state.settings.maxWeight = 10;  // Tetto peso per aumenti automatici
+            const WEIGHT_STEP = 1;  // Incremento peso: 1kg (dischi da 0.5kg per lato), cambi rari per scelta utente
             // Salva lo stato corrente in localStorage (ignora errori silenziosamente)
             function save() { try { localStorage.setItem('cdf_state', JSON.stringify(state)); } catch (e) {} }
 
@@ -817,13 +825,11 @@
                 var recHtml = '';
                 var nextSession = getNextSessionType();
                 var nextS = getCurrentSessions()[nextSession];
-                var exSuggestions = [];  // Esercizi con suggerimento aumento peso
-                if (nextS && !todayDone) {
+                var planItems = [];  // Adattamenti del piano per la prossima sessione (visibili anche a sessione odierna completata)
+                if (nextS) {
                     nextS.exercises.forEach(function(ex) {
-                        var sug = getSuggestedWeight(ex.id, ex.weight);
-                        if (sug !== null) {
-                            exSuggestions.push({ name: ex.name, from: ex.weight, to: sug });
-                        }
+                        var p = getPlanFor(ex);
+                        if (p.reason) planItems.push({ name: ex.name, p: p, unit: ex.id === 'pl' ? 'sec' : 'rip' });
                     });
                 }
                 // Sceglie il messaggio raccomandazione in base a priorità: deload > fatigue > suggerimenti peso > trend
@@ -836,10 +842,13 @@
                 } else if (fatigue === 'yellow') {
                     recHtml = '<div class="rec-card"><div style="display:flex;align-items:flex-start">'
                         + '<div class="rec-icon">🟡</div><div class="rec-text"><strong>Fatica media.</strong> Mantieni i carichi, concentrati sulla tecnica. Assicura sonno e alimentazione adeguati.</div></div></div>';
-                } else if (exSuggestions.length > 0) {
-                    var sugText = exSuggestions.map(function(s) { return '<strong>' + s.name + '</strong>: ' + s.from + ' → ' + s.to + 'kg'; }).join(', ');
+                } else if (planItems.length > 0) {
+                    var sugText = planItems.map(function(it) {
+                        var vals = (it.p.weight > 0 ? it.p.weight + 'kg · ' : '') + it.p.plannedSets + '×' + it.p.targetReps + ' ' + it.unit;
+                        return '<div style="margin-top:6px"><strong>' + it.name + '</strong>: ' + vals + '<br><span style="color:var(--muted);font-size:11px">' + it.p.reason + '</span></div>';
+                    }).join('');
                     recHtml = '<div class="rec-card highlight"><div style="display:flex;align-items:flex-start">'
-                        + '<div class="rec-icon">🔥</div><div class="rec-text">Pronto per progredire! Suggerito aumento peso: ' + sugText + '</div></div></div>';
+                        + '<div class="rec-icon">📋</div><div class="rec-text"><strong>Prossima sessione modellata sui tuoi ultimi risultati:</strong>' + sugText + '</div></div></div>';
                 } else if (trend.direction === 'crescita' && trend.pct > 5) {
                     recHtml = '<div class="rec-card highlight"><div style="display:flex;align-items:flex-start">'
                         + '<div class="rec-icon">📈</div><div class="rec-text"><strong>Volume in crescita del ' + trend.pct + '%!</strong> Ottimo momento per mantenere lo slancio. Continua così.</div></div></div>';
@@ -885,27 +894,46 @@
             }
 
             // ─────────── SESSIONE: start, gestione peso, completamento ───────────
-            function startSession(sessionKey) {  // Avvia una nuova sessione di allenamento
-                state.todaySession = { session: sessionKey, exercises: {}, done: false };  // Crea oggetto sessione
+            function getWeekNumCurrent() {  // Settimana di progressione corrente (stessa formula di getCurrentSessions)
+                return Math.ceil(state.sessions.length / 2) || 1;
+            }
+
+            function getPlanFor(ex) {  // Valori adattati per il prossimo workout: piano modellato sull'ultima sessione, fallback scheda base
+                const p = state.plan[ex.id] || {};
+                const weekNum = getWeekNumCurrent();
+                const isDeload = weekNum === 9;
+                let weight = (p.weight !== undefined) ? p.weight : ex.weight;  // Parte dal peso reale dell'ultima sessione
+                let targetReps = (p.targetReps !== undefined) ? p.targetReps : ex.repMin;
+                let extraSets = p.extraSets || 0;
+                // In deload: pesi -35% (arrotondati al kg) e nessuna serie extra, come da piano di progressione
+                if (isDeload) { if (weight > 0) weight = Math.max(1, Math.round(weight * 0.65)); extraSets = 0; targetReps = ex.repMin; }
+                // Le fasi Peak (sett. 7-8) portano già i compound a 5 serie: non sommare anche la serie extra
+                const progIdx = Math.min(Math.floor((weekNum - 1) / 2), PROGRESSION.length - 1);
+                if (progIdx >= 3 && weekNum <= 8 && ['cp','rw','rd'].includes(ex.id)) extraSets = 0;
+                return { weight, targetReps, plannedSets: ex.sets + extraSets, extraSets, reason: p.reason || '', lastOutcome: p.lastOutcome || '', deload: isDeload };
+            }
+
+            function startSession(sessionKey) {  // Avvia una nuova sessione partendo dai valori adattati sull'ultimo workout
+                const weekNum = getWeekNumCurrent();
+                state.todaySession = { session: sessionKey, exercises: {}, done: false, restLog: {}, weekNum: weekNum, deload: weekNum === 9 };
                 getCurrentSessions()[sessionKey].exercises.forEach(ex => {
-                    state.todaySession.exercises[ex.id] = { completedSets: [], weight: ex.weight, actualReps: ex.repMin };  // Inizializza ogni esercizio
+                    const p = getPlanFor(ex);  // Piano adattivo: peso/rip/serie modellati sull'ultima sessione
+                    state.todaySession.exercises[ex.id] = {
+                        completedSets: [], weight: p.weight, targetReps: p.targetReps, plannedSets: p.plannedSets,
+                        repsPerSet: {}, pendingReps: p.targetReps, weightPlanned: p.weight, actualReps: p.targetReps
+                    };
                 });
                 save(); goPage('workout');  // Salva e vai alla pagina workout
                 setTimeout(() => showFatigueStatus(), 500);  // Mostra stato affaticamento dopo 500ms
             }
 
-            function getSuggestedWeight(exId, currentWeight) {  // Suggerisce aumento peso se l'esercizio è stato completato costantemente
-                const sessionsWithEx = state.sessions.filter(s => s.exercises && s.exercises[exId] && s.exercises[exId].completedSets.length > 0);  // Sessioni con questo esercizio
-                if (sessionsWithEx.length < 1) return null;  // Nessuna sessione precedente
-                const lastSession = sessionsWithEx[sessionsWithEx.length - 1];  // Ultima sessione
-                const lastEx = lastSession.exercises[exId];
-                const sessionDef = getCurrentSessions()[lastSession.session];
-                const exerciseDef = sessionDef?.exercises.find(e => e.id === exId);
-                if (!exerciseDef || lastEx.completedSets.length < exerciseDef.sets) return null;  // Non ha completato tutte le serie
-                const fatigue = getFatigueLevel();
-                if (fatigue !== 'green') return null;  // Non suggerire se affaticato
-                const prevWeight = lastEx.weight || currentWeight;
-                return prevWeight + 0.5;  // Suggerisce +0.5kg
+            function ensureExShape(exS, exDef) {  // Retro-compatibilità: completa i campi per sessioni avviate prima dell'aggiornamento
+                if (!exS.repsPerSet) exS.repsPerSet = {};
+                if (exS.targetReps === undefined) exS.targetReps = exS.actualReps !== undefined ? exS.actualReps : exDef.repMin;
+                if (exS.plannedSets === undefined) exS.plannedSets = exDef.sets;
+                if (exS.pendingReps === undefined) exS.pendingReps = exS.targetReps;
+                if (exS.weightPlanned === undefined) exS.weightPlanned = exDef.weight;
+                return exS;
             }
 
             function renderWorkout() {  // Renderizza la schermata di allenamento attivo
@@ -924,10 +952,12 @@
                 // Sessione attiva: prepara dati per il rendering
                 const s = getCurrentSessions()[state.todaySession.session];  // Definizione sessione corrente
                 const exState = state.todaySession.exercises;  // Stato esercizi
-                const totalSets = s.exercises.reduce((acc, ex) => acc + ex.sets, 0);  // Totale serie pianificate
-                const completedSets = s.exercises.reduce((acc, ex) => acc + Math.min((exState[ex.id]?.completedSets.length || 0), ex.sets), 0);  // Serie completate (cappate alle pianificate)
+                s.exercises.forEach(ex => { if (exState[ex.id]) ensureExShape(exState[ex.id], ex); });  // Retro-compatibilità sessioni già avviate
+                const plannedOf = ex => (exState[ex.id] && exState[ex.id].plannedSets) || ex.sets;  // Serie pianificate (adattate)
+                const totalSets = s.exercises.reduce((acc, ex) => acc + plannedOf(ex), 0);  // Totale serie pianificate
+                const completedSets = s.exercises.reduce((acc, ex) => acc + Math.min((exState[ex.id]?.completedSets.length || 0), plannedOf(ex)), 0);  // Serie completate (cappate alle pianificate)
                 const pct = Math.round((completedSets / totalSets) * 100);  // Percentuale completamento
-                const allDone = s.exercises.every(ex => exState[ex.id] && exState[ex.id].completedSets.length >= ex.sets);  // Tutte le serie complete?
+                const allDone = s.exercises.every(ex => exState[ex.id] && exState[ex.id].completedSets.length >= plannedOf(ex));  // Tutte le serie complete?
                 // Intestazione sessione con progress bar
                 let html = `<div class="session-header">
                     <div class="session-name">${s.name}</div>
@@ -937,47 +967,52 @@
                 </div>`;
                 // Card per ogni esercizio
                 s.exercises.forEach((ex, idx) => {
-                    const exS = exState[ex.id] || { completedSets: [], weight: ex.weight, actualReps: ex.repMin };
-                    const isDone = exS.completedSets.length >= ex.sets;  // Esercizio completato?
-                    const suggestion = !isDone ? getSuggestedWeight(ex.id, exS.weight) : null;  // Suggerimento peso
-                    // Intestazione esercizio con nome, PB, stato
+                    const exS = ensureExShape(exState[ex.id] || { completedSets: [], weight: ex.weight }, ex);
+                    const unit = ex.id === 'pl' ? 'sec' : 'rip';  // Il plank si misura in secondi
+                    const isDone = exS.completedSets.length >= exS.plannedSets;  // Esercizio completato?
+                    const planInfo = state.plan[ex.id];  // Piano adattivo (per mostrare il perché dei valori di oggi)
+                    const adaptedMeta = `${exS.weight > 0 ? exS.weight + 'kg · ' : 'Corpo · '}${exS.plannedSets} serie × ${exS.targetReps} ${unit} (range ${ex.reps})`;
+                    // Intestazione esercizio con valori adattati, PB, stato
                     html += `<div class="ex-card ${isDone ? 'done' : ''}" data-exid="${ex.id}">
                         <div class="ex-head">
                             <div class="ex-num">${isDone ? '✓' : (idx + 1)}</div>
                             <div style="flex:1">
-                                <div class="ex-name">${ex.name}${suggestion ? `<span class="suggest-badge">💡 +${(suggestion - exS.weight).toFixed(1)}kg</span>` : ''}</div>
-                                <div class="ex-meta">${ex.meta}${getPersonalBest(ex.id) ? ` · PB: ${getPersonalBest(ex.id)}kg` : ''}</div>
+                                <div class="ex-name">${ex.name}</div>
+                                <div class="ex-meta">${adaptedMeta}${getPersonalBest(ex.id) ? ` · PB: ${getPersonalBest(ex.id)}kg` : ''}</div>
                             </div>
                             <div class="ex-check">${isDone ? '✅' : '○'}</div>
                         </div>
                         <div class="ex-body">`;
+                    if (planInfo && planInfo.reason) {  // Spiega come il piano di oggi è stato modellato sull'ultima sessione
+                        html += `<div style="font-size:11px;color:var(--accent);margin-bottom:10px;padding:6px 10px;background:rgba(200,255,0,0.06);border-radius:6px">📋 ${planInfo.reason}</div>`;
+                    }
                     // Controlli peso (solo per esercizi con peso > 0)
-                    if (ex.weight > 0) {
+                    if (ex.weight > 0 || exS.weight > 0) {
                         html += `<div class="weight-row">
                             <div class="weight-label">Peso per manubrio</div>
                             <button class="w-btn dec-btn"><svg viewBox="0 0 24 24"><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
                             <div class="weight-val">${exS.weight}kg</div>
                             <button class="w-btn inc-btn"><svg viewBox="0 0 24 24"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
-                            ${suggestion ? `<button class="w-btn apply-suggestion" style="background:var(--accent);color:black;font-size:12px"><svg viewBox="0 0 24 24" style="stroke:black"><polyline points="4 12 10 18 20 6"/></svg></button>` : ''}
                         </div>`;
-                        if (exS.weight !== ex.weight) {  // Mostra warning se peso diverso dal pianificato
-                            const diff = exS.weight - ex.weight;
-                            html += `<div style="font-size:11px;color:${diff > 0 ? 'var(--accent)' : 'var(--red)'};margin-bottom:8px;padding:4px 8px;background:rgba(200,255,0,0.05);border-radius:6px">⚠️ Peso: ${exS.weight}kg (pianificato ${ex.weight}kg · ${diff > 0 ? '+' : ''}${diff}kg)</div>`;
+                        if (exS.weight !== exS.weightPlanned) {  // Warning se peso diverso dal piano adattato di oggi
+                            const diff = exS.weight - exS.weightPlanned;
+                            html += `<div style="font-size:11px;color:${diff > 0 ? 'var(--accent)' : 'var(--red)'};margin-bottom:8px;padding:4px 8px;background:rgba(200,255,0,0.05);border-radius:6px">⚠️ Peso: ${exS.weight}kg (piano di oggi ${exS.weightPlanned}kg · ${diff > 0 ? '+' : ''}${diff}kg) — verrà usato per modellare il prossimo workout</div>`;
                         }
                     }
-                    // Controlli ripetizioni modificabili
+                    // Rip/secondi della prossima serie: registrati per singola serie al momento del tocco
                     html += `<div class="rep-row">
-                        <div class="weight-label">Ripetizioni</div>
+                        <div class="weight-label">${unit === 'sec' ? 'Secondi' : 'Rip'} prossima serie</div>
                         <button class="w-btn rep-dec-btn"><svg viewBox="0 0 24 24"><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
-                        <div class="weight-val">${exS.actualReps ?? ex.repMin}<span style="font-size:10px;color:var(--muted);margin-left:4px"> (pian: ${ex.reps})</span></div>
+                        <div class="weight-val">${exS.pendingReps}<span style="font-size:10px;color:var(--muted);margin-left:4px"> (target ${exS.targetReps})</span></div>
                         <button class="w-btn rep-inc-btn"><svg viewBox="0 0 24 24"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
                     </div>`;
-                    // Griglia serie: pulsanti per ogni serie pianificata
-                    html += `<div class="section-label-small">${exS.completedSets.length}/${ex.sets} serie completate (tocca per segnare)</div><div class="sets-grid">`;
-                    for (let i = 1; i <= ex.sets; i++) {
+                    // Griglia serie: il tocco registra la serie con le rip correnti; sulle fatte mostra le rip registrate
+                    html += `<div class="section-label-small">${exS.completedSets.length}/${exS.plannedSets} serie completate (il tocco registra le ${unit} correnti)</div><div class="sets-grid">`;
+                    for (let i = 1; i <= exS.plannedSets; i++) {
                         const setDone = exS.completedSets.includes(i);
+                        const setReps = exS.repsPerSet[i];
                         html += `<button class="set-btn ${setDone ? 'done-set' : ''}" data-set="${i}">
-                            <div class="set-label">Serie</div><div class="set-val">${i}${setDone ? ' ✓' : ''}</div>
+                            <div class="set-label">Serie ${i}</div><div class="set-val">${setDone ? ((setReps !== undefined ? setReps : '') + ' ✓') : '○'}</div>
                         </button>`;
                     }
                     html += `</div>`;
@@ -1002,12 +1037,6 @@
                 wc.querySelectorAll('.inc-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Aumenta peso
                     e.stopPropagation(); changeWeight(this.closest('.ex-card').dataset.exid, 1);
                 }));
-                wc.querySelectorAll('.apply-suggestion').forEach(btn => btn.addEventListener('click', function(e) {  // Applica suggerimento peso
-                    e.stopPropagation(); 
-                    const exId = this.closest('.ex-card').dataset.exid;
-                    const suggestion = getSuggestedWeight(exId, state.todaySession.exercises[exId].weight);
-                    if (suggestion) changeWeightDirect(exId, suggestion);
-                }));
                 wc.querySelectorAll('.set-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Marca/toglie serie come completata
                     e.stopPropagation();
                     toggleSet(this.closest('.ex-card').dataset.exid, parseInt(this.dataset.set));
@@ -1027,11 +1056,9 @@
                 });
             }
 
-            function changeWeightDirect(exId, newWeight) {  // Imposta peso direttamente e logga cambiamento
+            function changeWeightDirect(exId, newWeight) {  // Imposta il peso usato oggi (la differenza dal piano si valuta una sola volta a fine sessione)
                 if (!state.todaySession) return;
-                const oldWeight = state.todaySession.exercises[exId].weight;
                 state.todaySession.exercises[exId].weight = newWeight;
-                if (oldWeight !== newWeight) logFatigue('weight_adjusted', exId);  // Logga solo se effettivamente cambiato
                 save(); renderWorkout();
                 const card = document.querySelector(`.ex-card[data-exid="${exId}"]`);
                 if (card) card.classList.add('open');  // Riapre i dettagli dell'esercizio
@@ -1042,81 +1069,86 @@
                 changeWeightDirect(exId, Math.max(0, (exS.weight || 0) + delta));  // Minimo 0kg
             }
 
-            function changeReps(exId, delta) {  // Modifica ripetizioni incrementando/decrementando (delta = -1 o +1)
+            function changeReps(exId, delta) {  // Modifica le rip/secondi della prossima serie da registrare
                 if (!state.todaySession) return;
-                const exS = state.todaySession.exercises[exId];
                 const sessionDef = getCurrentSessions()[state.todaySession.session];
                 const exDef = sessionDef?.exercises.find(e => e.id === exId);
-                const curReps = exS.actualReps ?? exDef?.repMin ?? 10;
-                exS.actualReps = Math.max(1, curReps + delta);  // Minimo 1 ripetizione
+                if (!exDef || !state.todaySession.exercises[exId]) return;
+                const exS = ensureExShape(state.todaySession.exercises[exId], exDef);
+                exS.pendingReps = Math.max(1, exS.pendingReps + delta);  // Minimo 1
                 save(); renderWorkout();
                 const card = document.querySelector(`.ex-card[data-exid="${exId}"]`);
                 if (card) card.classList.add('open');
             }
 
-            function toggleSet(exId, setNum) {  // Marca/toglie una serie come completata
+            function toggleSet(exId, setNum) {  // Marca/toglie una serie registrando le rip reali di quella serie
                 if (!state.todaySession) return;
-                const exS = state.todaySession.exercises[exId];
+                const sessionDef = getCurrentSessions()[state.todaySession.session];
+                const exDef = sessionDef.exercises.find(e => e.id === exId);
+                if (!exDef || !state.todaySession.exercises[exId]) return;
+                const exS = ensureExShape(state.todaySession.exercises[exId], exDef);
                 const idx = exS.completedSets.indexOf(setNum);  // Cerca se la serie è già completata
-                
-                if (idx >= 0) {  // Se già completata, la rimuove
+
+                if (idx >= 0) {  // Se già completata: la toglie e ripropone le sue rip per la correzione
                     exS.completedSets.splice(idx, 1);
+                    if (exS.repsPerSet[setNum] !== undefined) { exS.pendingReps = exS.repsPerSet[setNum]; delete exS.repsPerSet[setNum]; }
                     save(); renderWorkout();
                     const card = document.querySelector(`.ex-card[data-exid="${exId}"]`);
                     if (card) card.classList.add('open');
                     return;
-                } 
-                
-                // Altrimenti la aggiunge
-                if (setNum > 1 && !exS.completedSets.includes(setNum - 1)) {  // Logga se salta una serie precedente
-                    logFatigue('set_skipped', exId);
                 }
+
+                // Registra la serie con le rip correnti (le serie saltate si valutano a fine sessione sui dati reali)
                 exS.completedSets.push(setNum);
-                
+                exS.repsPerSet[setNum] = exS.pendingReps;
+                exS.actualReps = exS.pendingReps;  // Compatibilità con i grafici delle vecchie sessioni
+                exS.pendingReps = exS.targetReps;  // La prossima serie riparte dal target
+
+                const exerciseComplete = exS.completedSets.length >= exS.plannedSets;
                 // Determina nome da mostrare nel timer: prossimo esercizio se è l'ultima serie, altrimenti corrente
-                const sessionDef = getCurrentSessions()[state.todaySession.session];
-                const exDef = sessionDef.exercises.find(e => e.id === exId);
-                let timerExName = exDef ? exDef.name : '';
-                
-                if (exDef && exS.completedSets.length >= exDef.sets) {
-                    // È l'ultima serie: trova prossimo esercizio incompleto
+                let timerExName = exDef.name;
+                if (exerciseComplete) {
                     const currentIndex = sessionDef.exercises.findIndex(e => e.id === exId);
                     for (let i = currentIndex + 1; i < sessionDef.exercises.length; i++) {
                         const nextEx = sessionDef.exercises[i];
                         const nextExS = state.todaySession.exercises[nextEx.id];
-                        if (nextExS && nextExS.completedSets.length < nextEx.sets) {
+                        if (nextExS && nextExS.completedSets.length < (nextExS.plannedSets || nextEx.sets)) {
                             timerExName = nextEx.name;
                             break;
                         }
                     }
                 }
-                
-                // Avvia il timer di riposo
-                if (exDef) startTimer(exDef.restSec, timerExName);
-                
+
+                // Avvia il riposo (con contesto per il tracking) solo se la sessione non è appena terminata del tutto
+                const sessionComplete = sessionDef.exercises.every(e => {
+                    const es = state.todaySession.exercises[e.id];
+                    return es && es.completedSets.length >= ((es.plannedSets !== undefined ? es.plannedSets : e.sets));
+                });
+                if (!sessionComplete) startTimer(exDef.restSec, timerExName, { exId, set: setNum, planned: exDef.restSec, between: exerciseComplete });
+
                 save(); renderWorkout();
-                
+
                 // Auto-advance se esercizio completato
-                if (exDef && exS.completedSets.length >= exDef.sets) {
+                if (exerciseComplete) {
                     advanceToNextExercise(exId);
                     return;
                 }
-                
+
                 const card = document.querySelector(`.ex-card[data-exid="${exId}"]`);
                 if (card) card.classList.add('open');
             }
 
             function advanceToNextExercise(completedExId) {
                 if (!state.todaySession) return;
-                
+
                 const sessionDef = getCurrentSessions()[state.todaySession.session];
                 const exercises = sessionDef.exercises;
                 const currentIndex = exercises.findIndex(e => e.id === completedExId);
-                
+
                 for (let i = currentIndex + 1; i < exercises.length; i++) {
                     const nextEx = exercises[i];
                     const nextExS = state.todaySession.exercises[nextEx.id];
-                    if (nextExS && nextExS.completedSets.length < nextEx.sets) {
+                    if (nextExS && nextExS.completedSets.length < (nextExS.plannedSets !== undefined ? nextExS.plannedSets : nextEx.sets)) {
                         setTimeout(() => {
                             const nextCard = document.querySelector(`.ex-card[data-exid="${nextEx.id}"]`);
                             if (nextCard) {
@@ -1139,52 +1171,185 @@
             //     save(); renderWorkout(); startTimer(exDef.restSec, exDef.name);
             // }
 
-            function finishSession() {  // Termina la sessione salvando dati reali e riferimenti pianificati
-                const sessionDef = getCurrentSessions()[state.todaySession.session];
-                // Logga fatica per esercizi incompleti e variazioni peso
-                Object.keys(state.todaySession.exercises).forEach(exId => {
-                    const exS = state.todaySession.exercises[exId];
-                    const exDef = sessionDef?.exercises.find(e => e.id === exId);
-                    if (exDef) {
-                        if (exS.completedSets.length < exDef.sets) {  // Serie incomplete
-                            logFatigue('incomplete_exercise', exId);
-                        }
-                        if (exS.weight !== undefined && exS.weight !== exDef.weight) {  // Peso diverso dal pianificato
-                            logFatigue(exS.weight > exDef.weight ? 'weight_increased' : 'weight_reduced', exId);
-                        }
-                    }
+            function restStatsFor(exId) {  // Statistiche riposi di un esercizio nella sessione odierna
+                const log = (state.todaySession && state.todaySession.restLog) || {};
+                const stats = { skips: 0, extendedCount: 0, skippedSec: 0, entries: {} };
+                Object.keys(log).forEach(k => {
+                    const sep = k.lastIndexOf('_');
+                    if (k.slice(0, sep) !== exId) return;
+                    const e = log[k];
+                    stats.entries[parseInt(k.slice(sep + 1))] = e;
+                    if (e.skipped && !e.between) stats.skips++;  // Salti del riposo tra le serie
+                    if (e.skipped) stats.skippedSec += e.remaining || 0;
+                    if ((e.extended || 0) > 0) stats.extendedCount++;  // Riposi allungati (+15s)
                 });
-                // Salva dati reali + riferimenti pianificati per analisi future
-                const sessionData = JSON.parse(JSON.stringify(state.todaySession.exercises));
-                if (sessionDef) {
-                    Object.keys(sessionData).forEach(exId => {
-                        const exDef = sessionDef.exercises.find(e => e.id === exId);
-                        if (exDef) {
-                            sessionData[exId].plannedSets = exDef.sets;  // Serie pianificate
-                            sessionData[exId].weightPlanned = exDef.weight;  // Peso pianificato
-                            sessionData[exId].repPlanned = exDef.repMin;  // Ripetizioni pianificate (minimo range)
-                        }
-                    });
+                return stats;
+            }
+
+            /** Motore adattivo: dato l'esito reale dell'esercizio, calcola il piano del prossimo workout.
+             *  Progressione "pochi cambi di dischi": prima le rip (fino al tetto del range), poi +1 serie,
+             *  solo alla fine +1kg e mai oltre il tetto impostato (default 10kg).
+             *  Regola riposi (fonti: Project inVictus, Miletto, Body Comp Academy): il recupero incompleto
+             *  riduce fisiologicamente le rip successive → un calo dopo un riposo saltato non è fatica reale,
+             *  ma blocca la progressione; un riposo allungato rimanda solo l'aumento di peso. */
+            function computeNextPlan(exDef, exS, rest, globalFatigue) {
+                const prevPlan = state.plan[exDef.id] || {};
+                const unit = exDef.id === 'pl' ? 'sec' : 'rip';
+                const bodyweight = (exS.weight || 0) === 0;
+                const plannedSets = exS.plannedSets || exDef.sets;
+                const target = exS.targetReps !== undefined ? exS.targetReps : exDef.repMin;
+                const doneSets = exS.completedSets.length;
+                const missed = Math.max(0, plannedSets - doneSets);
+                // Rip per serie completata (fallback per sessioni avviate col vecchio formato)
+                const repsOf = sn => (exS.repsPerSet && exS.repsPerSet[sn] !== undefined) ? exS.repsPerSet[sn] : (exS.actualReps !== undefined ? exS.actualReps : target);
+                const repsList = exS.completedSets.map(repsOf);
+                const worst = repsList.length ? Math.min(...repsList) : 0;
+                // Serie sotto target: distingue calo genuino da calo atteso dopo riposo saltato (fosfocreatina non ripristinata)
+                let genuineShortfall = false, restConfounded = false;
+                exS.completedSets.forEach(sn => {
+                    if (repsOf(sn) >= target) return;
+                    const prevRest = rest.entries[sn - 1];
+                    if (prevRest && prevRest.skipped) restConfounded = true; else genuineShortfall = true;
+                });
+                const next = {
+                    weight: exS.weight !== undefined ? exS.weight : exDef.weight,  // Il prossimo workout parte SEMPRE dal peso reale usato oggi
+                    targetReps: target, extraSets: prevPlan.extraSets || 0,
+                    holds: prevPlan.holds || 0, bwExtended: prevPlan.bwExtended || false
+                };
+                const events = [];  // Eventi fatica da registrare (una volta sola, a fine sessione)
+                let outcome, reason;
+                const maxW = state.settings.maxWeight || 10;
+                const weightDelta = (exS.weight !== undefined && exS.weightPlanned !== undefined) ? exS.weight - exS.weightPlanned : 0;
+                if (weightDelta < 0) events.push('weight_reduced');  // Peso abbassato = segnale di fatica
+                if (weightDelta > 0) events.push(missed > 0 ? 'overreach' : 'weight_progressed');  // Alzato e completato = progresso (non fatica)
+                for (let i = 0; i < missed && i < 2; i++) events.push('set_missed');  // Serie saltate (max 2 conteggiate)
+                if (rest.extendedCount > 0) events.push('rest_extended');  // Riposi allungati = sforzo vicino al limite
+                if (restConfounded) events.push('rest_rushed');  // Calo dopo riposo saltato = fretta, penalità lieve
+                if (genuineShortfall) events.push('reps_below_target');  // Calo con riposo pieno = fatica genuina
+
+                if (missed > 0 || genuineShortfall || weightDelta < 0) {
+                    // Sessione in difficoltà: si mantiene il carico; dopo 2 di fila si riduce per consolidare
+                    next.holds++;
+                    if (next.holds >= 2) {
+                        if (next.extraSets > 0) { next.extraSets--; reason = '2 sessioni difficili di fila: tolta la serie extra per consolidare'; }
+                        else if (!bodyweight && next.weight > WEIGHT_STEP) { next.weight -= WEIGHT_STEP; next.targetReps = exDef.repMin; reason = `2 sessioni difficili di fila: -${WEIGHT_STEP}kg per ricostruire lo slancio`; }
+                        else { next.targetReps = Math.max(exDef.repMin, target - 1); reason = '2 sessioni difficili di fila: target abbassato per consolidare'; }
+                        next.holds = 0; outcome = 'reduce';
+                    } else {
+                        outcome = 'hold';
+                        reason = missed > 0 ? `Sessione incompleta (${doneSets}/${plannedSets} serie): si ripete lo stesso carico`
+                               : weightDelta < 0 ? `Peso ridotto a ${next.weight}kg nell'ultima sessione: si riparte da qui`
+                               : `${unit === 'sec' ? 'Secondi' : 'Rip'} sotto target con riposo pieno: si ripete per consolidare`;
+                    }
+                } else if (restConfounded && worst < target) {
+                    // Calo dovuto solo ai riposi saltati: niente penalità piena, ma niente progressione
+                    outcome = 'hold_rest'; next.holds = 0;
+                    reason = `${unit === 'sec' ? 'Secondi' : 'Rip'} calate dopo riposi saltati: carico invariato — rispetta i recuperi, il calo è fisiologico`;
+                } else if (worst >= target && target < exDef.repMax) {
+                    // Doppia progressione, fase rip: target verso il tetto del range (serie peggiore; i secondi avanzano di 5)
+                    next.targetReps = Math.min(Math.max(worst, target) + (unit === 'sec' ? 5 : 1), exDef.repMax); next.holds = 0; outcome = 'advance';
+                    reason = `Target ${unit}: ${target} → ${next.targetReps} (range ${exDef.repMin}–${exDef.repMax})`;
+                } else if (worst >= exDef.repMax) {
+                    // Tetto del range su tutte le serie → gradino successivo della progressione
+                    next.holds = 0;
+                    if (globalFatigue === 'red') { outcome = 'hold'; reason = 'Range completato ma fatica alta: si consolida prima di progredire'; }
+                    else if (next.extraSets < 1) {
+                        next.extraSets = 1; next.targetReps = exDef.repMin; outcome = 'add_set';
+                        reason = `Tutte le serie a ${exDef.repMax} ${unit}: +1 serie (più volume senza cambiare dischi), ${unit} da ${exDef.repMin}`;
+                    } else if (!bodyweight && rest.extendedCount > 0) {
+                        outcome = 'hold'; reason = 'Pronto per +peso, ma riposi allungati: si consolida ancora una sessione';
+                    } else if (!bodyweight && next.weight + WEIGHT_STEP <= maxW) {
+                        next.weight += WEIGHT_STEP; next.targetReps = exDef.repMin; next.extraSets = 0; outcome = 'add_weight';
+                        reason = `Progressione completa: +${WEIGHT_STEP}kg (→ ${next.weight}kg), si riparte da ${exDef.repMin} ${unit}`;
+                    } else if (bodyweight && !next.bwExtended) {
+                        const cap = exDef.id === 'pl' ? 60 : exDef.repMax + 5;
+                        if (target < cap) { next.targetReps = Math.min(target + (unit === 'sec' ? 5 : 1), cap); outcome = 'advance'; reason = `Corpo libero: target esteso a ${next.targetReps} ${unit}`; }
+                        else { next.bwExtended = true; outcome = 'capped'; reason = 'Massimo raggiunto: passa a una variante più difficile (pausa, unilaterale, discesa lenta)'; }
+                    } else {
+                        outcome = 'capped';
+                        reason = bodyweight ? 'Massimo raggiunto: passa a una variante più difficile (pausa, unilaterale, discesa lenta)'
+                               : `Tetto ${maxW}kg raggiunto: mantieni il carico e lavora su varianti più dure o densità (riposi più corti)`;
+                    }
+                } else {
+                    outcome = 'ok'; next.holds = 0; reason = 'Target raggiunto: si ripete per consolidare';
                 }
-                state.sessions.push({ date: todayStr(), session: state.todaySession.session, exercises: sessionData });  // Salva sessione completata
+                return { next, outcome, reason, events };
+            }
+
+            function finishSession() {  // Termina la sessione: salva i dati reali e modella il piano del prossimo workout
+                const sessionDef = getCurrentSessions()[state.todaySession.session];
+                const globalFatigue = getFatigueLevel();  // Stato fatica PRIMA di registrare i nuovi eventi
+                const isDeload = !!state.todaySession.deload;
+                const restLog = state.todaySession.restLog || {};
+                let adaptedCount = 0;
+                // Statistiche riposi a livello sessione
+                let restTotal = 0, restSkipped = 0, restExtended = 0;
+                Object.keys(restLog).forEach(k => { restTotal++; if (restLog[k].skipped) restSkipped++; if ((restLog[k].extended || 0) > 0) restExtended++; });
+                const compressed = restTotal >= 3 && restSkipped / restTotal > 0.5;  // Sessione con riposi per lo più saltati
+
+                const sessionData = JSON.parse(JSON.stringify(state.todaySession.exercises));
+                Object.keys(sessionData).forEach(exId => {
+                    const exDef = sessionDef?.exercises.find(e => e.id === exId);
+                    if (!exDef) return;
+                    const exS = ensureExShape(state.todaySession.exercises[exId], exDef);
+                    const rest = restStatsFor(exId);
+                    // Riferimenti reali + pianificati per le analisi future
+                    sessionData[exId].plannedSets = exS.plannedSets;
+                    sessionData[exId].weightPlanned = exS.weightPlanned;
+                    sessionData[exId].repPlanned = exS.targetReps;
+                    sessionData[exId].restSkips = rest.skips;
+                    sessionData[exId].restExtended = rest.extendedCount;
+                    if (isDeload) return;  // In deload niente adattamenti né fatica: la riduzione è voluta
+                    const result = computeNextPlan(exDef, exS, rest, globalFatigue);
+                    result.events.forEach(t => logFatigue(t, exId));
+                    state.plan[exId] = {
+                        weight: result.next.weight, targetReps: result.next.targetReps, extraSets: result.next.extraSets,
+                        holds: result.next.holds, bwExtended: result.next.bwExtended,
+                        lastOutcome: result.outcome, reason: result.reason, updatedAt: todayStr()
+                    };
+                    sessionData[exId].outcome = result.outcome;
+                    if (result.outcome !== 'ok') adaptedCount++;
+                });
+                state.sessions.push({ date: todayStr(), session: state.todaySession.session, exercises: sessionData,
+                    restStats: { total: restTotal, skipped: restSkipped, extended: restExtended }, compressed });  // Salva sessione completata
                 state.lastSessionType = state.todaySession.session;  // Aggiorna ultimo tipo sessione
                 state.todaySession.done = true; save();  // Marca come completata
-                // Mostra overlay congratulazioni
+                // Overlay congratulazioni con riepilogo adattamenti
                 const congDiv = document.getElementById('congrats');
                 congDiv.classList.add('active');
-                document.getElementById('congratsSub').innerHTML = `Hai completato la ${getCurrentSessions()[state.todaySession.session].name}!<br>Continua così — stai costruendo il corpo di ferro. 💪`;
+                let sub = `Hai completato la ${getCurrentSessions()[state.todaySession.session].name}!<br>`;
+                if (isDeload) sub += 'Settimana di scarico registrata: il piano riprende dal prossimo ciclo. 💤';
+                else if (adaptedCount > 0) sub += `Piano aggiornato per ${adaptedCount} eserciz${adaptedCount === 1 ? 'io' : 'i'} in base ai tuoi risultati — dettagli in Home. 📋`;
+                else sub += 'Continua così — stai costruendo il corpo di ferro. 💪';
+                if (compressed) sub += `<br><span style="color:#FFB350">⏱ Hai saltato gran parte dei riposi: il recupero incompleto riduce le rip successive e il volume totale, il motore della crescita.</span>`;
+                document.getElementById('congratsSub').innerHTML = sub;
                 document.getElementById('congratsCloseBtn').addEventListener('click', function handler() {  // Bottone chiude congratulazioni e torna home
                     congDiv.classList.remove('active'); state.todaySession = null;
                     save(); renderWorkout(); renderHome(); goPage('home');
                 }, { once: true });
-                analyzeFatigue();  // Analizza fatica accumulata
             }
 
-            // ─────────── TIMER: conto alla rovescia tra serie ───────────
+            // ─────────── TIMER: conto alla rovescia tra serie, con tracking dei riposi ───────────
             let timerInterval = null; let timerTotal = 60; let timerRemaining = 60; let timerPaused = false;
+            let restCtx = null;  // Riposo in corso: { exId, set, planned, extended, between }
 
-            function startTimer(seconds, exName) {  // Avvia il timer di riposo tra le serie
+            function recordRest(skipped) {  // Registra l'esito del riposo nel log della sessione
+                if (!restCtx) return;
+                if (state.todaySession) {
+                    if (!state.todaySession.restLog) state.todaySession.restLog = {};
+                    state.todaySession.restLog[restCtx.exId + '_' + restCtx.set] = {
+                        planned: restCtx.planned, skipped: !!skipped, remaining: skipped ? Math.max(0, timerRemaining) : 0,
+                        extended: restCtx.extended || 0, between: !!restCtx.between
+                    };
+                    save();
+                }
+                restCtx = null;
+            }
+
+            function startTimer(seconds, exName, ctx) {  // Avvia il timer di riposo tra le serie
                 if (timerInterval) clearInterval(timerInterval);  // Resetta timer precedente
+                if (restCtx) recordRest(false);  // Chiude un eventuale riposo rimasto aperto
+                restCtx = ctx ? { exId: ctx.exId, set: ctx.set, planned: ctx.planned || seconds, extended: 0, between: !!ctx.between } : null;
                 timerTotal = seconds; timerRemaining = seconds; timerPaused = false;  // Imposta durata
                 document.getElementById('timerExName').textContent = 'Dopo: ' + exName;  // Nome esercizio
                 document.getElementById('timerPauseBtn').textContent = 'Pausa';  // Testo pulsante pausa
@@ -1199,6 +1364,7 @@
                 if (timerRemaining <= 0) {  // Tempo scaduto
                     clearInterval(timerInterval);
                     document.getElementById('timerOverlay').classList.remove('active');  // Nascondi overlay
+                    recordRest(false);  // Riposo completato regolarmente
                     if (state.settings.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);  // Vibra se abilitato
                 }
             }
@@ -1214,8 +1380,8 @@
             function bindTimerButtons() {  // Collega listener ai pulsanti timer (una sola volta)
                 if (timerPauseListener) return;  // Già collegati
                 timerPauseListener = () => { timerPaused = !timerPaused; document.getElementById('timerPauseBtn').textContent = timerPaused ? 'Riprendi' : 'Pausa'; };  // Pausa/Riprendi
-                timerSkipListener = () => { if (timerInterval) clearInterval(timerInterval); document.getElementById('timerOverlay').classList.remove('active'); };  // Salta riposo
-                timerAddListener = () => { timerRemaining += 15; timerTotal += 15; updateTimerUI(); };  // Aggiungi 15 secondi
+                timerSkipListener = () => { if (timerInterval) clearInterval(timerInterval); document.getElementById('timerOverlay').classList.remove('active'); recordRest(true); };  // Salta riposo: registrato per l'analisi
+                timerAddListener = () => { timerRemaining += 15; timerTotal += 15; if (restCtx) restCtx.extended += 15; updateTimerUI(); };  // Aggiungi 15 secondi: registrato come riposo allungato
                 document.getElementById('timerPauseBtn').addEventListener('click', timerPauseListener);
                 document.getElementById('timerSkipBtn').addEventListener('click', timerSkipListener);
                 document.getElementById('timerAddBtn').addEventListener('click', timerAddListener);
@@ -1330,7 +1496,7 @@
                         sessionDef.exercises.forEach(function(ex) {
                             var exData = s.exercises[ex.id];
                             if (exData && exData.completedSets.length > 0) {
-                                actual += (exData.weight || ex.weight) * exData.completedSets.length * (exData.actualReps || ex.repMid);  // Volume reale: peso × serie × rip
+                                actual += exActualVolume(exData, ex);  // Volume reale: peso × somma rip per serie
                             }
                             var pSets = (exData && exData.plannedSets) || ex.sets;  // Serie pianificate
                             var pWeight = (exData && exData.weightPlanned) || ex.weight;  // Peso pianificato
@@ -1496,6 +1662,18 @@
                     + '<div style="font-size:10px;color:var(--muted);margin-top:2px">Salti, incompleti, cambi peso</div>'
                     + '</div>';
                 cs.innerHTML += '</div>';
+                // Card riposi: quanti recuperi rispettati nelle ultime 5 sessioni
+                var rTot = 0, rSkip = 0, rExt = 0;
+                recentSessions.forEach(function(s) { if (s.restStats) { rTot += s.restStats.total; rSkip += s.restStats.skipped; rExt += s.restStats.extended; } });
+                if (rTot > 0) {
+                    var rPct = Math.round(((rTot - rSkip) / rTot) * 100);
+                    var rColor = rPct >= 80 ? 'var(--accent)' : (rPct >= 50 ? '#FFB350' : 'var(--red)');
+                    cs.innerHTML += '<div class="card" style="padding:12px;margin-bottom:12px">'
+                        + '<div style="font-size:12px;font-weight:600;margin-bottom:4px">Riposi rispettati</div>'
+                        + '<div style="font-size:20px;font-weight:700;color:' + rColor + '">⏱ ' + rPct + '%</div>'
+                        + '<div style="font-size:10px;color:var(--muted);margin-top:2px">' + rSkip + ' saltati · ' + rExt + ' allungati su ' + rTot + ' — recupero pieno = più rip e più volume</div>'
+                        + '</div>';
+                }
                 // Warning deload
                 if (level === 'red') cs.innerHTML += '<div style="color:var(--red);font-size:12px;margin-bottom:8px;text-align:center">⚠️ Rilevata possibile sovrallenamento — considera deload</div>';
                 if (deload.needed) cs.innerHTML += '<div style="background:rgba(255,61,31,0.1);border:1px solid var(--red);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--white);line-height:1.6">⚠️ ' + deload.reason + '</div>';
@@ -1513,20 +1691,27 @@
                             var weightUsed = exData.weight || ex.weight;
                             var weightPlanned = exData.weightPlanned || ex.weight;
                             var repsActual = exData.actualReps || ex.repMid;  // Rip reali (fallback repMid)
-                            var repsPlanned = exData.repPlanned || ex.repMid;  // Rip pianificate (fallback repMid)
+                            var repsPlanned = exData.repPlanned || ex.repMid;  // Target rip della sessione
+                            var repsDetail = null; var worstReps = repsActual;  // Dettaglio rip per serie (nuove sessioni)
+                            if (exData.repsPerSet && exData.completedSets.length > 0) {
+                                var sortedSets = exData.completedSets.slice().sort(function(a, b) { return a - b; });
+                                var perSet = sortedSets.map(function(sn) { return exData.repsPerSet[sn] !== undefined ? exData.repsPerSet[sn] : repsActual; });
+                                repsDetail = perSet.join('/');
+                                worstReps = Math.min.apply(null, perSet);
+                            }
                             var setsOk = setsDone === setsPlanned;
                             var weightOk = weightUsed === weightPlanned;
-                            var repsOk = repsActual === repsPlanned;
+                            var repsOk = worstReps >= repsPlanned;  // Ok se anche la serie peggiore raggiunge il target
                             var setColor = setsOk ? 'var(--accent)' : 'var(--red)';
                             var weightColor = weightOk ? 'var(--muted)' : (weightUsed > weightPlanned ? 'var(--accent)' : 'var(--red)');
-                            var repsColor = repsOk ? 'var(--muted)' : (repsActual > repsPlanned ? 'var(--accent)' : 'var(--red)');
-                            var volActual = weightUsed * setsDone * repsActual;  // Volume: peso × serie × rip reali
+                            var repsColor = worstReps > repsPlanned ? 'var(--accent)' : (repsOk ? 'var(--muted)' : 'var(--red)');
+                            var volActual = exActualVolume(exData, ex);  // Volume reale
                             detHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--g2);font-size:12px">';
                             detHtml += '<div style="font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + ex.name + '</div>';
                             detHtml += '<div style="display:flex;gap:8px;flex-shrink:0">';
                             detHtml += '<span style="color:' + setColor + '">' + setsDone + '/' + setsPlanned + '</span>';  // Serie
                             detHtml += '<span style="color:' + weightColor + '">' + weightUsed + 'kg' + (!weightOk ? ' (' + weightPlanned + ')' : '') + '</span>';  // Peso
-                            detHtml += '<span style="color:' + repsColor + '">' + repsActual + 'rip' + (!repsOk ? ' (' + repsPlanned + ')' : '') + '</span>';  // Rip
+                            detHtml += '<span style="color:' + repsColor + '">' + (repsDetail || repsActual) + 'rip' + (!repsOk ? ' (target ' + repsPlanned + ')' : '') + '</span>';  // Rip per serie
                             detHtml += '<span style="color:var(--muted)">' + Math.round(volActual) + '</span>';  // Volume
                             detHtml += '</div></div>';
                         });
@@ -1569,6 +1754,7 @@
             // ─────────── IMPOSTAZIONI: toggle suono, vibrazione, esportazione dati ───────────
             function renderSettings() {  // Renderizza la pagina impostazioni (peso, suono, vibrazione, obiettivo)
                 document.getElementById('settingWeight').textContent = (state.settings.weight || 75) + ' kg';
+                document.getElementById('settingMaxWeight').textContent = (state.settings.maxWeight || 10) + ' kg';
                 document.getElementById('toggleSound').classList.toggle('on', state.settings.sound);
                 document.getElementById('toggleVibration').classList.toggle('on', state.settings.vibration);
                 document.getElementById('objectiveValue').textContent = state.settings.objective === 'cut' ? '🔥 Cut' : '⚡ Bulk';
@@ -1578,6 +1764,13 @@
             function toggleSetting(key) { state.settings[key] = !state.settings[key]; save(); renderSettings(); }  // Alterna un'impostazione booleana
             function toggleObjective() { state.settings.objective = state.settings.objective === 'cut' ? 'bulk' : 'cut'; save(); renderSettings(); if (document.getElementById('page-nutrition').classList.contains('active')) renderNutrition(); }  // Alterna obiettivo cut/bulk
             
+            window.setMaxWeight = async function() {  // Imposta il tetto di peso per gli aumenti automatici
+                const v = await showPrompt('Peso massimo per manubrio (kg):', state.settings.maxWeight || 10);
+                if (v === null) return;
+                const n = parseFloat(String(v).replace(',', '.'));
+                if (!isNaN(n) && n > 0) { state.settings.maxWeight = n; save(); renderSettings(); }
+            };
+
             window.resetToday = async function() { if (await showConfirm('Resettare la sessione di oggi?')) { state.todaySession = null; save(); renderWorkout(); } };  // Resetta la sessione di oggi
             window.resetAll = async function() { if (await showConfirm('Cancellare tutti i dati? Questa azione non è reversibile.')) { try { localStorage.removeItem('cdf_state'); } catch (e) {} location.reload(); } };  // Cancella tutti i dati e ricarica
 
@@ -1605,11 +1798,13 @@
                         vibration: true,
                         weight: 75,
                         objective: 'cut',
+                        maxWeight: 10,
                         ...(loaded.settings || {})
                     },
                     fatigue: Array.isArray(loaded.fatigue) ? loaded.fatigue : [],
                     bodyMeasurements: Array.isArray(loaded.bodyMeasurements) ? loaded.bodyMeasurements : [],
-                    lastSessionType: loaded.lastSessionType || null
+                    lastSessionType: loaded.lastSessionType || null,
+                    plan: (loaded.plan && typeof loaded.plan === 'object') ? loaded.plan : {}
                 };
             }
 
@@ -1648,19 +1843,23 @@
             // ─────────── FEATURE SMART: insight, affaticamento, suggerimenti peso, trend volume ───────────
 
             function logFatigue(type, exId) { state.fatigue.push({ date: todayStr(), type, exId }); save(); }  // Registra un evento di affaticamento
-            function getFatigueLevel() {  // Calcola il livello di affaticamento in base agli eventi recenti
-                const recent = state.fatigue.slice(-10);
-                const skips = recent.filter(f => f.type === 'set_skipped').length;
-                const incompletes = recent.filter(f => f.type === 'incomplete_exercise').length;
-                const adjusts = recent.filter(f => f.type === 'weight_adjusted').length;
-                const weightUp = recent.filter(f => f.type === 'weight_increased').length;
-                const weightDown = recent.filter(f => f.type === 'weight_reduced').length;
-                const score = skips * 2 + incompletes * 3 + adjusts * 1 + weightUp * 3 + weightDown * 1;
+            // Pesi degli eventi fatica: alzare il peso completando tutto è PROGRESSO (0), non fatica
+            const FATIGUE_WEIGHTS = {
+                set_missed: 2, reps_below_target: 1, rest_extended: 1, rest_rushed: 1, overreach: 2,
+                weight_reduced: 2, weight_progressed: 0,
+                // Tipi legacy (dati salvati prima dell'aggiornamento)
+                set_skipped: 1, incomplete_exercise: 3, weight_adjusted: 0, weight_increased: 0
+            };
+            function recentFatigue(exId) {  // Eventi fatica degli ultimi 14 giorni (finestra a tempo, non a conteggio)
+                const cutoff = new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0];
+                return state.fatigue.filter(f => f.date >= cutoff && (!exId || f.exId === exId));
+            }
+            function getFatigueLevel() {  // Livello di affaticamento globale sulla finestra di 14 giorni
+                const score = recentFatigue().reduce((a, f) => a + (FATIGUE_WEIGHTS[f.type] !== undefined ? FATIGUE_WEIGHTS[f.type] : 1), 0);
                 if (score >= 10) return 'red';
                 if (score >= 5) return 'yellow';
                 return 'green';
             }
-            function analyzeFatigue() {}  // Placeholder per analisi affaticamento approfondita
             function showFatigueStatus() {  // Mostra notifica temporanea con stato affaticamento
                 const level = getFatigueLevel(); let msg = '';
                 if (level === 'green') msg = '🟢 Energia alta: spingi forte e progredisci!';
@@ -1686,9 +1885,22 @@
                 if (!s) return 0;
                 let total = 0;
                 s.exercises.forEach(ex => {
-                    total += ex.sets * (ex.restSec + 20); // 20 sec per esecuzione serie
+                    const extra = (state.plan[ex.id] && state.plan[ex.id].extraSets) || 0;  // Serie extra dal piano adattivo
+                    total += (ex.sets + extra) * (ex.restSec + 20); // 20 sec per esecuzione serie
                 });
                 return Math.round(total / 60);
+            }
+
+            /** Volume reale di un esercizio in una sessione salvata: peso × somma rip per serie (fallback dati legacy) */
+            function exActualVolume(exData, exDef) {
+                if (!exData || !exData.completedSets || exData.completedSets.length === 0) return 0;
+                const w = (exData.weight !== undefined ? exData.weight : exDef.weight) || 0;
+                if (exData.repsPerSet) {
+                    let reps = 0;
+                    exData.completedSets.forEach(sn => { reps += (exData.repsPerSet[sn] !== undefined ? exData.repsPerSet[sn] : (exData.actualReps || exDef.repMid)); });
+                    return w * reps;
+                }
+                return w * exData.completedSets.length * (exData.actualReps || exDef.repMid);
             }
 
             /** Trend volume: confronta ultime 3 sessioni con le 3 precedenti */
@@ -1703,7 +1915,7 @@
                         if (!sd) return acc;
                         return acc + sd.exercises.reduce((a, ex) => {
                             const d = s.exercises?.[ex.id];
-                            return a + (d ? (d.weight || ex.weight) * d.completedSets.length * (d.actualReps || ex.repMid) : 0);
+                            return a + exActualVolume(d, ex);
                         }, 0);
                     }, 0) / Math.max(arr.length, 1);
                 }
@@ -1724,25 +1936,6 @@
                 if (fatigue === 'red' && sessionsLast2Weeks >= 4) return { needed: true, reason: 'Alta frequenza + affaticamento. Prenditi 3-4 giorni di recupero.' };
                 if (trend.direction === 'calo' && trend.pct < -15) return { needed: true, reason: `Volume calato del ${Math.abs(trend.pct)}%. Potresti aver bisogno di recupero.` };
                 return { needed: false, reason: '' };
-            }
-
-            /** Suggerimento peso intelligente con trend */
-            function getSmartWeightSuggestion(exId, currentWeight) {
-                const sessionsWithEx = state.sessions.filter(s => s.exercises && s.exercises[exId] && s.exercises[exId].completedSets.length > 0);
-                if (sessionsWithEx.length < 2) return null;
-                const lastTwo = sessionsWithEx.slice(-2);
-                const allComplete = lastTwo.every(s => {
-                    const sd = getCurrentSessions()[s.session];
-                    const ed = sd?.exercises.find(e => e.id === exId);
-                    return ed && s.exercises[exId].completedSets.length >= ed.sets;
-                });
-                if (!allComplete) return null;
-                const fatigue = getFatigueLevel();
-                if (fatigue !== 'green') return null;
-                const lastWeight = lastTwo[lastTwo.length - 1].exercises[exId].weight || currentWeight;
-                const prevWeight = lastTwo[0].exercises[exId].weight || currentWeight;
-                if (lastWeight <= prevWeight) return null; // non è progredito
-                return Math.round((lastWeight + 0.5) * 2) / 2; // arrotonda a 0.5
             }
 
             /** Insight motivazionale personalizzato */
