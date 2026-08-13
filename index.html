@@ -174,6 +174,10 @@
         .wh-day.done-day { background: rgba(200, 255, 0, 0.08); border-color: rgba(200, 255, 0, 0.3); }
         .wh-name { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
         .wh-icon { font-size: 16px; }
+        .wh-day.today-day { border-color: var(--accent); }
+        .wh-day.future-day .wh-icon, .wh-day.future-day .wh-name { opacity: 0.35; }
+        .last-workout { font-size: 12px; color: var(--muted); margin-top: 8px; padding: 0 2px; line-height: 1.5; }
+        .last-workout strong { color: var(--white); font-weight: 600; }
         
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
         .cal-day { background: var(--g1); border-radius: 6px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); }
@@ -497,7 +501,7 @@
                     <div class="setting-value" id="objectiveValue" style="cursor:pointer">🔥 Cut</div>
                 </div>
                 <div class="setting-row" data-action="setMaxWeight">
-                    <div><div class="setting-label">Peso massimo manubri</div><div class="setting-sub">Tetto per gli aumenti automatici di peso</div></div>
+                    <div><div class="setting-label">Peso massimo manubri</div><div class="setting-sub">Tetto invalicabile: la progressione non passa dal carico</div></div>
                     <div class="setting-value" id="settingMaxWeight">10 kg</div>
                 </div>
                 <div class="setting-row">
@@ -595,35 +599,44 @@
     <script>
         (function() {
             // ─────────── DATI ALLENAMENTI: definizione sessioni A/B, esercizi, progressione ───────────
+            const CYCLE_WEEKS = 9;  // Ciclo: 8 settimane di lavoro + 1 di scarico, poi riparte con varianti più dure
+            function getCycleInfo() {  // Posizione nel ciclo: unica fonte per fase, scarico, picco e varianti
+                const weekNum = Math.ceil(state.sessions.length / 2) || 1;  // Settimana assoluta (2 sessioni = 1 settimana)
+                const blockNum = Math.floor((weekNum - 1) / CYCLE_WEEKS) + 1;  // Blocco in corso: il ciclo si ripete all'infinito
+                const cycleWeek = ((weekNum - 1) % CYCLE_WEEKS) + 1;  // Settimana dentro il ciclo (1…9)
+                const deload = cycleWeek === CYCLE_WEEKS;  // La 9ª settimana di ogni ciclo è scarico
+                const peak = cycleWeek === 7 || cycleWeek === 8;  // Picco: +serie sui compound
+                const phaseIdx = deload ? 4 : Math.floor((cycleWeek - 1) / 2);  // 1-2→0, 3-4→1, 5-6→2, 7-8→3, 9→4
+                return { weekNum, blockNum, cycleWeek, deload, peak, phaseIdx };
+            }
+            function isDeloadNow() { return getCycleInfo().deload || !!state.forceDeload; }  // Scarico programmato o attivato a mano
+
             function getCurrentSessions() {
-                // Definisce la struttura delle sessioni A (Push) e B (Pull) con esercizi, serie, ripetizioni, pesi
+                // Definisce la struttura delle sessioni A (Push) e B (Pull) con esercizi, serie, ripetizioni, pesi.
+                // Tutti i carichi restano entro i 10kg per manubrio: la progressione non passa mai dall'aumento di peso.
                 const baseSessions = {
                     A: {
                         name: 'Spinta (Push)', sub: 'Sabato · Petto, spalle, tricipiti, quadricipiti', day: 6,
                         exercises: [
-                            { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: '10–12kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 10, restSec: 90, tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
-                            { id: 'af', name: 'Affondi con manubri', meta: '10–12kg · 3 serie × 10–12 per gamba', sets: 3, reps: '10–12/gamba', repMin: 10, repMid: 11, repMax: 12, weight: 10, restSec: 90, tip: 'Passo lungo, ginocchio anteriore a 90°. Tronco dritto. Spingi col tallone per risalire.' },
-                            { id: 'hc', name: 'Curl a martello', meta: '7–9kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 7, restSec: 60, tip: 'Palmi rivolti verso l\'interno. Gomiti fissi. Solo avambracci in movimento.' },
-                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
+                            { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: '10kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 10, restSec: 90, variant: 'base', tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
+                            { id: 'af', name: 'Affondi con manubri', meta: '10kg · 3 serie × 10–12 per gamba', sets: 3, reps: '10–12/gamba', repMin: 10, repMid: 11, repMax: 12, weight: 10, restSec: 90, variant: 'base', tip: 'Passo lungo, ginocchio anteriore a 90°. Tronco dritto. Spingi col tallone per risalire.' },
+                            { id: 'hc', name: 'Curl a martello', meta: '7kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 7, restSec: 60, variant: 'base', tip: 'Palmi rivolti verso l\'interno. Gomiti fissi. Solo avambracci in movimento.' },
+                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, variant: 'base', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     },
                     B: {
                         name: 'Trazione (Pull)', sub: 'Domenica · Schiena, bicipiti, glutei, femorali', day: 0,
                         exercises: [
-                            { id: 'rw', name: 'Rowing manubrio', meta: '14–16kg · 3 serie × 8–10 rip', sets: 3, reps: '8–10', repMin: 8, repMid: 9, repMax: 10, weight: 14, restSec: 120, tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
-                            { id: 'rd', name: 'Stacco Rumeno', meta: '14–16kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 14, restSec: 90, tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
-                            { id: 'cu', name: 'Curl Alternato con manubri', meta: '8–10kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 8, restSec: 60, tip: 'Gomiti incollati ai fianchi. Alterna le braccia. Abbassa lentamente — qui crescono i bicipiti.' },
-                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
+                            { id: 'rw', name: 'Rowing manubrio', meta: '10kg · 3 serie × 8–10 rip', sets: 3, reps: '8–10', repMin: 8, repMid: 9, repMax: 10, weight: 10, restSec: 120, variant: 'base', tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
+                            { id: 'rd', name: 'Stacco Rumeno', meta: '10kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 10, restSec: 90, variant: 'base', tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
+                            { id: 'cu', name: 'Curl Alternato con manubri', meta: '8kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 8, restSec: 60, variant: 'base', tip: 'Gomiti incollati ai fianchi. Alterna le braccia. Abbassa lentamente — qui crescono i bicipiti.' },
+                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, variant: 'base', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     }
                 };
-                // Calcola il numero totale di sessioni completate e la settimana di progressione corrente
-                const totalSessions = state.sessions.length;
-                const weekNum = Math.ceil(totalSessions / 2) || 1;
-                // Determina l'indice della fase di progressione in base alla settimana (cambio ogni 2 settimane)
-                const progIdx = Math.min(Math.floor((weekNum - 1) / 2), PROGRESSION.length - 1);
-                // Settimane 7-8 (Peak): imposta 5 serie per esercizi composti (cp, rw, rd)
-                if (progIdx >= 3 && weekNum <= 8) {
+                const cyc = getCycleInfo();
+                // Settimane 7-8 (Peak): 5 serie sui compound — a carico fisso il volume è la leva principale
+                if (cyc.peak) {
                     ['cp','rw','rd'].forEach(id => {
                         Object.values(baseSessions).forEach(session => {
                             const ex = session.exercises.find(e => e.id === id);
@@ -631,27 +644,26 @@
                         });
                     });
                 }
-                // Settimana 9 (Deload): riduce tutte le serie a 2
-                if (weekNum === 9) {
+                // Settimana 9 di ogni ciclo (Deload): riduce tutte le serie a 2
+                if (cyc.deload) {
                     Object.values(baseSessions).forEach(session => {
                         session.exercises.forEach(ex => ex.sets = 2);
                     });
                 }
-                // Dalla settimana 9 in poi: applica variazioni avanzate agli esercizi
-                if (weekNum >= 9) {
+                // Dal blocco 2 in poi: varianti più difficili. Restano FUORI dalla settimana di scarico,
+                // così i movimenti nuovi non si sommano alla fatica proprio quando va smaltita.
+                if (cyc.blockNum >= 2) {
                     Object.values(baseSessions).forEach(session => {
                         const cp = session.exercises.find(e => e.id === 'cp');
-                        if (cp) { cp.name = 'Distensioni sdraiate (Variante: Un braccio alla volta)'; cp.meta = '12–14kg · 3 serie × 10–12 rip'; }
+                        if (cp) { cp.name = 'Distensioni sdraiate (Variante: Un braccio alla volta)'; cp.meta = '10kg · 3 serie × 10–12 rip per braccio'; cp.variant = 'b2'; }
                         const af = session.exercises.find(e => e.id === 'af');
-                        if (af) { af.name = 'Affondi (Variante: Pausa in basso 2 sec)'; af.meta = '10–12kg · 3 serie × 10–12 per gamba'; }
+                        if (af) { af.name = 'Affondi (Variante: Pausa in basso 2 sec)'; af.meta = '10kg · 3 serie × 10–12 per gamba'; af.variant = 'b2'; }
                         const rd = session.exercises.find(e => e.id === 'rd');
-                        if (rd) { rd.name = 'Stacco Rumeno (Variante: Singola gamba)'; rd.meta = '16–18kg · 3 serie × 10–12 rip'; }
+                        if (rd) { rd.name = 'Stacco Rumeno (Variante: Singola gamba)'; rd.meta = '10kg · 3 serie × 10–12 rip per gamba'; rd.variant = 'b2'; }
                     });
-                }
-                // Dalla settimana 10 in poi: aggiunge un nuovo esercizio (Push-up Diamond) alla sessione A
-                if (weekNum >= 10) {
+                    // Dal secondo blocco si aggiunge un esercizio a corpo libero alla sessione A
                     baseSessions.A.exercises.push({
-                        id: 'pu', name: 'Push-up (Variante: Diamond)', meta: 'Corpo · 3 serie × 10–15 rip', sets: 3, reps: '10–15', repMin: 10, repMid: 12.5, repMax: 15, weight: 0, restSec: 60, tip: 'Mani a diamante sotto il petto. Corpo dritto. Ottimo per tricipiti e petto interno.'
+                        id: 'pu', name: 'Push-up (Variante: Diamond)', meta: 'Corpo · 3 serie × 10–15 rip', sets: 3, reps: '10–15', repMin: 10, repMid: 12.5, repMax: 15, weight: 0, restSec: 60, variant: 'base', tip: 'Mani a diamante sotto il petto. Corpo dritto. Ottimo per tricipiti e petto interno.'
                     });
                 }
                 // Restituisce le sessioni con le modifiche di progressione applicate
@@ -667,13 +679,30 @@
                 { time: '20:00', name: 'Cena', foods: '200g petto di pollo/tacchino\nOPPURE 4 uova strapazzate con friarielli\nOPPURE 200g lenticchie/ceci cotti\nVerdure grigliate + 1 cucchiaio olio EVO + 40g pane integrale', p: 40, c: 20, f: 20, kcal: 417 }
             ];
 
+            // Fasi del ciclo di 9 settimane (poi riparte). Il carico è fisso entro i 10kg: con carichi leggeri
+            // lo stimolo ipertrofico arriva dalla vicinanza al cedimento, non dai kg — quindi la progressione
+            // passa da ripetizioni → serie → estensione del range → densità (recuperi più corti) → varianti.
             const PROGRESSION = [
-                { weeks: '1–2', label: 'Adattamento', desc: '3-4 serie per esercizio · Recupero 90-120 sec · Impara i movimenti con controllo. Lascia 2-3 ripetizioni "in riserva" (non al cedimento).' },
-                { weeks: '3–4', label: 'Volume', desc: '3-4 serie · Recupero invariato · Discesa lenta 3 secondi. Se fai 12 rip facilmente, aggiungi 1-2kg la sessione successiva.' },
-                { weeks: '5–6', label: 'Intensità', desc: '3-4 serie · Aggiungi 1-2kg sui compound (floor press, rematore, stacco rumeno, affondi). Mantieni 2 rip in riserva.' },
-                { weeks: '7–8', label: 'Peak', desc: '4-5 serie sui compound · Recupero 90-120 sec · Massimo sforzo controllato. Non superare il cedimento tecnico.' },
-                { weeks: '9', label: 'Deload', desc: '2-3 serie · Pesi ridotti del 30-40% · Recupero 2 min · Previeni l\'accumulo di fatica prima del ciclo successivo.' },
-                { weeks: '10+', label: 'Blocco 2', desc: 'Torna a 3-4 serie con pesi leggermente più alti del ciclo precedente. Continua la doppia progressione (rip prima, poi peso).' }
+                { weeks: '1–2', label: 'Adattamento', desc: '3 serie per esercizio · Recupero pieno 90-120 sec · Impara i movimenti con controllo. Ferma le serie con 2-3 ripetizioni in riserva.' },
+                { weeks: '3–4', label: 'Volume', desc: '3-4 serie · Discesa lenta 3 secondi. Con carichi leggeri il muscolo cresce solo se la serie arriva vicino al cedimento: scendi a 1-2 ripetizioni in riserva.' },
+                { weeks: '5–6', label: 'Intensità', desc: '4 serie sui compound · Porta le serie a 1 ripetizione dalla fine. A parità di carico è la vicinanza al cedimento a fare la differenza, non i kg.' },
+                { weeks: '7–8', label: 'Peak', desc: '5 serie sui compound · Massimo volume del ciclo · Recuperi pieni: a 43 anni il recupero fa parte dell\'allenamento, non è tempo perso.' },
+                { weeks: '9', label: 'Deload', desc: '2 serie · Carichi ridotti del 35% · Recupero +30 sec · Smaltisci la fatica accumulata prima di ripartire con il blocco successivo.' },
+                { weeks: 'Blocco 2+', label: 'Blocco', desc: 'Il ciclo riparte con varianti più difficili (unilaterale, pause, discesa lenta) e le serie extra guadagnate. Stessi 10kg, stimolo più alto.' }
+            ];
+
+            // Piano settimanale di riferimento (indice = giorno, 0=Dom … 6=Sab).
+            // Unica fonte per le icone della striscia settimanale e per la nota camminata/riposo in Home:
+            // prima le due cose erano hardcoded separatamente e si contraddicevano.
+            // Allineato ai campi `day` delle sessioni: A → Sabato (6), B → Domenica (0).
+            const WEEK_PLAN = [
+                { type: 'workout', icon: '💪', label: 'Allenamento' },  // Dom — Sessione B (Trazione)
+                { type: 'walk',    icon: '🚶', label: 'Camminata' },    // Lun
+                { type: 'walk',    icon: '🚶', label: 'Camminata' },    // Mar
+                { type: 'rest',    icon: '😴', label: 'Riposo' },       // Mer
+                { type: 'walk',    icon: '🚶', label: 'Camminata' },    // Gio
+                { type: 'rest',    icon: '😴', label: 'Riposo' },       // Ven
+                { type: 'workout', icon: '💪', label: 'Allenamento' }   // Sab — Sessione A (Spinta)
             ];
 
             // ─────────── STATO APP: salvataggio localStorage, helper date/modal ───────────
@@ -683,12 +712,21 @@
                 state = {
                 sessions: [], todaySession: null, water: { date: '', count: 0 }, mealsChecked: { date: '', checked: [] },
                 settings: { sound: true, vibration: true, weight: 75, objective: 'cut', maxWeight: 10 }, fatigue: [], bodyMeasurements: [],
-                lastSessionType: null, plan: {}
+                lastSessionType: null, plan: {}, forceDeload: false
                 };
             }
             // Migrazione per stati salvati prima del motore adattivo
             if (!state.plan || typeof state.plan !== 'object') state.plan = {};  // Piano adattivo per esercizio
-            if (state.settings.maxWeight === undefined) state.settings.maxWeight = 10;  // Tetto peso per aumenti automatici
+            if (state.settings.maxWeight === undefined) state.settings.maxWeight = 10;  // Tetto peso (invalicabile)
+            if (state.forceDeload === undefined) state.forceDeload = false;  // Scarico attivato a mano
+            // Piani salvati col vecchio motore a progressione di peso: riporta i carichi entro il tetto e azzera le leve rimosse
+            Object.keys(state.plan).forEach(id => {
+                const p = state.plan[id];
+                if (!p || typeof p !== 'object') return;
+                if (p.weight > state.settings.maxWeight) p.weight = state.settings.maxWeight;
+                if (p.restCut === undefined) p.restCut = 0;
+                delete p.bwExtended;
+            });
             const WEIGHT_STEP = 1;  // Incremento peso: 1kg (dischi da 0.5kg per lato), cambi rari per scelta utente
             // Salva lo stato corrente in localStorage (ignora errori silenziosamente)
             function save() { try { localStorage.setItem('cdf_state', JSON.stringify(state)); } catch (e) {} }
@@ -738,8 +776,17 @@
                     modalInput.addEventListener('keydown', function handler(e) { if (e.key === 'Enter') { modalEl.classList.remove('active'); resolve(modalInput.value); } }, { once: true });  // Invio conferma
                 });
             }
-            function todayStr() { return new Date().toISOString().split('T')[0]; }  // Restituisce data odierna in formato YYYY-MM-DD
+            function dateStr(d) {  // Formatta una data in YYYY-MM-DD nel fuso locale (toISOString usa UTC e in Italia sfasa di un giorno prima delle 02:00)
+                return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            }
+            function parseDate(ds) { const p = ds.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }  // YYYY-MM-DD → Date locale a mezzanotte
+            function todayStr() { return dateStr(new Date()); }  // Restituisce data odierna in formato YYYY-MM-DD
             function getDayOfWeek() { return new Date().getDay(); }  // Restituisce giorno della settimana (0=Dom, 6=Sab)
+            function daysSince(ds) { return Math.round((parseDate(todayStr()) - parseDate(ds)) / 86400000); }  // Giorni interi trascorsi da una data a oggi
+            function getLastSession() {  // Ultima sessione registrata, per data (non per ordine di inserimento)
+                if (!state.sessions.length) return null;
+                return [...state.sessions].sort((a, b) => a.date.localeCompare(b.date))[state.sessions.length - 1];
+            }
             function getNextSessionType() { return state.lastSessionType === 'A' ? 'B' : 'A'; }  // Alterna A/B: se ultima era A, prossima B
 
             function getMacroTargets() {  // Restituisce target macro in base all'obiettivo (cut/bulk)
@@ -777,25 +824,42 @@
                 let sessionToday = getNextSessionType();  // Prossima sessione A/B
                 const todayDone = state.sessions.find(s => s.date === todayStr());  // Sessione già completata oggi?
 
+                const todayPlan = WEEK_PLAN[dow];  // Tipo di giornata previsto dal piano: allenamento / camminata / riposo
+                // Riga "ultimo allenamento": unico punto in Home che dice quando ti sei allenato l'ultima volta
+                const lastSession = getLastSession();
+                let lastLine = '';
+                if (!lastSession) {
+                    lastLine = '<div class="last-workout">📍 Nessun allenamento registrato — si comincia oggi</div>';
+                } else if (!todayDone) {
+                    const gap = daysSince(lastSession.date);
+                    const when = gap <= 0 ? 'oggi' : gap === 1 ? 'ieri' : gap + ' giorni fa';
+                    const nice = parseDate(lastSession.date).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'short' });
+                    lastLine = `<div class="last-workout">📍 Ultimo allenamento: <strong>Sessione ${lastSession.session}</strong> · ${nice} <strong>(${when})</strong></div>`;
+                }
+
                 if (todayDone) {  // Se già allenato oggi, mostra riepilogo
                     card.innerHTML = `<div class="today-card" style="border-color:rgba(200, 255, 0, 0.5)">
                         <div class="today-label">✅ Completata oggi</div>
                         <div class="today-title">Sessione ${todayDone.session}</div>
                         <div class="today-sub">Ottimo lavoro! Riposa e recupera 💪</div>
-                    </div>`;
+                    </div>` + lastLine;
                     document.getElementById('homeGreetingSub').textContent = 'Sessione completata! Ben fatto 🏆';
                 } else {  // Se non ancora allenato, mostra prossimo allenamento
                     const s = getCurrentSessions()[sessionToday];  // Dati della prossima sessione
-                    const isRestDay = (dow === 2 || dow === 4);  // Martedì (2) e Giovedì (4) sono giorni di riposo suggeriti
-                    const restNote = isRestDay ? '<div style="font-size:12px;color:var(--muted);margin-top:8px">🚶 Oggi sarebbe camminata — puoi allenarti lo stesso se preferisci</div>' : '';
+                    // Nota di giornata presa da WEEK_PLAN: stessa fonte delle icone della striscia settimanale
+                    const planNote = todayPlan.type !== 'workout'
+                        ? `<div style="font-size:12px;color:var(--muted);margin-top:8px">${todayPlan.icon} Oggi è giorno di ${todayPlan.label.toLowerCase()} — puoi allenarti lo stesso se preferisci</div>`
+                        : '';
                     card.innerHTML = `<div class="today-card">
                         <div class="today-label">Prossimo allenamento</div>
                         <div class="today-title">${s.name}</div>
-                        <div class="today-sub">${s.sub} · ${s.exercises.length} esercizi${restNote}</div>
+                        <div class="today-sub">${s.sub} · ${s.exercises.length} esercizi${planNote}</div>
                         <button class="start-btn" id="startSessionBtn">Inizia sessione →</button>
-                    </div>`;
+                    </div>` + lastLine;
                     document.getElementById('startSessionBtn').addEventListener('click', () => startSession(sessionToday), { once: true });  // Bottone avvia sessione
-                    document.getElementById('homeGreetingSub').textContent = isRestDay ? 'Giorno di riposo — ma puoi allenarti! 🔥' : 'Pronto per la prossima sessione? 🔥';
+                    document.getElementById('homeGreetingSub').textContent = todayPlan.type === 'workout'
+                        ? 'Pronto per la prossima sessione? 🔥'
+                        : `Oggi ${todayPlan.label.toLowerCase()} — ma puoi allenarti! 🔥`;
                 }
                 // Statistiche riepilogo: sessioni totali e questa settimana
                 document.getElementById('statSessions').textContent = state.sessions.length;
@@ -832,10 +896,15 @@
                         if (p.reason) planItems.push({ name: ex.name, p: p, unit: ex.id === 'pl' ? 'sec' : 'rip' });
                     });
                 }
-                // Sceglie il messaggio raccomandazione in base a priorità: deload > fatigue > suggerimenti peso > trend
-                if (deload.needed) {
+                // Sceglie il messaggio raccomandazione in base a priorità: scarico attivo > deload > fatigue > piano > trend
+                if (state.forceDeload) {
+                    recHtml = '<div class="rec-card"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">💤</div><div class="rec-text"><strong>Scarico attivo.</strong> La prossima sessione parte con carichi ridotti del 35%, 2 serie per esercizio e recuperi più lunghi. '
+                        + '<button id="cancelDeloadBtn" style="margin-top:8px;background:none;border:1px solid var(--g2);color:var(--muted);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer">Annulla scarico</button></div></div></div>';
+                } else if (deload.needed) {
                     recHtml = '<div class="rec-card warning"><div style="display:flex;align-items:flex-start">'
-                        + '<div class="rec-icon">⚠️</div><div class="rec-text">' + deload.reason + '</div></div></div>';
+                        + '<div class="rec-icon">⚠️</div><div class="rec-text">' + deload.reason
+                        + '<button id="forceDeloadBtn" style="display:block;margin-top:8px;background:none;border:1px solid var(--red);color:var(--red);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer">Attiva scarico sulla prossima sessione</button></div></div></div>';
                 } else if (fatigue === 'red') {
                     recHtml = '<div class="rec-card warning"><div style="display:flex;align-items:flex-start">'
                         + '<div class="rec-icon">🔴</div><div class="rec-text"><strong>Affaticamento alto.</strong> Considera una settimana di carichi ridotti (-10/15%) o un giorno extra di recupero prima della prossima sessione.</div></div></div>';
@@ -860,33 +929,45 @@
                         + '<div class="rec-icon">🎯</div><div class="rec-text">Allenamento costante. <strong>Obiettivo: ' + (state.settings.objective === 'cut' ? 'Definizione' : 'Massa') + '.</strong> Prossima sessione: ' + nextS.name + '. Mantieni il ritmo!</div></div></div>';
                 }
                 if (recHtml) recEl.innerHTML = recHtml;
-                // Cronologia settimana corrente: 7 giorni con icone stato
+                // Il consiglio di scarico ora è azionabile: prima era solo testo senza effetto sul piano
+                var fdBtn = document.getElementById('forceDeloadBtn');
+                if (fdBtn) fdBtn.addEventListener('click', function() { state.forceDeload = true; save(); renderHome(); });
+                var cdBtn = document.getElementById('cancelDeloadBtn');
+                if (cdBtn) cdBtn.addEventListener('click', function() { state.forceDeload = false; save(); renderHome(); });
+                // Cronologia settimana corrente: dalla domenica di inizio settimana al sabato, con icone stato.
+                // Prima il loop scorreva una finestra mobile di 7 giorni: i giorni successivi a oggi mostravano
+                // le date della settimana precedente, quindi potevi vedere un ✅ su un giorno non ancora arrivato.
                 const wh = document.getElementById('weekHistory');
                 const dayNames = ['D', 'L', 'M', 'M', 'G', 'V', 'S'];
-                const dayIcons = ['💪', '🚶', '🚶', '😴', '🚶', '😴', '💪'];
+                const weekStartD = new Date(); weekStartD.setDate(weekStartD.getDate() - dow);  // Domenica di inizio settimana (stessa convenzione di getWeekStart)
                 wh.innerHTML = '';
-                for (let i = 1; i <= 7; i++) {
-                    const dd = new Date();
-                    dd.setDate(dd.getDate() - ((dow - i + 7) % 7));  // Calcola data del giorno i giorni fa
-                    const ds = dd.toISOString().split('T')[0];
+                for (let i = 0; i < 7; i++) {  // i = giorno della settimana (0=Dom … 6=Sab)
+                    const dd = new Date(weekStartD); dd.setDate(weekStartD.getDate() + i);
+                    const ds = dateStr(dd);
                     const done = state.sessions.find(s => s.date === ds);  // Sessione fatta in quel giorno?
-                    const isToday = ds === todayStr();
-                    wh.innerHTML += `<div class="wh-day ${done ? 'done-day' : ''}" style="${isToday ? 'border:1px solid var(--accent)' : ''}">
-                        <div class="wh-name">${dayNames[i % 7]}</div>
-                        <div class="wh-icon">${done ? '✅' : (isToday && sessionToday && !done ? '🔥' : dayIcons[i % 7])}</div>
+                    const isToday = i === dow;
+                    const isFuture = i > dow;  // Giorno non ancora arrivato: icona attenuata, mai un ✅
+                    const plan = WEEK_PLAN[i];
+                    let icon;
+                    if (done) icon = '✅';  // Allenamento completato quel giorno
+                    else if (isToday && plan.type === 'workout') icon = '🔥';  // Giorno di allenamento, non ancora fatto
+                    else icon = plan.icon;  // Icona del piano: 💪 allenamento · 🚶 camminata · 😴 riposo
+                    wh.innerHTML += `<div class="wh-day ${done ? 'done-day' : ''} ${isFuture ? 'future-day' : ''} ${isToday ? 'today-day' : ''}">
+                        <div class="wh-name">${dayNames[i]}</div>
+                        <div class="wh-icon">${icon}</div>
                     </div>`;
                 }
             }
 
             function getWeekStart() {  // Restituisce la data di inizio della settimana corrente (domenica)
-                const d = new Date(); d.setDate(d.getDate() - d.getDay()); return d.toISOString().split('T')[0];
+                const d = new Date(); d.setDate(d.getDate() - d.getDay()); return dateStr(d);
             }
 
             function calculateStreak() {  // Calcola le settimane consecutive con almeno una sessione
                 let streak = 0; let d = new Date(); d.setDate(d.getDate() - d.getDay());  // Parte da domenica scorsa
                 for (let i = 0; i < 52; i++) {  // Controlla fino a 52 settimane indietro
                     const weekEnd = new Date(d); weekEnd.setDate(weekEnd.getDate() + 6);
-                    const found = state.sessions.some(s => s.date >= d.toISOString().split('T')[0] && s.date <= weekEnd.toISOString().split('T')[0]);  // Cerca sessioni nella settimana
+                    const found = state.sessions.some(s => s.date >= dateStr(d) && s.date <= dateStr(weekEnd));  // Cerca sessioni nella settimana
                     if (found) streak++; else if (i > 0) break;  // Se trova una settimana vuota dopo la prima, si ferma
                     d.setDate(d.getDate() - 7);  // Settimana precedente
                 }
@@ -894,33 +975,60 @@
             }
 
             // ─────────── SESSIONE: start, gestione peso, completamento ───────────
-            function getWeekNumCurrent() {  // Settimana di progressione corrente (stessa formula di getCurrentSessions)
-                return Math.ceil(state.sessions.length / 2) || 1;
+            // Leve di progressione a carico fisso, in ordine di applicazione
+            const MAX_EXTRA_SETS = 2;  // Tetto serie extra: oltre, si progredisce allungando il range
+            const REST_STEP = 15;      // Gradino di densità: 15 secondi di recupero in meno per volta
+            function repCeilingFor(ex) {  // Tetto del range esteso: oltre ~25 rip (o 90 sec) lo stimolo ipertrofico cala
+                return ex.id === 'pl' ? 90 : Math.min(ex.repMax + 8, 25);
+            }
+            function restFloorFor(ex) {  // Recupero minimo: sotto questa soglia crolla la performance delle serie successive
+                return ex.restSec >= 90 ? 60 : 45;
+            }
+            function planFor(exId, ex) {  // Piano salvato, azzerato sulle leve se la variante dell'esercizio è cambiata
+                const p = state.plan[exId] || {};
+                if (p.variant !== undefined && ex && p.variant !== ex.variant) {
+                    // Nuovo blocco = movimento diverso: ricominciare dal fondo del range evita che il calo
+                    // di ripetizioni (fisiologico) venga letto dal motore come affaticamento e faccia scendere il piano
+                    return { weight: p.weight, targetReps: ex.repMin, extraSets: 0, restCut: 0, holds: 0, variant: ex.variant,
+                             lastOutcome: 'variant_reset', reason: 'Nuova variante: si riparte dal fondo del range, il movimento è più difficile a parità di carico' };
+                }
+                return p;
+            }
+            function restSecFor(ex) {  // Recupero effettivo di oggi: base meno i gradini di densità guadagnati
+                if (isDeloadNow()) return ex.restSec + 30;  // In scarico si recupera di più, non di meno
+                const cut = planFor(ex.id, ex).restCut || 0;
+                return Math.max(restFloorFor(ex), ex.restSec - cut);
             }
 
             function getPlanFor(ex) {  // Valori adattati per il prossimo workout: piano modellato sull'ultima sessione, fallback scheda base
-                const p = state.plan[ex.id] || {};
-                const weekNum = getWeekNumCurrent();
-                const isDeload = weekNum === 9;
+                const p = planFor(ex.id, ex);
+                const cyc = getCycleInfo();
+                const isDeload = isDeloadNow();
                 let weight = (p.weight !== undefined) ? p.weight : ex.weight;  // Parte dal peso reale dell'ultima sessione
                 let targetReps = (p.targetReps !== undefined) ? p.targetReps : ex.repMin;
                 let extraSets = p.extraSets || 0;
+                let reason = p.reason || '';
                 // In deload: pesi -35% (arrotondati al kg) e nessuna serie extra, come da piano di progressione
-                if (isDeload) { if (weight > 0) weight = Math.max(1, Math.round(weight * 0.65)); extraSets = 0; targetReps = ex.repMin; }
-                // Le fasi Peak (sett. 7-8) portano già i compound a 5 serie: non sommare anche la serie extra
-                const progIdx = Math.min(Math.floor((weekNum - 1) / 2), PROGRESSION.length - 1);
-                if (progIdx >= 3 && weekNum <= 8 && ['cp','rw','rd'].includes(ex.id)) extraSets = 0;
-                return { weight, targetReps, plannedSets: ex.sets + extraSets, extraSets, reason: p.reason || '', lastOutcome: p.lastOutcome || '', deload: isDeload };
+                if (isDeload) {
+                    if (weight > 0) weight = Math.max(1, Math.round(weight * 0.65));
+                    extraSets = 0; targetReps = ex.repMin;
+                    reason = 'Settimana di scarico: carico ridotto e serie tagliate per smaltire la fatica del blocco';
+                }
+                // Le settimane di picco portano già i compound a 5 serie: non sommare anche la serie extra
+                if (cyc.peak && ['cp','rw','rd'].includes(ex.id)) extraSets = 0;
+                return { weight, targetReps, plannedSets: ex.sets + extraSets, extraSets, restSec: restSecFor(ex),
+                         reason, lastOutcome: p.lastOutcome || '', deload: isDeload };
             }
 
             function startSession(sessionKey) {  // Avvia una nuova sessione partendo dai valori adattati sull'ultimo workout
-                const weekNum = getWeekNumCurrent();
-                state.todaySession = { session: sessionKey, exercises: {}, done: false, restLog: {}, weekNum: weekNum, deload: weekNum === 9 };
+                const cyc = getCycleInfo();
+                state.todaySession = { session: sessionKey, exercises: {}, done: false, restLog: {}, weekNum: cyc.weekNum, deload: isDeloadNow() };
                 getCurrentSessions()[sessionKey].exercises.forEach(ex => {
-                    const p = getPlanFor(ex);  // Piano adattivo: peso/rip/serie modellati sull'ultima sessione
+                    const p = getPlanFor(ex);  // Piano adattivo: rip/serie/recuperi modellati sull'ultima sessione
                     state.todaySession.exercises[ex.id] = {
                         completedSets: [], weight: p.weight, targetReps: p.targetReps, plannedSets: p.plannedSets,
-                        repsPerSet: {}, pendingReps: p.targetReps, weightPlanned: p.weight, actualReps: p.targetReps
+                        repsPerSet: {}, pendingReps: p.targetReps, weightPlanned: p.weight, actualReps: p.targetReps,
+                        restSec: p.restSec
                     };
                 });
                 save(); goPage('workout');  // Salva e vai alla pagina workout
@@ -933,6 +1041,7 @@
                 if (exS.plannedSets === undefined) exS.plannedSets = exDef.sets;
                 if (exS.pendingReps === undefined) exS.pendingReps = exS.targetReps;
                 if (exS.weightPlanned === undefined) exS.weightPlanned = exDef.weight;
+                if (exS.restSec === undefined) exS.restSec = exDef.restSec;  // Recupero della sessione (può essere ridotto dalla progressione a densità)
                 return exS;
             }
 
@@ -1066,7 +1175,10 @@
             function changeWeight(exId, delta) {  // Modifica peso incrementando/decrementando (delta = -1 o +1)
                 if (!state.todaySession) return;
                 const exS = state.todaySession.exercises[exId];
-                changeWeightDirect(exId, Math.max(0, (exS.weight || 0) + delta));  // Minimo 0kg
+                const cur = exS.weight || 0;
+                const maxW = state.settings.maxWeight || 10;
+                if (delta > 0 && cur + delta > maxW) return;  // Tetto peso: la progressione non passa dal carico
+                changeWeightDirect(exId, Math.max(0, cur + delta));  // Minimo 0kg
             }
 
             function changeReps(exId, delta) {  // Modifica le rip/secondi della prossima serie da registrare
@@ -1124,7 +1236,9 @@
                     const es = state.todaySession.exercises[e.id];
                     return es && es.completedSets.length >= ((es.plannedSets !== undefined ? es.plannedSets : e.sets));
                 });
-                if (!sessionComplete) startTimer(exDef.restSec, timerExName, { exId, set: setNum, planned: exDef.restSec, between: exerciseComplete });
+                // Recupero di oggi: quello del piano adattivo (progressione a densità), non quello base della scheda
+                const restNow = (state.todaySession.exercises[exId] && state.todaySession.exercises[exId].restSec) || exDef.restSec;
+                if (!sessionComplete) startTimer(restNow, timerExName, { exId, set: setNum, planned: restNow, between: exerciseComplete });
 
                 save(); renderWorkout();
 
@@ -1193,7 +1307,7 @@
              *  riduce fisiologicamente le rip successive → un calo dopo un riposo saltato non è fatica reale,
              *  ma blocca la progressione; un riposo allungato rimanda solo l'aumento di peso. */
             function computeNextPlan(exDef, exS, rest, globalFatigue) {
-                const prevPlan = state.plan[exDef.id] || {};
+                const prevPlan = planFor(exDef.id, exDef);
                 const unit = exDef.id === 'pl' ? 'sec' : 'rip';
                 const bodyweight = (exS.weight || 0) === 0;
                 const plannedSets = exS.plannedSets || exDef.sets;
@@ -1214,11 +1328,10 @@
                 const next = {
                     weight: exS.weight !== undefined ? exS.weight : exDef.weight,  // Il prossimo workout parte SEMPRE dal peso reale usato oggi
                     targetReps: target, extraSets: prevPlan.extraSets || 0,
-                    holds: prevPlan.holds || 0, bwExtended: prevPlan.bwExtended || false
+                    holds: prevPlan.holds || 0, restCut: prevPlan.restCut || 0
                 };
                 const events = [];  // Eventi fatica da registrare (una volta sola, a fine sessione)
                 let outcome, reason;
-                const maxW = state.settings.maxWeight || 10;
                 const weightDelta = (exS.weight !== undefined && exS.weightPlanned !== undefined) ? exS.weight - exS.weightPlanned : 0;
                 if (weightDelta < 0) events.push('weight_reduced');  // Peso abbassato = segnale di fatica
                 if (weightDelta > 0) events.push(missed > 0 ? 'overreach' : 'weight_progressed');  // Alzato e completato = progresso (non fatica)
@@ -1250,25 +1363,29 @@
                     next.targetReps = Math.min(Math.max(worst, target) + (unit === 'sec' ? 5 : 1), exDef.repMax); next.holds = 0; outcome = 'advance';
                     reason = `Target ${unit}: ${target} → ${next.targetReps} (range ${exDef.repMin}–${exDef.repMax})`;
                 } else if (worst >= exDef.repMax) {
-                    // Tetto del range su tutte le serie → gradino successivo della progressione
+                    // Tetto del range su tutte le serie → gradino successivo. Il carico NON sale mai: a peso fisso
+                    // le leve sono, in ordine, volume (serie) → range di ripetizioni → densità (recuperi) → variante.
+                    // Si muove un parametro alla volta, così è sempre chiaro cosa ha prodotto il progresso.
                     next.holds = 0;
-                    if (globalFatigue === 'red') { outcome = 'hold'; reason = 'Range completato ma fatica alta: si consolida prima di progredire'; }
-                    else if (next.extraSets < 1) {
-                        next.extraSets = 1; next.targetReps = exDef.repMin; outcome = 'add_set';
-                        reason = `Tutte le serie a ${exDef.repMax} ${unit}: +1 serie (più volume senza cambiare dischi), ${unit} da ${exDef.repMin}`;
-                    } else if (!bodyweight && rest.extendedCount > 0) {
-                        outcome = 'hold'; reason = 'Pronto per +peso, ma riposi allungati: si consolida ancora una sessione';
-                    } else if (!bodyweight && next.weight + WEIGHT_STEP <= maxW) {
-                        next.weight += WEIGHT_STEP; next.targetReps = exDef.repMin; next.extraSets = 0; outcome = 'add_weight';
-                        reason = `Progressione completa: +${WEIGHT_STEP}kg (→ ${next.weight}kg), si riparte da ${exDef.repMin} ${unit}`;
-                    } else if (bodyweight && !next.bwExtended) {
-                        const cap = exDef.id === 'pl' ? 60 : exDef.repMax + 5;
-                        if (target < cap) { next.targetReps = Math.min(target + (unit === 'sec' ? 5 : 1), cap); outcome = 'advance'; reason = `Corpo libero: target esteso a ${next.targetReps} ${unit}`; }
-                        else { next.bwExtended = true; outcome = 'capped'; reason = 'Massimo raggiunto: passa a una variante più difficile (pausa, unilaterale, discesa lenta)'; }
+                    const ceiling = repCeilingFor(exDef);  // Oltre ~25 rip (90 sec sul plank) lo stimolo cala
+                    const restFloor = restFloorFor(exDef);
+                    const curRest = Math.max(restFloor, exDef.restSec - next.restCut);
+                    if (globalFatigue === 'red') {
+                        outcome = 'hold'; reason = 'Range completato ma fatica alta: si consolida prima di progredire';
+                    } else if (rest.extendedCount > 0) {
+                        outcome = 'hold'; reason = 'Pronto per il gradino successivo, ma hai allungato i recuperi: si consolida ancora una sessione';
+                    } else if (next.extraSets < MAX_EXTRA_SETS) {
+                        next.extraSets++; next.targetReps = exDef.repMin; outcome = 'add_set';
+                        reason = `Tutte le serie a ${exDef.repMax} ${unit}: +1 serie (più volume a parità di carico), ${unit} da ${exDef.repMin}`;
+                    } else if (target < ceiling) {
+                        next.targetReps = Math.min(Math.max(worst, target) + (unit === 'sec' ? 5 : 1), ceiling); outcome = 'advance';
+                        reason = `Volume al massimo: si allunga il range — target ${target} → ${next.targetReps} ${unit} (tetto ${ceiling})`;
+                    } else if (curRest - REST_STEP >= restFloor) {
+                        next.restCut += REST_STEP; outcome = 'add_density';
+                        reason = `Serie e ripetizioni al massimo: recupero ${curRest}s → ${curRest - REST_STEP}s — stesso lavoro in meno tempo`;
                     } else {
                         outcome = 'capped';
-                        reason = bodyweight ? 'Massimo raggiunto: passa a una variante più difficile (pausa, unilaterale, discesa lenta)'
-                               : `Tetto ${maxW}kg raggiunto: mantieni il carico e lavora su varianti più dure o densità (riposi più corti)`;
+                        reason = 'Tutte le leve a carico fisso sono esaurite: passa a una variante più dura (discesa 3-4 sec, pausa in basso, unilaterale)';
                     }
                 } else {
                     outcome = 'ok'; next.holds = 0; reason = 'Target raggiunto: si ripete per consolidare';
@@ -1304,7 +1421,7 @@
                     result.events.forEach(t => logFatigue(t, exId));
                     state.plan[exId] = {
                         weight: result.next.weight, targetReps: result.next.targetReps, extraSets: result.next.extraSets,
-                        holds: result.next.holds, bwExtended: result.next.bwExtended,
+                        holds: result.next.holds, restCut: result.next.restCut, variant: exDef.variant,
                         lastOutcome: result.outcome, reason: result.reason, updatedAt: todayStr()
                     };
                     sessionData[exId].outcome = result.outcome;
@@ -1313,6 +1430,7 @@
                 state.sessions.push({ date: todayStr(), session: state.todaySession.session, exercises: sessionData,
                     restStats: { total: restTotal, skipped: restSkipped, extended: restExtended }, compressed });  // Salva sessione completata
                 state.lastSessionType = state.todaySession.session;  // Aggiorna ultimo tipo sessione
+                if (isDeload) state.forceDeload = false;  // Lo scarico attivato a mano vale per una sola sessione
                 state.todaySession.done = true; save();  // Marca come completata
                 // Overlay congratulazioni con riepilogo adattamenti
                 const congDiv = document.getElementById('congrats');
@@ -1479,7 +1597,7 @@
             // ─────────── PROGRESSI: calendario, body measurements, volume chart ───────────
             function renderProgress() {  // Renderizza la pagina progressi con volume, calendario, misure, consistenza
                 document.getElementById('pStatTotal').textContent = state.sessions.length;  // Sessioni totali
-                const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+                const monthStart = dateStr(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
                 document.getElementById('pStatMonth').textContent = state.sessions.filter(s => s.date >= monthStart).length;  // Sessioni questo mese
                 // Grafico volume: ultime 8 sessioni, volume reale vs pianificato
                 const volumeChart = document.getElementById('volumeChart');
@@ -1579,24 +1697,30 @@
                 document.getElementById('addMeasurementBtn').addEventListener('click', addMeasurement, { once: true });
                 // Piano progressione: elenco fasi
                 const pp = document.getElementById('progressionPlan'); pp.innerHTML = '';
-                PROGRESSION.forEach(p => {
+                PROGRESSION.forEach((p, i) => {
+                    const isBlockNote = i === PROGRESSION.length - 1;  // L'ultima voce non è una settimana del ciclo, è cosa succede quando riparte
                     pp.innerHTML += `<div class="card" style="margin-bottom:8px"><div class="card-body" style="display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:start">
-                        <div style="font-size:13px;font-weight:700;color:var(--accent)">Sett. ${p.weeks}</div>
+                        <div style="font-size:13px;font-weight:700;color:var(--accent)">${isBlockNote ? '🔁 Poi' : 'Sett. ' + p.weeks}</div>
                         <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">${p.label}</div><div style="font-size:12px;color:var(--muted);line-height:1.6">${p.desc}</div></div>
                     </div></div>`;
                 });
-                // Fase corrente di progressione
-                const totalSessions = state.sessions.length; const weekNum = Math.ceil(totalSessions / 2) || 1;
-                let progIdx = Math.min(Math.floor((weekNum - 1) / 2), PROGRESSION.length - 2);
+                // Fase corrente di progressione: il ciclo di 9 settimane si ripete, quindi mostra blocco + settimana del ciclo
+                var cyc = getCycleInfo();
+                var phase = PROGRESSION[cyc.phaseIdx];
                 var phaseColors = { 'Adattamento': '#5BC8FF', 'Volume': 'var(--accent)', 'Intensità': '#FFB350', 'Peak': 'var(--red)', 'Deload': '#888', 'Blocco': 'var(--accent)' };
-                var phaseColor = phaseColors[PROGRESSION[progIdx].label] || 'var(--accent)';
+                var phaseColor = phaseColors[phase.label] || 'var(--accent)';
+                // Dal secondo blocco in poi si aggiunge la nota sulle varianti (ultima voce di PROGRESSION)
+                var blockNote = cyc.blockNum >= 2
+                    ? '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-top:8px;padding-top:8px;border-top:1px solid var(--g2)">🔁 ' + PROGRESSION[PROGRESSION.length - 1].desc + '</div>'
+                    : '';
                 document.getElementById('weekProg').innerHTML = '<div style="background:rgba(200,255,0,0.08);border:1px solid rgba(200,255,0,0.25);border-radius:12px;padding:14px">'
                     + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
-                    + '<span class="phase-badge" style="background:' + phaseColor + '20;color:' + phaseColor + '">' + PROGRESSION[progIdx].label + '</span>'
-                    + '<div style="font-size:11px;letter-spacing:2px;color:var(--accent);text-transform:uppercase">Sett. ' + weekNum + '</div>'
+                    + '<span class="phase-badge" style="background:' + phaseColor + '20;color:' + phaseColor + '">' + phase.label + '</span>'
+                    + '<div style="font-size:11px;letter-spacing:2px;color:var(--accent);text-transform:uppercase">Blocco ' + cyc.blockNum + ' · Sett. ' + cyc.cycleWeek + '/' + CYCLE_WEEKS + '</div>'
                     + '</div>'
-                    + '<div style="font-size:15px;font-weight:700;margin-bottom:4px">' + PROGRESSION[progIdx].label + '</div>'
-                    + '<div style="font-size:13px;color:var(--muted);line-height:1.6">' + PROGRESSION[progIdx].desc + '</div>'
+                    + '<div style="font-size:15px;font-weight:700;margin-bottom:4px">' + phase.label + '</div>'
+                    + '<div style="font-size:13px;color:var(--muted);line-height:1.6">' + phase.desc + '</div>'
+                    + blockNote
                     + '</div>';
                 // Sezione consistenza e affaticamento
                 var cs = document.getElementById('consistencyStats');
@@ -1804,7 +1928,8 @@
                     fatigue: Array.isArray(loaded.fatigue) ? loaded.fatigue : [],
                     bodyMeasurements: Array.isArray(loaded.bodyMeasurements) ? loaded.bodyMeasurements : [],
                     lastSessionType: loaded.lastSessionType || null,
-                    plan: (loaded.plan && typeof loaded.plan === 'object') ? loaded.plan : {}
+                    plan: (loaded.plan && typeof loaded.plan === 'object') ? loaded.plan : {},
+                    forceDeload: !!loaded.forceDeload
                 };
             }
 
@@ -1851,7 +1976,7 @@
                 set_skipped: 1, incomplete_exercise: 3, weight_adjusted: 0, weight_increased: 0
             };
             function recentFatigue(exId) {  // Eventi fatica degli ultimi 14 giorni (finestra a tempo, non a conteggio)
-                const cutoff = new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0];
+                const cutoff = dateStr(new Date(Date.now() - 14 * 86400000));
                 return state.fatigue.filter(f => f.date >= cutoff && (!exId || f.exId === exId));
             }
             function getFatigueLevel() {  // Livello di affaticamento globale sulla finestra di 14 giorni
@@ -1886,7 +2011,7 @@
                 let total = 0;
                 s.exercises.forEach(ex => {
                     const extra = (state.plan[ex.id] && state.plan[ex.id].extraSets) || 0;  // Serie extra dal piano adattivo
-                    total += (ex.sets + extra) * (ex.restSec + 20); // 20 sec per esecuzione serie
+                    total += (ex.sets + extra) * (restSecFor(ex) + 20); // Recupero adattato + 20 sec per esecuzione serie
                 });
                 return Math.round(total / 60);
             }
@@ -1928,10 +2053,7 @@
             function getDeloadRecommendation() {
                 const fatigue = getFatigueLevel();
                 const trend = getVolumeTrend();
-                const sessionsLast2Weeks = state.sessions.filter(s => {
-                    const d = new Date(s.date);
-                    return Date.now() - d.getTime() < 14 * 86400000;
-                }).length;
+                const sessionsLast2Weeks = state.sessions.filter(s => daysSince(s.date) < 14).length;  // Finestra a 14 giorni in fuso locale
                 if (fatigue === 'red' && trend.direction === 'calo') return { needed: true, reason: 'Affaticamento alto + volume in calo. Fai una settimana di deload.' };
                 if (fatigue === 'red' && sessionsLast2Weeks >= 4) return { needed: true, reason: 'Alta frequenza + affaticamento. Prenditi 3-4 giorni di recupero.' };
                 if (trend.direction === 'calo' && trend.pct < -15) return { needed: true, reason: `Volume calato del ${Math.abs(trend.pct)}%. Potresti aver bisogno di recupero.` };
@@ -1949,6 +2071,10 @@
                 if (deload.needed) return { icon: '⚠️', text: deload.reason, type: 'warning' };
                 if (total === 0) return { icon: '🚀', text: 'Inizia la prima sessione! Il viaggio comincia oggi.', type: 'motivation' };
                 if (total === 1) return { icon: '🌟', text: 'Prima sessione completata! La costanza è la chiave.', type: 'motivation' };
+                // Inattività: prima mancava del tutto e dopo settimane di stop compariva comunque un messaggio motivazionale generico
+                const idle = daysSince(getLastSession().date);
+                if (idle >= 14) return { icon: '🛌', text: `Sono passati ${idle} giorni dall'ultimo allenamento. Riparti con carichi leggeri: una sessione facile vale più di nessuna sessione.`, type: 'warning' };
+                if (idle >= 8) return { icon: '📅', text: `${idle} giorni dall'ultimo allenamento. Rimettiti in carreggiata con la prossima sessione.`, type: 'info' };
                 if (streak >= 4) return { icon: '🔥', text: `${streak} settimane consecutive! Stai costruendo un'abitudine solida.`, type: 'achievement' };
                 if (trend.direction === 'crescita' && trend.pct > 10) return { icon: '📈', text: `Volume in crescita del ${trend.pct}%! Stai progredendo bene.`, type: 'achievement' };
                 if (weekSessions >= 2) return { icon: '💪', text: `Già ${weekSessions} sessioni questa settimana. Ottimo ritmo!`, type: 'motivation' };
