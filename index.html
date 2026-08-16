@@ -244,6 +244,21 @@
         .consistency-dot.miss { background: var(--g3); }
         .phase-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.5px; text-transform: uppercase; }
 
+        /* ─── Misure corporee: riepilogo, grafico peso, elenco misurazioni ─── */
+        .measure-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
+        .measure-stat { background: var(--g2); border-radius: 8px; padding: 8px 4px; text-align: center; }
+        .measure-stat-val { font-size: 14px; font-weight: 700; color: var(--white); line-height: 1.2; white-space: nowrap; }
+        .measure-stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 3px; }
+        .measure-chart-wrap { margin-bottom: 6px; }
+        .measure-list { margin-top: 4px; }
+        .measure-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px solid var(--g2); }
+        .measure-row:last-child { border-bottom: none; }
+        .measure-row-date { flex: 1; font-size: 11px; color: var(--muted); }
+        .measure-row-vals { display: flex; gap: 16px; flex-shrink: 0; }
+        .measure-row-val { display: flex; flex-direction: column; align-items: center; min-width: 34px; }
+        .measure-row-val-num { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; }
+        .measure-row-val-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 1px; }
+
         /* ─── Media Queries: adattamento schermi piccoli ─── */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
@@ -1681,17 +1696,61 @@
                     const done = state.sessions.find(s => s.date === ds);  // Cerca sessione in quel giorno
                     cal.innerHTML += `<div class="cal-day ${done ? 'has-workout' : ''} ${ds === todayStr() ? 'today' : ''}">${d}</div>`;
                 }
-                // Sezione misure corporee: tabella ultime 5 + grafico peso
+                // Sezione misure corporee: promemoria ri-misurazione + riepilogo con variazione + grafico peso + elenco ultime misure
                 const measurementsDiv = document.getElementById('bodyMeasurements');
                 measurementsDiv.innerHTML = '';
+                var isCut = state.settings.objective === 'cut';
+                var MEASURE_INTERVAL = 14;  // Ogni 14gg: coincide col cambio di fase del ciclo (vedi PROGRESSION) e basta a far emergere variazioni reali, non rumore giornaliero
+                var daysSinceMeasure = state.bodyMeasurements.length > 0
+                    ? daysSince([...state.bodyMeasurements].sort((a, b) => b.date.localeCompare(a.date))[0].date) : null;
+                // Promemoria: assente = invito a iniziare, in ritardo = avviso marcato, in linea = nessun hint (mostrato invece il countdown più sotto)
+                if (state.bodyMeasurements.length === 0) {
+                    measurementsDiv.innerHTML += '<div class="rec-card highlight"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">📏</div><div class="rec-text"><strong>Nessuna misura ancora registrata.</strong> Prendi peso, vita e petto oggi per iniziare a monitorare i progressi nel tempo.</div></div></div>';
+                } else if (daysSinceMeasure >= MEASURE_INTERVAL * 1.5) {
+                    measurementsDiv.innerHTML += '<div class="rec-card warning"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">⏰</div><div class="rec-text"><strong>Sono passati ' + daysSinceMeasure + ' giorni dall\'ultima misurazione.</strong> Aggiornala per capire se ' + (isCut ? 'la definizione sta procedendo' : 'la massa sta crescendo') + ' davvero, non solo a sensazione.</div></div></div>';
+                } else if (daysSinceMeasure >= MEASURE_INTERVAL) {
+                    measurementsDiv.innerHTML += '<div class="rec-card highlight"><div style="display:flex;align-items:flex-start">'
+                        + '<div class="rec-icon">📏</div><div class="rec-text"><strong>È ora di ri-misurarti.</strong> Sono passati ' + daysSinceMeasure + ' giorni dall\'ultima rilevazione — confronta peso, vita e petto per vedere i progressi reali.</div></div></div>';
+                }
                 if (state.bodyMeasurements.length > 0) {
-                    measurementsDiv.innerHTML += '<div style="margin-bottom:10px"><canvas id="weightChartCanvas" style="width:100%;height:clamp(80px,15vw,130px);background:var(--g1);border-radius:8px"></canvas></div>';
-                    measurementsDiv.innerHTML += '<table style="width:100%;font-size:12px;color:var(--muted);text-align:left"><tr><th>Data</th><th>Peso</th><th>Vita</th><th>Petto</th></tr>';
-                    [...state.bodyMeasurements].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).forEach(m => {  // Ultime 5 misure
-                        measurementsDiv.innerHTML += `<tr><td>${m.date}</td><td>${m.weight}kg</td><td>${m.waist || '-'}cm</td><td>${m.chest || '-'}cm</td></tr>`;
+                    var mSortedAsc = [...state.bodyMeasurements].sort((a, b) => a.date.localeCompare(b.date));
+                    var mSortedDesc = [...state.bodyMeasurements].sort((a, b) => b.date.localeCompare(a.date));
+                    var mFirst = mSortedAsc[0], mLast = mSortedAsc[mSortedAsc.length - 1];
+                    var wDelta = mLast.weight - mFirst.weight;  // Variazione peso totale nel periodo tracciato
+                    var deltaColor = Math.abs(wDelta) < 0.05 ? 'var(--muted)' : ((isCut ? wDelta < 0 : wDelta > 0) ? 'var(--accent)' : 'var(--red)');  // Verde se va nella direzione dell'obiettivo (cut=giù, bulk=su)
+                    var deltaLabel = (wDelta > 0 ? '+' : '') + wDelta.toFixed(1) + 'kg';
+                    // Riepilogo: peso attuale, variazione, vita e petto più recenti
+                    measurementsDiv.innerHTML += '<div class="measure-summary">'
+                        + '<div class="measure-stat"><div class="measure-stat-val">' + mLast.weight + 'kg</div><div class="measure-stat-lbl">Peso</div></div>'
+                        + '<div class="measure-stat"><div class="measure-stat-val" style="color:' + deltaColor + '">' + deltaLabel + '</div><div class="measure-stat-lbl">Variazione</div></div>'
+                        + '<div class="measure-stat"><div class="measure-stat-val">' + (mLast.waist ? mLast.waist + 'cm' : '–') + '</div><div class="measure-stat-lbl">Vita</div></div>'
+                        + '<div class="measure-stat"><div class="measure-stat-val">' + (mLast.chest ? mLast.chest + 'cm' : '–') + '</div><div class="measure-stat-lbl">Petto</div></div>'
+                        + '</div>';
+                    // Grafico andamento peso con assi ed etichette
+                    measurementsDiv.innerHTML += '<div class="measure-chart-wrap"><canvas id="weightChartCanvas" style="width:100%;height:clamp(140px,32vw,190px);background:var(--g2);border-radius:8px;display:block"></canvas></div>';
+                    // Elenco ultime 5 misurazioni con variazione peso riga per riga
+                    var listHtml = '<div class="measure-list">';
+                    mSortedDesc.slice(0, 5).forEach(function(m, i) {
+                        var older = mSortedDesc[i + 1];  // Misura precedente (più vecchia) per il confronto
+                        var rowDelta = older ? m.weight - older.weight : 0;
+                        var arrow = !older || Math.abs(rowDelta) < 0.05 ? '' : (rowDelta > 0 ? ' ↑' : ' ↓');
+                        var arrowColor = !older || Math.abs(rowDelta) < 0.05 ? 'var(--muted)' : ((isCut ? rowDelta < 0 : rowDelta > 0) ? 'var(--accent)' : 'var(--red)');
+                        listHtml += '<div class="measure-row">'
+                            + '<div class="measure-row-date">' + m.date + '</div>'
+                            + '<div class="measure-row-vals">'
+                            + '<div class="measure-row-val"><span class="measure-row-val-num">' + m.weight + '<span style="color:' + arrowColor + '">' + arrow + '</span></span><span class="measure-row-val-lbl">kg</span></div>'
+                            + '<div class="measure-row-val"><span class="measure-row-val-num">' + (m.waist || '–') + '</span><span class="measure-row-val-lbl">vita</span></div>'
+                            + '<div class="measure-row-val"><span class="measure-row-val-num">' + (m.chest || '–') + '</span><span class="measure-row-val-lbl">petto</span></div>'
+                            + '</div></div>';
                     });
-                    measurementsDiv.innerHTML += '</table>';
+                    listHtml += '</div>';
+                    measurementsDiv.innerHTML += listHtml;
                     setTimeout(drawWeightChart, 10);  // Disegna grafico peso dopo render
+                    if (daysSinceMeasure < MEASURE_INTERVAL) {  // Non ancora in ritardo: countdown discreto invece dell'hint
+                        measurementsDiv.innerHTML += '<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">📏 Prossima misurazione consigliata tra ' + (MEASURE_INTERVAL - daysSinceMeasure) + ' giorni</div>';
+                    }
                 }
                 measurementsDiv.innerHTML += '<button class="start-btn" id="addMeasurementBtn" style="margin-top:12px">+ Aggiungi misura</button>';
                 document.getElementById('addMeasurementBtn').addEventListener('click', addMeasurement, { once: true });
@@ -1846,25 +1905,74 @@
                 }
             }
 
-            function drawWeightChart() {  // Disegna il grafico dell'andamento peso corporeo su canvas
+            function drawWeightChart() {  // Disegna il grafico dell'andamento peso corporeo su canvas, con griglia, assi ed etichette
                 const canvas = document.getElementById('weightChartCanvas'); if (!canvas) return;
                 const rect = canvas.parentElement.getBoundingClientRect();
                 const dpr = window.devicePixelRatio || 1;
+                const cssHeight = canvas.clientHeight || 150;
                 canvas.width = (rect.width || 300) * dpr;
-                canvas.height = (canvas.clientHeight || 100) * dpr;
+                canvas.height = cssHeight * dpr;
                 const ctx = canvas.getContext('2d'); const data = [...state.bodyMeasurements].sort((a, b) => a.date.localeCompare(b.date));
-                if (data.length < 2) return;
+                if (data.length === 0) return;
                 ctx.scale(dpr, dpr);
                 const w = canvas.width / dpr, h = canvas.height / dpr; ctx.clearRect(0, 0, w, h);
-                const minW = Math.min(...data.map(d => d.weight)) - 1; const maxW = Math.max(...data.map(d => d.weight)) + 1;
-                const range = maxW - minW;
-                ctx.beginPath(); ctx.strokeStyle = '#C8FF00'; ctx.lineWidth = 2;
-                data.forEach((d, i) => {
-                    const x = (i / (data.length - 1)) * (w - 20) + 10;
-                    const y = h - 10 - ((d.weight - minW) / range) * (h - 20);
-                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+
+                const padL = 34, padR = 12, padT = 16, padB = 18;  // Margini per etichette assi
+                const chartW = Math.max(1, w - padL - padR), chartH = Math.max(1, h - padT - padB);
+                const weights = data.map(d => d.weight);
+                const minW = Math.min(...weights), maxW = Math.max(...weights);
+                const range = (maxW - minW) || 1;
+                const yFor = (val) => padT + chartH - ((val - minW) / range) * chartH;
+                const xFor = (i) => data.length > 1 ? padL + (i / (data.length - 1)) * chartW : padL + chartW / 2;
+
+                // Griglia orizzontale con etichette peso (max, media, min)
+                ctx.strokeStyle = '#2A2A2A'; ctx.lineWidth = 1; ctx.font = '10px DM Sans, system-ui, sans-serif'; ctx.fillStyle = '#888'; ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
+                const gridVals = data.length > 1 ? [maxW, (maxW + minW) / 2, minW] : [data[0].weight];
+                gridVals.forEach(function(v) {
+                    const y = yFor(v);
+                    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+                    ctx.fillText(v.toFixed(1), padL - 6, y);
                 });
+
+                if (data.length === 1) {  // Un solo dato: mostra un punto centrale con etichetta
+                    const x = xFor(0), y = yFor(data[0].weight);
+                    ctx.fillStyle = '#C8FF00'; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#F2F1ED'; ctx.textAlign = 'center'; ctx.font = '700 11px DM Sans, system-ui, sans-serif'; ctx.fillText(data[0].weight + 'kg', x, y - 12);
+                    ctx.fillStyle = '#888'; ctx.font = '9px DM Sans, system-ui, sans-serif'; ctx.textBaseline = 'alphabetic'; ctx.fillText(data[0].date.slice(5), x, h - 4);
+                    return;
+                }
+
+                // Area sfumata sotto la linea
+                const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+                grad.addColorStop(0, 'rgba(200,255,0,0.25)'); grad.addColorStop(1, 'rgba(200,255,0,0)');
+                ctx.beginPath();
+                data.forEach((d, i) => { const x = xFor(i), y = yFor(d.weight); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+                ctx.lineTo(xFor(data.length - 1), padT + chartH); ctx.lineTo(xFor(0), padT + chartH); ctx.closePath();
+                ctx.fillStyle = grad; ctx.fill();
+
+                // Linea andamento peso
+                ctx.beginPath(); ctx.strokeStyle = '#C8FF00'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+                data.forEach((d, i) => { const x = xFor(i), y = yFor(d.weight); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
                 ctx.stroke();
+
+                // Punti dato: piccoli cerchi cavi, l'ultimo evidenziato e con etichetta valore
+                data.forEach((d, i) => {
+                    const x = xFor(i), y = yFor(d.weight), isLast = i === data.length - 1;
+                    ctx.beginPath();
+                    if (isLast) { ctx.fillStyle = '#C8FF00'; ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill(); }
+                    else { ctx.fillStyle = '#1A1A1A'; ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = '#C8FF00'; ctx.stroke(); }
+                });
+                const lastX = xFor(data.length - 1), lastY = yFor(data[data.length - 1].weight);
+                let labelAlign = 'center', labelX = lastX;
+                if (labelX > w - padR - 22) { labelAlign = 'right'; labelX = w - padR; }
+                else if (labelX < padL + 22) { labelAlign = 'left'; labelX = padL; }
+                ctx.fillStyle = '#F2F1ED'; ctx.font = '700 11px DM Sans, system-ui, sans-serif'; ctx.textAlign = labelAlign; ctx.textBaseline = 'alphabetic';
+                ctx.fillText(data[data.length - 1].weight + 'kg', labelX, Math.max(lastY - 10, padT + 10));
+
+                // Etichette data: prima e ultima misurazione
+                ctx.fillStyle = '#888'; ctx.font = '9px DM Sans, system-ui, sans-serif'; ctx.textBaseline = 'alphabetic';
+                ctx.textAlign = 'left'; ctx.fillText(data[0].date.slice(5), padL, h - 4);
+                ctx.textAlign = 'right'; ctx.fillText(data[data.length - 1].date.slice(5), w - padR, h - 4);
             }
 
             async function addMeasurement() {  // Aggiunge una nuova misurazione corporea (peso, vita, petto)
