@@ -95,6 +95,7 @@
         
         .weight-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
         .rep-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .hold-btn { background: rgba(200, 255, 0, 0.12); border: 1.5px solid var(--accent); color: var(--accent); border-radius: 10px; padding: 12px; font-size: 13px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; font-family: var(--font); }
         .weight-label { font-size: 12px; color: var(--muted); flex: 1; }
         .weight-val { font-size: 16px; font-weight: 600; color: var(--white); background: var(--g2); border: 1px solid var(--g3); border-radius: 8px; padding: 6px 12px; min-width: 70px; text-align: center; }
         .w-btn { -webkit-appearance: none; appearance: none; background: var(--g2); border: none; border-radius: 8px; width: 44px; height: 44px; font-size: 18px; color: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: var(--font); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
@@ -551,8 +552,8 @@
             <div class="card" style="margin-top:4px">
                 <div class="card-body">
                     <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.8">
-                        <b style="color:var(--white)">Corpo di Ferro — Push / Pull</b><br>
-                        Programma Push/Pull 2gg · Sabato (Spinta) + Domenica (Trazione)<br>
+                        <b style="color:var(--white)">Corpo di Ferro — Push / Pull / Isometria</b><br>
+                        Programma 3gg · Venerdì (Spinta) + Sabato (Trazione) + Domenica (Isometria)<br>
                         Doppia progressione · Fatigue Tracking incluse
                     </div>
                 </div>
@@ -571,7 +572,7 @@
 
     <!-- ─── Overlay timer (riposo tra serie) ─── -->
     <div class="timer-overlay" id="timerOverlay">
-        <div class="timer-title">RIPOSO</div>
+        <div class="timer-title" id="timerTitle">RIPOSO</div>
         <div class="timer-ex" id="timerExName"></div>
         <div class="timer-circle">
             <svg class="timer-svg" width="200" height="200" viewBox="0 0 200 200">
@@ -615,8 +616,15 @@
         (function() {
             // ─────────── DATI ALLENAMENTI: definizione sessioni A/B, esercizi, progressione ───────────
             const CYCLE_WEEKS = 9;  // Ciclo: 8 settimane di lavoro + 1 di scarico, poi riparte con varianti più dure
+            const ISO_SESSIONS = ['C'];  // Sessioni interamente isometriche a corpo libero: nessun carico, nessun volume in kg
+            const SESSION_ORDER = ['A', 'B', 'C'];  // Ordine della settimana: Spinta → Trazione → Isometria
+            function isIsoSession(key) { return ISO_SESSIONS.indexOf(key) >= 0; }  // Vero per le sessioni a sola isometria
+            function unitOf(ex) { return (ex && ex.unit === 'sec') ? 'sec' : 'rip'; }  // Unità della serie: secondi di tenuta o ripetizioni
             function getCycleInfo() {  // Posizione nel ciclo: unica fonte per fase, scarico, picco e varianti
-                const weekNum = Math.ceil(state.sessions.length / 2) || 1;  // Settimana assoluta (2 sessioni = 1 settimana)
+                // Il ciclo resta agganciato alle sole sessioni di forza: la domenica isometrica è lavoro aggiuntivo
+                // a corpo libero e non deve far avanzare le settimane né anticipare lo scarico.
+                const strengthDone = state.sessions.filter(s => !isIsoSession(s.session)).length;
+                const weekNum = Math.ceil(strengthDone / 2) || 1;  // Settimana assoluta (2 sessioni di forza = 1 settimana)
                 const blockNum = Math.floor((weekNum - 1) / CYCLE_WEEKS) + 1;  // Blocco in corso: il ciclo si ripete all'infinito
                 const cycleWeek = ((weekNum - 1) % CYCLE_WEEKS) + 1;  // Settimana dentro il ciclo (1…9)
                 const deload = cycleWeek === CYCLE_WEEKS;  // La 9ª settimana di ogni ciclo è scarico
@@ -631,21 +639,35 @@
                 // Tutti i carichi restano entro i 10kg per manubrio: la progressione non passa mai dall'aumento di peso.
                 const baseSessions = {
                     A: {
-                        name: 'Spinta (Push)', sub: 'Sabato · Petto, spalle, tricipiti, quadricipiti', day: 6,
+                        name: 'Spinta (Push)', sub: 'Venerdì · Petto, spalle, tricipiti, quadricipiti', day: 5,
                         exercises: [
                             { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: '10kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 10, restSec: 90, variant: 'base', tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
                             { id: 'af', name: 'Affondi con manubri', meta: '10kg · 3 serie × 10–12 per gamba', sets: 3, reps: '10–12/gamba', repMin: 10, repMid: 11, repMax: 12, weight: 10, restSec: 90, variant: 'base', tip: 'Passo lungo, ginocchio anteriore a 90°. Tronco dritto. Spingi col tallone per risalire.' },
                             { id: 'hc', name: 'Curl a martello', meta: '7kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 7, restSec: 60, variant: 'base', tip: 'Palmi rivolti verso l\'interno. Gomiti fissi. Solo avambracci in movimento.' },
-                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, variant: 'base', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
+                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 90, variant: 'base', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     },
                     B: {
-                        name: 'Trazione (Pull)', sub: 'Domenica · Schiena, bicipiti, glutei, femorali', day: 0,
+                        name: 'Trazione (Pull)', sub: 'Sabato · Schiena, bicipiti, glutei, femorali', day: 6,
                         exercises: [
                             { id: 'rw', name: 'Rowing manubrio', meta: '10kg · 3 serie × 8–10 rip', sets: 3, reps: '8–10', repMin: 8, repMid: 9, repMax: 10, weight: 10, restSec: 120, variant: 'base', tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
                             { id: 'rd', name: 'Stacco Rumeno', meta: '10kg · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 10, restSec: 90, variant: 'base', tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
                             { id: 'cu', name: 'Curl Alternato con manubri', meta: '8kg · 2 serie × 10–12 rip', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 8, restSec: 60, variant: 'base', tip: 'Gomiti incollati ai fianchi. Alterna le braccia. Abbassa lentamente — qui crescono i bicipiti.' },
-                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, variant: 'base', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
+                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 90, variant: 'base', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
+                        ]
+                    },
+                    C: {
+                        // Domenica: tutto statico, zero attrezzi. Chiude il blocco Ven-Sab senza aggiungere danno
+                        // muscolare eccentrico (l'isometria ne produce molto poco), quindi non intacca le prestazioni
+                        // del venerdì successivo: restano 4 giorni pieni di recupero.
+                        name: 'Isometria (Ferro)', sub: 'Domenica · Full body statico, zero attrezzi', day: 0, iso: true,
+                        exercises: [
+                            { id: 'ws', name: 'Wall sit (squat isometrico al muro)', meta: 'Corpo · 4 tenute × 45–120 sec', sets: 4, reps: '45–120 sec', repMin: 45, repMid: 60, repMax: 120, weight: 0, restSec: 120, unit: 'sec', holdCeiling: 120, maxExtraSets: 0, variant: 'base', tip: 'Schiena piatta al muro, ginocchia a 90°, peso sui talloni. Respira sempre: mai in apnea. Il traguardo sono 4 tenute da 2 minuti, il protocollo studiato sulla pressione.' },
+                            { id: 'ih', name: 'Push-up isometrico (tenuta bassa)', meta: 'Corpo · 3 tenute × 20–45 sec', sets: 3, reps: '20–45 sec', repMin: 20, repMid: 30, repMax: 45, weight: 0, restSec: 90, unit: 'sec', holdCeiling: 60, variant: 'base', tip: 'Fermati a 5 cm da terra, gomiti a 45°, corpo come un\'asse. È la posizione di massimo allungamento del petto: sull\'isometria è quella che costruisce di più.' },
+                            { id: 'cy', name: 'Cobra Y-hold (isometria dorsale)', meta: 'Corpo · 3 tenute × 20–45 sec', sets: 3, reps: '20–45 sec', repMin: 20, repMid: 30, repMax: 45, weight: 0, restSec: 75, unit: 'sec', holdCeiling: 60, variant: 'base', tip: 'A pancia in giù, petto staccato da terra, braccia a Y con i pollici in alto. Scapole in basso e indietro: bilancia le spinte e apre le spalle.' },
+                            { id: 'gh', name: 'Ponte glutei isometrico su una gamba', meta: 'Corpo · 3 tenute × 25–50 sec per gamba', sets: 3, reps: '25–50 sec/gamba', repMin: 25, repMid: 35, repMax: 50, weight: 0, restSec: 75, unit: 'sec', holdCeiling: 60, perSide: true, variant: 'base', tip: 'Bacino alto e in linea con le spalle, una gamba tesa. Spingi col tallone e stringi il gluteo, non inarcare la schiena. Registra i secondi per gamba.' },
+                            { id: 'hb', name: 'Hollow body hold', meta: 'Corpo · 3 tenute × 20–45 sec', sets: 3, reps: '20–45 sec', repMin: 20, repMid: 30, repMax: 45, weight: 0, restSec: 60, unit: 'sec', holdCeiling: 60, variant: 'base', tip: 'Lombare schiacciata a terra, spalle e piedi sollevati. Se la schiena si stacca avvicina le ginocchia: prima la posizione, poi i secondi.' },
+                            { id: 'sp', name: 'Plank laterale', meta: 'Corpo · 2 tenute × 25–50 sec per lato', sets: 2, reps: '25–50 sec/lato', repMin: 25, repMid: 35, repMax: 50, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 60, perSide: true, variant: 'base', tip: 'Corpo su una sola linea, fianco alto, spalla sopra il gomito. Registra i secondi per lato.' }
                         ]
                     }
                 };
@@ -680,6 +702,17 @@
                     baseSessions.A.exercises.push({
                         id: 'pu', name: 'Push-up (Variante: Diamond)', meta: 'Corpo · 3 serie × 10–15 rip', sets: 3, reps: '10–15', repMin: 10, repMid: 12.5, repMax: 15, weight: 0, restSec: 60, variant: 'base', tip: 'Mani a diamante sotto il petto. Corpo dritto. Ottimo per tricipiti e petto interno.'
                     });
+                    // Anche l'isometria cambia leva a ogni blocco: stessa durata, posizione più svantaggiosa
+                    const isoVariants = {
+                        ws: { name: 'Wall sit (Variante: braccia distese in alto)', tip: 'Braccia tese sopra la testa: sposta il carico sul core e sui quadricipiti senza cambiare i secondi.' },
+                        ih: { name: 'Push-up isometrico (Variante: mani strette)', tip: 'Mani sotto il petto, gomiti stretti al corpo: stesso tempo, molto più tricipite.' },
+                        hb: { name: 'Hollow body hold (Variante: braccia sopra la testa)', tip: 'Braccia distese oltre la testa: leva più lunga, addome sotto tensione molto più alta.' },
+                        sp: { name: 'Plank laterale (Variante: gamba superiore sollevata)', tip: 'Solleva la gamba di sopra: obliqui e medio gluteo lavorano insieme, equilibrio incluso.' }
+                    };
+                    Object.keys(isoVariants).forEach(id => {
+                        const ex = baseSessions.C.exercises.find(e => e.id === id);
+                        if (ex) { ex.name = isoVariants[id].name; ex.tip = isoVariants[id].tip; ex.variant = 'b2'; }
+                    });
                 }
                 // Restituisce le sessioni con le modifiche di progressione applicate
                 return baseSessions;
@@ -710,14 +743,15 @@
             // Unica fonte per le icone della striscia settimanale e per la nota camminata/riposo in Home:
             // prima le due cose erano hardcoded separatamente e si contraddicevano.
             // Allineato ai campi `day` delle sessioni: A → Sabato (6), B → Domenica (0).
+            // Il campo `session` lega ogni giorno alla sua scheda: è la fonte che decide cosa proporre oggi.
             const WEEK_PLAN = [
-                { type: 'workout', icon: '💪', label: 'Allenamento' },  // Dom — Sessione B (Trazione)
-                { type: 'walk',    icon: '🚶', label: 'Camminata' },    // Lun
-                { type: 'walk',    icon: '🚶', label: 'Camminata' },    // Mar
-                { type: 'rest',    icon: '😴', label: 'Riposo' },       // Mer
-                { type: 'walk',    icon: '🚶', label: 'Camminata' },    // Gio
-                { type: 'rest',    icon: '😴', label: 'Riposo' },       // Ven
-                { type: 'workout', icon: '💪', label: 'Allenamento' }   // Sab — Sessione A (Spinta)
+                { type: 'workout', icon: '🗿', label: 'Isometria',    session: 'C' },  // Dom — Sessione C (Isometria)
+                { type: 'walk',    icon: '🚶', label: 'Camminata' },                   // Lun — scarico attivo dopo il blocco
+                { type: 'walk',    icon: '🚶', label: 'Camminata' },                   // Mar
+                { type: 'walk',    icon: '🚶', label: 'Camminata' },                   // Mer
+                { type: 'rest',    icon: '😴', label: 'Riposo' },                      // Gio — riposo pieno prima del blocco Ven-Dom
+                { type: 'workout', icon: '💪', label: 'Allenamento', session: 'A' },   // Ven — Sessione A (Spinta)
+                { type: 'workout', icon: '💪', label: 'Allenamento', session: 'B' }    // Sab — Sessione B (Trazione)
             ];
 
             // ─────────── STATO APP: salvataggio localStorage, helper date/modal ───────────
@@ -802,7 +836,14 @@
                 if (!state.sessions.length) return null;
                 return [...state.sessions].sort((a, b) => a.date.localeCompare(b.date))[state.sessions.length - 1];
             }
-            function getNextSessionType() { return state.lastSessionType === 'A' ? 'B' : 'A'; }  // Alterna A/B: se ultima era A, prossima B
+            function getNextSessionType() {  // Sessione da proporre: quella prevista oggi dal piano, altrimenti la prima della settimana non ancora fatta
+                const doneThisWeek = state.sessions.filter(s => s.date >= getWeekStart()).map(s => s.session);
+                const todayKey = WEEK_PLAN[getDayOfWeek()].session;
+                if (todayKey && doneThisWeek.indexOf(todayKey) < 0) return todayKey;
+                const pending = SESSION_ORDER.find(k => doneThisWeek.indexOf(k) < 0);
+                if (pending) return pending;
+                return SESSION_ORDER[(SESSION_ORDER.indexOf(state.lastSessionType) + 1) % SESSION_ORDER.length];  // Settimana completa: si riparte dal giro dopo
+            }
 
             function getMacroTargets() {  // Restituisce target macro in base all'obiettivo (cut/bulk)
                 const obj = state.settings.objective || 'cut';
@@ -908,7 +949,7 @@
                 if (nextS) {
                     nextS.exercises.forEach(function(ex) {
                         var p = getPlanFor(ex);
-                        if (p.reason) planItems.push({ name: ex.name, p: p, unit: ex.id === 'pl' ? 'sec' : 'rip' });
+                        if (p.reason) planItems.push({ name: ex.name, p: p, unit: unitOf(ex) });
                     });
                 }
                 // Sceglie il messaggio raccomandazione in base a priorità: scarico attivo > deload > fatigue > piano > trend
@@ -993,8 +1034,12 @@
             // Leve di progressione a carico fisso, in ordine di applicazione
             const MAX_EXTRA_SETS = 2;  // Tetto serie extra: oltre, si progredisce allungando il range
             const REST_STEP = 15;      // Gradino di densità: 15 secondi di recupero in meno per volta
-            function repCeilingFor(ex) {  // Tetto del range esteso: oltre ~25 rip (o 90 sec) lo stimolo ipertrofico cala
-                return ex.id === 'pl' ? 90 : Math.min(ex.repMax + 8, 25);
+            function repCeilingFor(ex) {  // Tetto del range esteso: oltre ~25 rip (o il tetto di tenuta) lo stimolo ipertrofico cala
+                if (unitOf(ex) === 'sec') return ex.holdCeiling || 90;
+                return Math.min(ex.repMax + 8, 25);
+            }
+            function maxExtraSetsFor(ex) {  // Serie extra concesse: il wall sit ha un traguardo fisso (4×2 min) e progredisce sulle altre leve
+                return ex.maxExtraSets !== undefined ? ex.maxExtraSets : MAX_EXTRA_SETS;
             }
             function restFloorFor(ex) {  // Recupero minimo: sotto questa soglia crolla la performance delle serie successive
                 return ex.restSec >= 90 ? 60 : 45;
@@ -1092,10 +1137,10 @@
                 // Card per ogni esercizio
                 s.exercises.forEach((ex, idx) => {
                     const exS = ensureExShape(exState[ex.id] || { completedSets: [], weight: ex.weight }, ex);
-                    const unit = ex.id === 'pl' ? 'sec' : 'rip';  // Il plank si misura in secondi
+                    const unit = unitOf(ex);  // Le isometriche si misurano in secondi di tenuta, non in ripetizioni
                     const isDone = exS.completedSets.length >= exS.plannedSets;  // Esercizio completato?
                     const planInfo = state.plan[ex.id];  // Piano adattivo (per mostrare il perché dei valori di oggi)
-                    const adaptedMeta = `${exS.weight > 0 ? exS.weight + 'kg · ' : 'Corpo · '}${exS.plannedSets} serie × ${exS.targetReps} ${unit} (range ${ex.reps})`;
+                    const adaptedMeta = `${exS.weight > 0 ? exS.weight + 'kg · ' : 'Corpo · '}${exS.plannedSets} ${unit === 'sec' ? 'tenute' : 'serie'} × ${exS.targetReps} ${unit}${ex.perSide ? '/lato' : ''} (range ${ex.reps})`;
                     // Intestazione esercizio con valori adattati, PB, stato
                     html += `<div class="ex-card ${isDone ? 'done' : ''}" data-exid="${ex.id}">
                         <div class="ex-head">
@@ -1130,13 +1175,19 @@
                         <div class="weight-val">${exS.pendingReps}<span style="font-size:10px;color:var(--muted);margin-left:4px"> (target ${exS.targetReps})</span></div>
                         <button class="w-btn rep-inc-btn"><svg viewBox="0 0 24 24"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
                     </div>`;
+                    // Isometria: la tenuta si cronometra nell'app e la serie viene registrata con i secondi realmente tenuti
+                    if (unit === 'sec' && !isDone) {
+                        let nextHold = 1;
+                        while (exS.completedSets.includes(nextHold)) nextHold++;
+                        html += `<button class="hold-btn" data-hold="${nextHold}">▶ Avvia tenuta ${exS.pendingReps} sec${ex.perSide ? ' per lato' : ''} · tenuta ${nextHold}</button>`;
+                    }
                     // Griglia serie: il tocco registra la serie con le rip correnti; sulle fatte mostra le rip registrate
-                    html += `<div class="section-label-small">${exS.completedSets.length}/${exS.plannedSets} serie completate (il tocco registra le ${unit} correnti)</div><div class="sets-grid">`;
+                    html += `<div class="section-label-small">${exS.completedSets.length}/${exS.plannedSets} ${unit === 'sec' ? 'tenute' : 'serie'} completate (il tocco registra ${unit === 'sec' ? 'i secondi correnti' : 'le rip correnti'})</div><div class="sets-grid">`;
                     for (let i = 1; i <= exS.plannedSets; i++) {
                         const setDone = exS.completedSets.includes(i);
                         const setReps = exS.repsPerSet[i];
                         html += `<button class="set-btn ${setDone ? 'done-set' : ''}" data-set="${i}">
-                            <div class="set-label">Serie ${i}</div><div class="set-val">${setDone ? ((setReps !== undefined ? setReps : '') + ' ✓') : '○'}</div>
+                            <div class="set-label">${unit === 'sec' ? 'Tenuta' : 'Serie'} ${i}</div><div class="set-val">${setDone ? ((setReps !== undefined ? setReps : '') + ' ✓') : '○'}</div>
                         </button>`;
                     }
                     html += `</div>`;
@@ -1160,6 +1211,9 @@
                 }));
                 wc.querySelectorAll('.inc-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Aumenta peso
                     e.stopPropagation(); changeWeight(this.closest('.ex-card').dataset.exid, 1);
+                }));
+                wc.querySelectorAll('.hold-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Avvia il cronometro della tenuta isometrica
+                    e.stopPropagation(); startHold(this.closest('.ex-card').dataset.exid, parseInt(this.dataset.hold));
                 }));
                 wc.querySelectorAll('.set-btn').forEach(btn => btn.addEventListener('click', function(e) {  // Marca/toglie serie come completata
                     e.stopPropagation();
@@ -1202,7 +1256,8 @@
                 const exDef = sessionDef?.exercises.find(e => e.id === exId);
                 if (!exDef || !state.todaySession.exercises[exId]) return;
                 const exS = ensureExShape(state.todaySession.exercises[exId], exDef);
-                exS.pendingReps = Math.max(1, exS.pendingReps + delta);  // Minimo 1
+                const step = unitOf(exDef) === 'sec' ? 5 : 1;  // Le tenute si regolano di 5 sec per volta, come la progressione del motore
+                exS.pendingReps = Math.max(1, exS.pendingReps + delta * step);  // Minimo 1
                 save(); renderWorkout();
                 const card = document.querySelector(`.ex-card[data-exid="${exId}"]`);
                 if (card) card.classList.add('open');
@@ -1323,7 +1378,7 @@
              *  ma blocca la progressione; un riposo allungato rimanda solo l'aumento di peso. */
             function computeNextPlan(exDef, exS, rest, globalFatigue) {
                 const prevPlan = planFor(exDef.id, exDef);
-                const unit = exDef.id === 'pl' ? 'sec' : 'rip';
+                const unit = unitOf(exDef);
                 const bodyweight = (exS.weight || 0) === 0;
                 const plannedSets = exS.plannedSets || exDef.sets;
                 const target = exS.targetReps !== undefined ? exS.targetReps : exDef.repMin;
@@ -1389,7 +1444,7 @@
                         outcome = 'hold'; reason = 'Range completato ma fatica alta: si consolida prima di progredire';
                     } else if (rest.extendedCount > 0) {
                         outcome = 'hold'; reason = 'Pronto per il gradino successivo, ma hai allungato i recuperi: si consolida ancora una sessione';
-                    } else if (next.extraSets < MAX_EXTRA_SETS) {
+                    } else if (next.extraSets < maxExtraSetsFor(exDef)) {
                         next.extraSets++; next.targetReps = exDef.repMin; outcome = 'add_set';
                         reason = `Tutte le serie a ${exDef.repMax} ${unit}: +1 serie (più volume a parità di carico), ${unit} da ${exDef.repMin}`;
                     } else if (target < ceiling) {
@@ -1400,7 +1455,9 @@
                         reason = `Serie e ripetizioni al massimo: recupero ${curRest}s → ${curRest - REST_STEP}s — stesso lavoro in meno tempo`;
                     } else {
                         outcome = 'capped';
-                        reason = 'Tutte le leve a carico fisso sono esaurite: passa a una variante più dura (discesa 3-4 sec, pausa in basso, unilaterale)';
+                        reason = unit === 'sec'
+                            ? 'Tenuta, serie e recuperi al massimo: passa a una variante più svantaggiosa (braccia in alto, appoggio su una gamba, leva più lunga)'
+                            : 'Tutte le leve a carico fisso sono esaurite: passa a una variante più dura (discesa 3-4 sec, pausa in basso, unilaterale)';
                     }
                 } else {
                     outcome = 'ok'; next.holds = 0; reason = 'Target raggiunto: si ripete per consolidare';
@@ -1465,6 +1522,8 @@
             // ─────────── TIMER: conto alla rovescia tra serie, con tracking dei riposi ───────────
             let timerInterval = null; let timerTotal = 60; let timerRemaining = 60; let timerPaused = false;
             let restCtx = null;  // Riposo in corso: { exId, set, planned, extended, between }
+            let timerMode = 'rest';  // 'rest' = recupero tra le serie · 'hold' = tenuta isometrica cronometrata
+            let holdCtx = null;      // Tenuta in corso: { exId, set, sec, side, sides }
 
             function recordRest(skipped) {  // Registra l'esito del riposo nel log della sessione
                 if (!restCtx) return;
@@ -1483,7 +1542,11 @@
                 if (timerInterval) clearInterval(timerInterval);  // Resetta timer precedente
                 if (restCtx) recordRest(false);  // Chiude un eventuale riposo rimasto aperto
                 restCtx = ctx ? { exId: ctx.exId, set: ctx.set, planned: ctx.planned || seconds, extended: 0, between: !!ctx.between } : null;
+                timerMode = 'rest'; holdCtx = null;  // L'overlay torna in modalità recupero
                 timerTotal = seconds; timerRemaining = seconds; timerPaused = false;  // Imposta durata
+                document.getElementById('timerTitle').textContent = 'RIPOSO';
+                document.getElementById('timerAddBtn').textContent = '+15s';
+                document.getElementById('timerSkipBtn').textContent = 'Salta ›';
                 document.getElementById('timerExName').textContent = 'Dopo: ' + exName;  // Nome esercizio
                 document.getElementById('timerPauseBtn').textContent = 'Pausa';  // Testo pulsante pausa
                 updateTimerUI();  // Aggiorna UI circolare
@@ -1491,10 +1554,59 @@
                 timerInterval = setInterval(tickTimer, 1000);  // Tick ogni secondo
             }
 
+            /** Avvia il cronometro di una tenuta isometrica: alla fine registra da solo la serie con i secondi
+             *  realmente mantenuti. Gli esercizi per lato incatenano due tenute e poi chiudono la serie. */
+            function startHold(exId, setNum) {
+                if (!state.todaySession) return;
+                const sessionDef = getCurrentSessions()[state.todaySession.session];
+                const exDef = sessionDef && sessionDef.exercises.find(e => e.id === exId);
+                const exS = state.todaySession.exercises[exId];
+                if (!exDef || !exS) return;
+                runHold({ exId, set: setNum, sec: Math.max(1, exS.pendingReps), side: 1, sides: exDef.perSide ? 2 : 1 }, exDef.name);
+            }
+
+            function runHold(ctx, exName) {  // Manda in esecuzione una tenuta (o il lato successivo) sull'overlay del timer
+                if (timerInterval) clearInterval(timerInterval);
+                if (restCtx) recordRest(false);  // Chiude un eventuale recupero rimasto aperto
+                timerMode = 'hold'; holdCtx = ctx;
+                timerTotal = ctx.sec; timerRemaining = ctx.sec;
+                timerPaused = ctx.side > 1;  // Il lato successivo aspetta: serve il tempo di rimettersi in posizione
+                document.getElementById('timerTitle').textContent = ctx.sides > 1 ? 'TENUTA · LATO ' + ctx.side : 'TENUTA';
+                document.getElementById('timerExName').textContent = exName;
+                document.getElementById('timerAddBtn').textContent = '+10s';
+                document.getElementById('timerPauseBtn').textContent = timerPaused ? 'Via ›' : 'Pausa';
+                document.getElementById('timerSkipBtn').textContent = 'Fermati ›';
+                updateTimerUI();
+                document.getElementById('timerOverlay').classList.add('active');
+                timerInterval = setInterval(tickTimer, 1000);
+            }
+
+            function endHold(heldSec) {  // Chiude la tenuta e registra la serie con i secondi effettivi
+                if (timerInterval) clearInterval(timerInterval);
+                document.getElementById('timerOverlay').classList.remove('active');
+                const ctx = holdCtx; holdCtx = null; timerMode = 'rest';
+                if (!ctx || !state.todaySession) return;
+                const exS = state.todaySession.exercises[ctx.exId];
+                if (!exS) return;
+                exS.pendingReps = Math.max(1, Math.round(heldSec));  // Vale il tempo reale, non quello programmato
+                save();
+                toggleSet(ctx.exId, ctx.set);  // Registra la serie e fa partire il recupero come per gli altri esercizi
+            }
+
             function tickTimer() {  // Decrementa il timer ogni secondo
                 if (timerPaused) return;  // Se in pausa, non fare nulla
                 timerRemaining--; updateTimerUI();  // Decrementa e aggiorna UI
                 if (timerRemaining <= 0) {  // Tempo scaduto
+                    if (timerMode === 'hold') {  // Tenuta completata: se l'esercizio è per lato si passa all'altro, altrimenti si registra
+                        if (state.settings.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                        if (holdCtx && holdCtx.side < holdCtx.sides) {
+                            const nextSide = Object.assign({}, holdCtx, { side: holdCtx.side + 1 });
+                            runHold(nextSide, document.getElementById('timerExName').textContent);
+                        } else {
+                            endHold(timerTotal);
+                        }
+                        return;
+                    }
                     clearInterval(timerInterval);
                     document.getElementById('timerOverlay').classList.remove('active');  // Nascondi overlay
                     recordRest(false);  // Riposo completato regolarmente
@@ -1513,8 +1625,14 @@
             function bindTimerButtons() {  // Collega listener ai pulsanti timer (una sola volta)
                 if (timerPauseListener) return;  // Già collegati
                 timerPauseListener = () => { timerPaused = !timerPaused; document.getElementById('timerPauseBtn').textContent = timerPaused ? 'Riprendi' : 'Pausa'; };  // Pausa/Riprendi
-                timerSkipListener = () => { if (timerInterval) clearInterval(timerInterval); document.getElementById('timerOverlay').classList.remove('active'); recordRest(true); };  // Salta riposo: registrato per l'analisi
-                timerAddListener = () => { timerRemaining += 15; timerTotal += 15; if (restCtx) restCtx.extended += 15; updateTimerUI(); };  // Aggiungi 15 secondi: registrato come riposo allungato
+                timerSkipListener = () => {  // In tenuta: chiude la tenuta col tempo davvero retto · in riposo: salta il recupero (registrato per l'analisi)
+                    if (timerMode === 'hold') { endHold(Math.max(1, timerTotal - timerRemaining)); return; }
+                    if (timerInterval) clearInterval(timerInterval); document.getElementById('timerOverlay').classList.remove('active'); recordRest(true);
+                };
+                timerAddListener = () => {  // In tenuta: allunga la tenuta di 10 sec · in riposo: +15 sec, registrato come riposo allungato
+                    if (timerMode === 'hold') { timerRemaining += 10; timerTotal += 10; updateTimerUI(); return; }
+                    timerRemaining += 15; timerTotal += 15; if (restCtx) restCtx.extended += 15; updateTimerUI();
+                };
                 document.getElementById('timerPauseBtn').addEventListener('click', timerPauseListener);
                 document.getElementById('timerSkipBtn').addEventListener('click', timerSkipListener);
                 document.getElementById('timerAddBtn').addEventListener('click', timerAddListener);
@@ -1616,11 +1734,13 @@
                 document.getElementById('pStatMonth').textContent = state.sessions.filter(s => s.date >= monthStart).length;  // Sessioni questo mese
                 // Grafico volume: ultime 8 sessioni, volume reale vs pianificato
                 const volumeChart = document.getElementById('volumeChart');
-                const allSessions = [...state.sessions].sort((a, b) => a.date.localeCompare(b.date));  // Ordina per data
-                const last8 = allSessions.slice(-8);  // Ultime 8 sessioni
+                // Il grafico misura kg × rip: le sessioni isometriche sono a corpo libero, entrerebbero a zero e
+                // schiaccerebbero la scala. Hanno un riepilogo dedicato in secondi, subito sotto.
+                const allSessions = [...state.sessions].filter(s => !isIsoSession(s.session)).sort((a, b) => a.date.localeCompare(b.date));
+                const last8 = allSessions.slice(-8);  // Ultime 8 sessioni di forza
                 volumeChart.innerHTML = '';
                 if (last8.length === 0) {
-                    volumeChart.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Nessun dato ancora</div>';
+                    volumeChart.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Nessuna sessione con carico ancora</div>';
                 } else {
                     var volData = last8.map(function(s) {  // Calcola volume attuale e pianificato per ogni sessione
                         var sessionDef = getCurrentSessions()[s.session];
@@ -1683,6 +1803,23 @@
                         + '<div class="volume-legend-item"><div class="volume-legend-swatch" style="background:rgba(200,255,0,0.15)"></div>Pianificato</div>'
                         + '<div class="volume-legend-item"><div class="volume-legend-swatch" style="background:#FFB350"></div>Parziale</div>';
                     volumeChart.appendChild(legend);
+                }
+                // Riepilogo isometria: a corpo libero il volume in kg è sempre zero, la misura giusta è il tempo sotto tensione
+                const isoDone = [...state.sessions].filter(s => isIsoSession(s.session)).sort((a, b) => a.date.localeCompare(b.date));
+                if (isoDone.length) {
+                    const lastTut = sessionTUT(isoDone[isoDone.length - 1]);
+                    const prevTut = isoDone.length > 1 ? sessionTUT(isoDone[isoDone.length - 2]) : 0;
+                    const avgTut = isoDone.slice(-4).reduce((a, x) => a + sessionTUT(x), 0) / Math.min(isoDone.length, 4);
+                    const deltaTut = prevTut > 0 ? Math.round(((lastTut - prevTut) / prevTut) * 100) : 0;
+                    const deltaColor = deltaTut > 0 ? 'var(--accent)' : (deltaTut < 0 ? 'var(--red)' : 'var(--muted)');
+                    volumeChart.insertAdjacentHTML('beforeend',
+                        '<div style="font-size:11px;color:var(--muted);margin-top:16px;padding-top:12px;border-top:1px solid var(--g2);line-height:1.6">🗿 <b style="color:var(--white)">Isometria della domenica</b> — si misura in tempo sotto tensione, non in kg</div>'
+                        + '<div class="volume-summary" style="margin-top:8px">'
+                        + '<div class="volume-stat"><div class="volume-stat-val" style="font-size:16px">' + formatTUT(lastTut) + '</div><div class="volume-stat-lbl">Ultima sessione</div></div>'
+                        + '<div class="volume-stat"><div class="volume-stat-val" style="font-size:16px">' + formatTUT(avgTut) + '</div><div class="volume-stat-lbl">Media ultime 4</div></div>'
+                        + '<div class="volume-stat"><div class="volume-stat-val" style="color:' + deltaColor + '">' + (deltaTut > 0 ? '+' : '') + deltaTut + '%</div><div class="volume-stat-lbl">vs precedente</div></div>'
+                        + '<div class="volume-stat"><div class="volume-stat-val">' + isoDone.length + '</div><div class="volume-stat-lbl">Sessioni iso</div></div>'
+                        + '</div>');
                 }
                 // Calendario mensile con giorni di allenamento evidenziati
                 const cal = document.getElementById('calDays');
@@ -1763,6 +1900,16 @@
                         <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">${p.label}</div><div style="font-size:12px;color:var(--muted);line-height:1.6">${p.desc}</div></div>
                     </div></div>`;
                 });
+                // La domenica isometrica non è una fase del ciclo: è un blocco a sé, con regole sue. Va spiegata qui,
+                // altrimenti l'unico posto in cui compare è la scheda del giorno.
+                pp.innerHTML += `<div class="card" style="margin-bottom:8px;border-color:rgba(200,255,0,0.25)"><div class="card-body" style="display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:start">
+                    <div style="font-size:13px;font-weight:700;color:var(--accent)">🗿 Dom</div>
+                    <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">Isometria</div><div style="font-size:12px;color:var(--muted);line-height:1.6">
+                    Tutto statico, zero attrezzi, in coda al blocco Ven-Sab: l'isometria produce pochissimo danno muscolare, quindi non intacca la spinta del venerdì successivo — restano 4 giorni pieni di recupero.
+                    Progredisce in secondi, non in kg: +5 sec a tenuta fino al fondo del range, poi una tenuta in più, poi recuperi più corti.
+                    Il wall sit punta alle 4 tenute da 2 minuti del protocollo studiato sulla pressione arteriosa.
+                    <b style="color:var(--white)">Mai in apnea</b>: si respira per tutta la tenuta, trattenere il fiato fa salire la pressione.</div></div>
+                </div></div>`;
                 // Fase corrente di progressione: il ciclo di 9 settimane si ripete, quindi mostra blocco + settimana del ciclo
                 var cyc = getCycleInfo();
                 var phase = PROGRESSION[cyc.phaseIdx];
@@ -1893,12 +2040,19 @@
                             detHtml += '<div style="font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + ex.name + '</div>';
                             detHtml += '<div style="display:flex;gap:8px;flex-shrink:0">';
                             detHtml += '<span style="color:' + setColor + '">' + setsDone + '/' + setsPlanned + '</span>';  // Serie
-                            detHtml += '<span style="color:' + weightColor + '">' + weightUsed + 'kg' + (!weightOk ? ' (' + weightPlanned + ')' : '') + '</span>';  // Peso
-                            detHtml += '<span style="color:' + repsColor + '">' + (repsDetail || repsActual) + 'rip' + (!repsOk ? ' (target ' + repsPlanned + ')' : '') + '</span>';  // Rip per serie
-                            detHtml += '<span style="color:var(--muted)">' + Math.round(volActual) + '</span>';  // Volume
+                            var exUnit = unitOf(ex);  // 'sec' sulle tenute isometriche, 'rip' sugli esercizi dinamici
+                            if (weightUsed > 0 || weightPlanned > 0) detHtml += '<span style="color:' + weightColor + '">' + weightUsed + 'kg' + (!weightOk ? ' (' + weightPlanned + ')' : '') + '</span>';  // Peso (omesso a corpo libero)
+                            detHtml += '<span style="color:' + repsColor + '">' + (repsDetail || repsActual) + exUnit + (!repsOk ? ' (target ' + repsPlanned + ')' : '') + '</span>';  // Rip o secondi per serie
+                            var exTut = 0;  // Tempo sotto tensione dell'esercizio: l'equivalente del volume per le tenute
+                            if (exUnit === 'sec') (exData.completedSets || []).forEach(function(sn) {
+                                exTut += ((exData.repsPerSet && exData.repsPerSet[sn] !== undefined) ? exData.repsPerSet[sn] : repsActual) * (ex.perSide ? 2 : 1);
+                            });
+                            detHtml += '<span style="color:var(--muted)">' + (exUnit === 'sec' ? exTut + 's' : Math.round(volActual)) + '</span>';  // Volume in kg · secondi di tensione sulle isometriche
                             detHtml += '</div></div>';
                         });
-                        detHtml += '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Volume: peso × serie × rip</div>';
+                        detHtml += isIsoSession(lastSess.session)
+                            ? '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Isometria: si misura in secondi, non in kg — tensione totale ' + formatTUT(sessionTUT(lastSess)) + '</div>'
+                            : '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Volume: peso × serie × rip</div>';
                         detHtml += '</div>';
                         cs.innerHTML += detHtml;
                     }
@@ -2118,8 +2272,11 @@
                 if (!s) return 0;
                 let total = 0;
                 s.exercises.forEach(ex => {
-                    const extra = (state.plan[ex.id] && state.plan[ex.id].extraSets) || 0;  // Serie extra dal piano adattivo
-                    total += (ex.sets + extra) * (restSecFor(ex) + 20); // Recupero adattato + 20 sec per esecuzione serie
+                    const p = getPlanFor(ex);  // Serie, secondi e recuperi di oggi, già adattati
+                    // Su una tenuta il lavoro della serie sono i secondi stessi (doppi se si tiene per lato),
+                    // non i 20 sec forfettari di una serie dinamica: altrimenti la domenica risulterebbe metà del vero.
+                    const work = unitOf(ex) === 'sec' ? p.targetReps * (ex.perSide ? 2 : 1) : 20;
+                    total += p.plannedSets * (p.restSec + work);
                 });
                 return Math.round(total / 60);
             }
@@ -2136,9 +2293,28 @@
                 return w * exData.completedSets.length * (exData.actualReps || exDef.repMid);
             }
 
+            /** Tempo sotto tensione di una sessione isometrica, in secondi: le tenute per lato contano doppio */
+            function sessionTUT(sess) {
+                const def = getCurrentSessions()[sess.session];
+                if (!def) return 0;
+                let tot = 0;
+                def.exercises.forEach(ex => {
+                    const d = sess.exercises && sess.exercises[ex.id];
+                    if (!d || !d.completedSets) return;
+                    d.completedSets.forEach(sn => {
+                        const sec = (d.repsPerSet && d.repsPerSet[sn] !== undefined) ? d.repsPerSet[sn] : (d.actualReps || ex.repMid);
+                        tot += sec * (ex.perSide ? 2 : 1);
+                    });
+                });
+                return tot;
+            }
+            /** Secondi → m:ss, per leggere il tempo sotto tensione a colpo d'occhio */
+            function formatTUT(sec) { return Math.floor(sec / 60) + ':' + String(Math.round(sec % 60)).padStart(2, '0'); }
+
             /** Trend volume: confronta ultime 3 sessioni con le 3 precedenti */
             function getVolumeTrend() {
-                const all = [...state.sessions].sort((a, b) => a.date.localeCompare(b.date));
+                // Solo sessioni con carico: l'isometria a corpo libero ha volume 0 in kg e farebbe leggere un calo inesistente
+                const all = [...state.sessions].filter(s => !isIsoSession(s.session)).sort((a, b) => a.date.localeCompare(b.date));
                 if (all.length < 4) return { direction: 'stabile', pct: 0 };
                 const recent = all.slice(-3);
                 const older = all.slice(-6, -3);
@@ -2161,7 +2337,7 @@
             function getDeloadRecommendation() {
                 const fatigue = getFatigueLevel();
                 const trend = getVolumeTrend();
-                const sessionsLast2Weeks = state.sessions.filter(s => daysSince(s.date) < 14).length;  // Finestra a 14 giorni in fuso locale
+                const sessionsLast2Weeks = state.sessions.filter(s => !isIsoSession(s.session) && daysSince(s.date) < 14).length;  // Solo sessioni di forza: la soglia è tarata su 2 allenamenti a settimana
                 if (fatigue === 'red' && trend.direction === 'calo') return { needed: true, reason: 'Affaticamento alto + volume in calo. Fai una settimana di deload.' };
                 if (fatigue === 'red' && sessionsLast2Weeks >= 4) return { needed: true, reason: 'Alta frequenza + affaticamento. Prenditi 3-4 giorni di recupero.' };
                 if (trend.direction === 'calo' && trend.pct < -15) return { needed: true, reason: `Volume calato del ${Math.abs(trend.pct)}%. Potresti aver bisogno di recupero.` };
