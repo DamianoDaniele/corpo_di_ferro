@@ -207,6 +207,7 @@
         .congrats-title { font-size: clamp(1.5rem, 1.2045rem + 1.4773vw, 2.375rem); font-weight: 700; margin-bottom: 8px; }
         .congrats-title span { color: var(--accent); }
         .congrats-sub { font-size: clamp(0.8125rem, 0.7589rem + 0.2679vw, 0.9375rem); color: var(--muted); margin-bottom: clamp(16px, 3vw, 30px); line-height: 1.6; }
+        .ai-btn { display: block; width: 100%; max-width: 360px; margin: 0 auto 12px; background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 12px; padding: 13px 18px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font); }
         .congrats-btn { background: var(--accent); color: var(--black); border: none; border-radius: 12px; padding: 16px 32px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: var(--font); }
         
         /* ─── Suggerimenti peso e barre volume ─── */
@@ -468,7 +469,16 @@
                 <div class="stat"><div class="stat-val" id="pStatTotal">0</div><div class="stat-lbl">Sessioni totali</div></div>
                 <div class="stat"><div class="stat-val" id="pStatMonth">0</div><div class="stat-lbl">Questo mese</div></div>
             </div>
-            
+
+            <div class="progress-section">
+                <div class="progress-title">Valutazione AI (Claude)</div>
+                <div class="card" style="padding:16px;">
+                    <div style="font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.5">Genera un prompt con i tuoi dati e lo invia all'app Claude (menu Condividi). Se Condividi non è disponibile, il testo viene copiato: incollalo in Claude.</div>
+                    <button class="ai-btn" id="aiLastSessionBtn">🤖 Valuta l'ultima sessione</button>
+                    <button class="ai-btn" id="aiCycleProgressBtn">📊 Valuta il ciclo</button>
+                </div>
+            </div>
+
             <div class="progress-section">
                 <div class="progress-title">Volume (Ultime 8 sessioni)</div>
                 <div id="volumeChart" class="card" style="padding:16px;"></div>
@@ -596,6 +606,8 @@
         <div class="congrats-emoji">🏆</div>
         <div class="congrats-title">SESSIONE <span>COMPLETATA</span></div>
         <div class="congrats-sub" id="congratsSub"></div>
+        <button class="ai-btn" id="aiSessionBtn">🤖 Chiedi a Claude una valutazione</button>
+        <button class="ai-btn" id="aiCycleBtn" style="display:none">📊 Valutazione del ciclo con Claude</button>
         <button class="congrats-btn" id="congratsCloseBtn">Continua 💪</button>
     </div>
 
@@ -1513,6 +1525,8 @@
                 else sub += 'Continua così — stai costruendo il corpo di ferro. 💪';
                 if (compressed) sub += `<br><span style="color:#FFB350">⏱ Hai saltato gran parte dei riposi: il recupero incompleto riduce le rip successive e il volume totale, il motore della crescita.</span>`;
                 document.getElementById('congratsSub').innerHTML = sub;
+                // Fine della settimana di scarico = fine ciclo: propone anche la valutazione del ciclo
+                document.getElementById('aiCycleBtn').style.display = isDeload ? 'block' : 'none';
                 document.getElementById('congratsCloseBtn').addEventListener('click', function handler() {  // Bottone chiude congratulazioni e torna home
                     congDiv.classList.remove('active'); state.todaySession = null;
                     save(); renderWorkout(); renderHome(); goPage('home');
@@ -2247,6 +2261,101 @@
                 if (score >= 5) return 'yellow';
                 return 'green';
             }
+            // ─────────── VALUTAZIONE AI: prompt pronti da inviare all'app Claude (abbonamento Pro, nessuna API) ───────────
+            function sessionBlockMap() {  // Per ogni sessione salvata: blocco e settimana del ciclo in cui è stata fatta
+                let strength = 0;
+                return state.sessions.map(s => {
+                    if (!isIsoSession(s.session)) strength++;
+                    const weekNum = Math.ceil(strength / 2) || 1;
+                    return { s, blockNum: Math.floor((weekNum - 1) / CYCLE_WEEKS) + 1, cycleWeek: ((weekNum - 1) % CYCLE_WEEKS) + 1 };
+                });
+            }
+            function exNameMap() {  // id esercizio → nome (tutte le sessioni, varianti correnti)
+                const m = {}; const defs = {};
+                Object.values(getCurrentSessions()).forEach(sess => sess.exercises.forEach(e => { m[e.id] = e.name; defs[e.id] = e; }));
+                return { names: m, defs };
+            }
+            function describeExercise(exId, d, names, defs) {
+                const def = defs[exId] || {}; const u = unitOf(def);
+                const reps = Object.keys(d.repsPerSet || {}).sort((a, b) => a - b).map(k => d.repsPerSet[k]);
+                let line = `- ${names[exId] || exId}: ${reps.length ? reps.join(' / ') + ' ' + u : 'nessuna serie registrata'}`;
+                if (d.plannedSets) line += ` (serie pianificate ${d.plannedSets}${d.repPlanned ? ', target ' + d.repPlanned + ' ' + u : ''})`;
+                if (u !== 'sec' && d.weight) line += `, carico ${d.weight} kg${d.weightPlanned && d.weightPlanned !== d.weight ? ' (pianificato ' + d.weightPlanned + ')' : ''}`;
+                if (d.restSkips) line += `, riposi saltati ${d.restSkips}`;
+                if (d.restExtended) line += `, riposi allungati ${d.restExtended}`;
+                if (d.outcome) line += `, esito algoritmo: ${d.outcome}`;
+                return line;
+            }
+            function aiContextHeader() {
+                const cyc = getCycleInfo(); const bm = state.bodyMeasurements || [];
+                const lastBm = bm[bm.length - 1];
+                return 'Sei il mio coach di forza e ipertrofia. Rispondi in italiano, in modo concreto e conciso.\n\n'
+                    + `PROFILO: 43 anni, allenamento a casa con manubri max ${state.settings.maxWeight || 10} kg + corpo libero. `
+                    + `Obiettivo: ${state.settings.objective === 'cut' ? 'definizione (cut)' : 'massa (bulk)'}. Peso corporeo: ${state.settings.weight} kg`
+                    + (lastBm ? ` (ultima misura ${lastBm.date}${lastBm.waist ? ', vita ' + lastBm.waist + ' cm' : ''}${lastBm.chest ? ', petto ' + lastBm.chest + ' cm' : ''})` : '') + '.\n'
+                    + `PROGRAMMA: ciclo di 9 settimane (8 lavoro + 1 scarico), sessioni A Spinta (ven), B Trazione (sab), C Isometria (dom). `
+                    + `Ora: blocco ${cyc.blockNum}, settimana ${cyc.cycleWeek}/9, fase "${PROGRESSION[cyc.phaseIdx].label}". `
+                    + `Stato fatica ultimi 14 giorni: ${({ green: 'basso', yellow: 'medio', red: 'alto' })[getFatigueLevel()]}.\n\n`;
+            }
+            function buildSessionReviewPrompt(sess) {
+                const { names, defs } = exNameMap();
+                const sessNames = getCurrentSessions();
+                let t = aiContextHeader();
+                t += `SESSIONE DI OGGI (${sess.date}) — ${sessNames[sess.session]?.name || sess.session}:\n`;
+                Object.keys(sess.exercises || {}).forEach(id => { t += describeExercise(id, sess.exercises[id], names, defs) + '\n'; });
+                if (sess.restStats) t += `Riposi: ${sess.restStats.total} totali, ${sess.restStats.skipped} saltati, ${sess.restStats.extended} allungati.\n`;
+                const idx = state.sessions.indexOf(sess);
+                const prev = state.sessions.slice(0, idx < 0 ? state.sessions.length : idx).reverse().find(s => s.session === sess.session);
+                if (prev) {
+                    t += `\nSESSIONE PRECEDENTE DELLO STESSO TIPO (${prev.date}):\n`;
+                    Object.keys(prev.exercises || {}).forEach(id => { t += describeExercise(id, prev.exercises[id], names, defs) + '\n'; });
+                }
+                t += '\nDAMMI: 1) valutazione sintetica della seduta (voto 1-10), 2) cosa è andato bene e cosa no rispetto alla precedente e al target, '
+                    + '3) 2-3 indicazioni pratiche per la prossima seduta dello stesso tipo, 4) eventuali segnali di fatica o recupero insufficiente.';
+                return t;
+            }
+            function buildCycleReviewPrompt() {
+                const map = sessionBlockMap();
+                if (!map.length) return null;
+                // Ciclo da valutare: quello dell'ultima sessione registrata
+                const block = map[map.length - 1].blockNum;
+                const inBlock = map.filter(x => x.blockNum === block);
+                const { names, defs } = exNameMap();
+                let t = aiContextHeader();
+                t += `CICLO DA VALUTARE: blocco ${block}, ${inBlock.length} sessioni (dal ${inBlock[0].s.date} al ${inBlock[inBlock.length - 1].s.date}).\n\n`;
+                inBlock.forEach(({ s, cycleWeek }) => {
+                    t += `[Sett. ${cycleWeek}${cycleWeek === CYCLE_WEEKS ? ' scarico' : ''}] ${s.date} sessione ${s.session}:\n`;
+                    Object.keys(s.exercises || {}).forEach(id => { t += '  ' + describeExercise(id, s.exercises[id], names, defs) + '\n'; });
+                });
+                const first = inBlock[0].s.date, last = inBlock[inBlock.length - 1].s.date;
+                const bm = (state.bodyMeasurements || []).filter(m => m.date >= first && m.date <= todayStr());
+                if (bm.length) {
+                    t += '\nMISURE CORPOREE NEL PERIODO:\n';
+                    bm.forEach(m => { t += `- ${m.date}: peso ${m.weight} kg${m.waist ? ', vita ' + m.waist : ''}${m.chest ? ', petto ' + m.chest : ''}\n`; });
+                }
+                t += `\nDAMMI: 1) bilancio del ciclo (progressi per esercizio: ripetizioni/secondi dall'inizio alla fine), 2) esercizi in stallo e perché, `
+                    + `3) aderenza e gestione dei riposi, 4) coerenza con l'obiettivo e le misure, 5) cosa cambiare nel prossimo blocco (sempre con max ${state.settings.maxWeight || 10} kg).`;
+                return t;
+            }
+            async function shareToClaude(text) {  // Menu Condividi di Android → app Claude; altrimenti copia negli appunti
+                if (!text) { alert('Nessuna sessione registrata da valutare.'); return; }
+                if (navigator.share) {
+                    try { await navigator.share({ title: 'Valutazione allenamento', text }); return; }
+                    catch (e) { if (e && e.name === 'AbortError') return; }
+                }
+                try {
+                    await navigator.clipboard.writeText(text);
+                    alert('Prompt copiato negli appunti ✅\nApri l\'app Claude e incollalo in una nuova chat.');
+                } catch (e) {
+                    const ta = document.createElement('textarea'); ta.value = text;
+                    ta.style.cssText = 'position:fixed;inset:10%;z-index:600;width:80%;height:80%;background:#111;color:#fff;font-size:12px';
+                    ta.addEventListener('blur', () => ta.remove());
+                    document.body.appendChild(ta); ta.focus(); ta.select();
+                }
+            }
+            function shareLastSession() { shareToClaude(state.sessions.length ? buildSessionReviewPrompt(state.sessions[state.sessions.length - 1]) : null); }
+            function shareCycle() { shareToClaude(buildCycleReviewPrompt()); }
+
             function showFatigueStatus() {  // Mostra notifica temporanea con stato affaticamento
                 const level = getFatigueLevel(); let msg = '';
                 if (level === 'green') msg = '🟢 Energia alta: spingi forte e progredisci!';
@@ -2377,6 +2486,11 @@
                 document.getElementById('toggleSound').parentElement.addEventListener('click', () => toggleSetting('sound'));
                 document.getElementById('toggleVibration').parentElement.addEventListener('click', () => toggleSetting('vibration'));
                 document.getElementById('objectiveValue').parentElement.addEventListener('click', toggleObjective);
+                // Valutazione AI con Claude: dopo la sessione e dalla pagina Progressi
+                document.getElementById('aiSessionBtn').addEventListener('click', shareLastSession);
+                document.getElementById('aiCycleBtn').addEventListener('click', shareCycle);
+                document.getElementById('aiLastSessionBtn').addEventListener('click', shareLastSession);
+                document.getElementById('aiCycleProgressBtn').addEventListener('click', shareCycle);
                 let resizeTimer;
                 window.addEventListener('resize', () => {
                     clearTimeout(resizeTimer);
