@@ -770,15 +770,16 @@
                 // Due sessioni full body a settimana, venerdì (A) e domenica (B): ogni gruppo muscolare lavora 2 volte
                 // in giorni non consecutivi, come chiedono le Linee di indirizzo del Ministero della Salute (2021).
                 // Il primo esercizio di ogni sessione è di forza (6–8 rip ≈ 80-85% del massimale, ACSM 2026: carichi
-                // ≥80% a inizio sessione), gli altri da 8–15 rip per il muscolo. ~40 minuti a sessione.
+                // ≥80% a inizio sessione), gli altri da 8–15 rip per il muscolo. 4 serie sui principali: petto e dorso
+                // arrivano a ~10 serie a settimana, la soglia ACSM 2026 per l'ipertrofia. ~45 minuti a sessione.
                 // Il campo weight è un riferimento di partenza: getPlanFor() lo aggancia al carico realmente componibile
                 // con i dischi (load: 'single' = un manubrio solo; default = coppia). perArm = un braccio alla volta.
                 const baseSessions = {
                     A: {
                         name: 'Full body A', sub: 'Venerdì · Petto, dorso, cosce, braccia', day: 5,
                         exercises: [
-                            { id: 'cp', name: 'Distensioni a terra con manubri', meta: 'Forza · 3 serie × 6–8 rip', sets: 3, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 12, restSec: 120, variant: 'fb', tip: 'Prima 1-2 serie leggere di riscaldamento. Sdraiato a terra, gomiti a 45°: scendi in 2-3 secondi finché i gomiti toccano terra, poi spingi deciso.' },
-                            { id: 'rw', name: 'Rematore con un manubrio', meta: 'Forza · 3 serie × 6–8 rip per braccio', sets: 3, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 12, load: 'single', perArm: true, restSec: 120, variant: 'fb', tip: 'Una mano e un ginocchio in appoggio, schiena piatta. Porta il gomito verso il soffitto stringendo la schiena, scendi lento. Tutte le rip con un braccio, poi l\'altro.' },
+                            { id: 'cp', name: 'Distensioni a terra con manubri', meta: 'Forza · 4 serie × 6–8 rip', sets: 4, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 12, restSec: 120, variant: 'fb', tip: 'Prima 1-2 serie leggere di riscaldamento. Sdraiato a terra, gomiti a 45°: scendi in 2-3 secondi finché i gomiti toccano terra, poi spingi deciso.' },
+                            { id: 'rw', name: 'Rematore con un manubrio', meta: 'Forza · 4 serie × 6–8 rip per braccio', sets: 4, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 12, load: 'single', perArm: true, restSec: 120, variant: 'fb', tip: 'Una mano e un ginocchio in appoggio, schiena piatta. Porta il gomito verso il soffitto stringendo la schiena, scendi lento. Tutte le rip con un braccio, poi l\'altro.' },
                             { id: 'gs', name: 'Squat goblet', meta: 'Manubrio · 3 serie × 8–12 rip', sets: 3, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 14, load: 'single', restSec: 90, variant: 'fb', tip: 'Un manubrio tenuto in verticale al petto con due mani. Piedi poco oltre le spalle, scendi tra le ginocchia con il busto dritto, spingi coi talloni.' },
                             { id: 'hc', name: 'Curl a martello (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 6, load: 'single', perArm: true, restSec: 60, variant: 'fb', tip: 'Palmo rivolto verso l\'interno, gomito fermo al fianco. Con un manubrio solo i carichi salgono di 2 kg alla volta.' },
                             { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 90, variant: 'fb', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
@@ -787,21 +788,21 @@
                     B: {
                         name: 'Full body B', sub: 'Domenica · Femorali, petto, dorso, spalle, braccia', day: 0,
                         exercises: [
-                            { id: 'rd', name: 'Stacco rumeno con manubri', meta: 'Forza · 3 serie × 6–8 rip', sets: 3, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 14, restSec: 120, variant: 'fb', tip: 'Prima 1-2 serie leggere di riscaldamento. Gambe quasi tese, fianchi indietro, manubri lungo le cosce, schiena piatta. Scendi finché senti tirare i femorali, risali stringendo i glutei.' },
-                            { id: 'pu', name: 'Push-up (piegamenti)', meta: 'Corpo · 3 serie × 8–15 rip', sets: 3, reps: '8–15', repMin: 8, repMid: 11.5, repMax: 15, weight: 0, restSec: 90, variant: 'fb', tip: 'Mani poco oltre le spalle, corpo dritto dalla testa ai talloni. Scendi in 2-3 secondi fino a sfiorare terra col petto.' },
-                            { id: 'br', name: 'Rematore con due manubri', meta: 'Manubri · 3 serie × 8–12 rip', sets: 3, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 12, restSec: 90, variant: 'fb', tip: 'Busto inclinato a 45°, ginocchia morbide, schiena piatta. Tira i manubri verso l\'ombelico avvicinando le scapole.' },
+                            { id: 'rd', name: 'Stacco rumeno con manubri', meta: 'Forza · 4 serie × 6–8 rip', sets: 4, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 14, restSec: 120, variant: 'fb', tip: 'Prima 1-2 serie leggere di riscaldamento. Gambe quasi tese, fianchi indietro, manubri lungo le cosce, schiena piatta. Scendi finché senti tirare i femorali, risali stringendo i glutei.' },
+                            { id: 'pu', name: 'Push-up (piegamenti)', meta: 'Corpo · 4 serie × 8–15 rip', sets: 4, reps: '8–15', repMin: 8, repMid: 11.5, repMax: 15, weight: 0, restSec: 90, variant: 'fb', tip: 'Mani poco oltre le spalle, corpo dritto dalla testa ai talloni. Scendi in 2-3 secondi fino a sfiorare terra col petto.' },
+                            { id: 'br', name: 'Rematore con due manubri', meta: 'Manubri · 4 serie × 8–12 rip', sets: 4, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 12, restSec: 90, variant: 'fb', tip: 'Busto inclinato a 45°, ginocchia morbide, schiena piatta. Tira i manubri verso l\'ombelico avvicinando le scapole.' },
                             { id: 'mp', name: 'Lento avanti con un manubrio', meta: 'Manubrio · 3 serie × 8–12 rip per braccio', sets: 3, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 8, load: 'single', perArm: true, restSec: 75, variant: 'fb', tip: 'In piedi o seduto, addome contratto. Spingi il manubrio sopra la testa senza inarcare la schiena. Un braccio alla volta: con la coppia si salterebbe da 6 a 12 kg.' },
                             { id: 'cu', name: 'Curl con manubrio (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 8, load: 'single', perArm: true, restSec: 60, variant: 'fb', tip: 'Gomito incollato al fianco, abbassa lentamente: è la discesa che fa crescere il bicipite.' }
                         ]
                     }
                 };
                 const cyc = getCycleInfo();
-                // Settimane 7-8 (Peak): +1 serie sugli esercizi di forza (3 → 4): picco di volume del ciclo
+                // Settimane 7-8 (Peak): +1 serie sugli esercizi di forza (4 → 5): picco di volume del ciclo
                 if (cyc.peak) {
                     ['cp','rw','rd'].forEach(id => {
                         Object.values(baseSessions).forEach(session => {
                             const ex = session.exercises.find(e => e.id === id);
-                            if (ex) ex.sets = 4;
+                            if (ex) ex.sets = 5;
                         });
                     });
                 }
@@ -815,10 +816,10 @@
                 // così i movimenti nuovi non si sommano alla fatica proprio quando va smaltita.
                 if (cyc.blockNum >= 2) {
                     const b2 = {
-                        cp: { name: 'Distensioni a terra (Variante: un braccio alla volta)', meta: 'Forza · 3 serie × 6–8 rip per braccio', load: 'single', perArm: true },
+                        cp: { name: 'Distensioni a terra (Variante: un braccio alla volta)', meta: 'Forza · 4 serie × 6–8 rip per braccio', load: 'single', perArm: true },
                         gs: { name: 'Squat goblet (Variante: pausa in basso 2 sec)', meta: 'Manubrio · 3 serie × 8–12 rip' },
-                        rd: { name: 'Stacco rumeno (Variante: una gamba)', meta: 'Forza · 3 serie × 6–8 rip per gamba' },
-                        pu: { name: 'Push-up (Variante: piedi rialzati)', meta: 'Corpo · 3 serie × 8–15 rip', tip: 'Piedi su una sedia o sul divano: più peso sulle braccia e sulla parte alta del petto.' }
+                        rd: { name: 'Stacco rumeno (Variante: una gamba)', meta: 'Forza · 4 serie × 6–8 rip per gamba' },
+                        pu: { name: 'Push-up (Variante: piedi rialzati)', meta: 'Corpo · 4 serie × 8–15 rip', tip: 'Piedi su una sedia o sul divano: più peso sulle braccia e sulla parte alta del petto.' }
                     };
                     Object.values(baseSessions).forEach(session => session.exercises.forEach(ex => {
                         if (b2[ex.id]) Object.assign(ex, b2[ex.id], { variant: 'fb2' });
@@ -957,7 +958,7 @@
                 { weeks: '1–2', label: 'Adattamento', desc: 'Impara i movimenti nuovi con controllo · Recuperi pieni (2 minuti sugli esercizi di forza) · Prima del primo esercizio 1-2 serie leggere di riscaldamento. Ferma le serie a 2-3 ripetizioni dal cedimento.' },
                 { weeks: '3–4', label: 'Volume', desc: 'Discesa lenta 3 secondi: la fase di discesa è quella che fa crescere di più. Ferma le serie a 2-3 ripetizioni dal cedimento: basta così, andare oltre non dà più muscolo. Quando chiudi il range l\'app ti fa fare qualche ripetizione in più, poi sale di dischi e riporta le serie a quelle base.' },
                 { weeks: '5–6', label: 'Intensità', desc: 'Esercizi di forza (il primo di ogni sessione): ultima serie a 1-2 ripetizioni dalla fine, le altre a 2-3. Più peso sui manubri costruisce forza; per il volume del muscolo contano le serie della settimana.' },
-                { weeks: '7–8', label: 'Peak', desc: '4 serie su distensioni, rematore e stacco · Massimo volume del ciclo · Recuperi pieni: a 43 anni il recupero fa parte dell\'allenamento, non è tempo perso.' },
+                { weeks: '7–8', label: 'Peak', desc: '5 serie su distensioni, rematore e stacco · Massimo volume del ciclo · Recuperi pieni: a 43 anni il recupero fa parte dell\'allenamento, non è tempo perso.' },
                 { weeks: '9', label: 'Deload', desc: '2 serie · Carichi ridotti del 35% · Recupero +30 sec · Smaltisci la fatica accumulata prima di ripartire con il blocco successivo.' },
                 { weeks: 'Blocco 2+', label: 'Blocco', desc: 'Il ciclo riparte con varianti più difficili (distensioni a un braccio, squat con pausa, stacco a una gamba, push-up coi piedi rialzati). Riparti dai carichi dove li hai lasciati: stimolo più alto.' }
             ];
@@ -1099,30 +1100,47 @@
                 if (!sides) return null;
                 return Array.from({ length: nBells }, (_, i) => [sides[2 * i], sides[2 * i + 1]]);  // Due lati consecutivi = un manubrio
             }
-            function platesLabel(w, ex) {  // Dischi in una riga, per i motivi del piano: "su ogni lato 5 kg + 1 kg"
+            function discCount(list) {  // Dischi contati per peso: [5,5,1] → "2 dischi da 5 kg + 1 disco da 1 kg"
+                const n = {};
+                list.forEach(d => { n[d] = (n[d] || 0) + 1; });
+                return Object.keys(n).map(Number).sort((x, y) => y - x)
+                    .map(d => `${n[d]} ${n[d] === 1 ? 'disco' : 'dischi'} da ${kgText(d)}`).join(' + ');
+            }
+            function platesLabel(w, ex) {  // Dischi in una riga, per i motivi del piano: "per lato 1 disco da 5 kg + 1 disco da 1 kg"
                 const bells = plateSides(w, ex);
                 if (!bells) return '';
                 const all = [].concat(...bells).map(sideText);  // Testo di ogni lato
                 if (all.every(t => t === 'niente')) return 'manubrio vuoto, senza dischi';
-                if (new Set(all).size === 1) return `su ogni lato ${all[0]}`;
-                return bells.map((b, i) => `${bells.length > 1 ? 'manubrio ' + (i + 1) + ': ' : ''}${sideText(b[0])} a sinistra, ${sideText(b[1])} a destra`).join(' · ');
+                if (new Set(all).size === 1) return `per lato ${discCount(bells[0][0])}`;
+                return `in tutto ${discCount([].concat(...[].concat(...bells)))}`;
             }
-            function loadHowTo(w, ex) {  // Scheda esercizio: peso di ogni manubrio e dischi da montare lato per lato
+            function bellDrawing(left, right, handle) {  // Disegno di un manubrio: dischi grandi vicino all'impugnatura, piccoli all'esterno
+                const disc = d => `<span style="display:inline-flex;align-items:center;justify-content:center;width:${d >= 5 ? 26 : d >= 2 ? 22 : 18}px;height:${d >= 5 ? 36 : d >= 2 ? 30 : 24}px;margin:0 1px;border-radius:4px;background:${d >= 5 ? 'var(--accent)' : d >= 2 ? '#5BC8FF' : '#FFB350'};color:var(--black);font-size:11px;font-weight:700">${String(d).replace('.', ',')}</span>`;
+                const bar = `<span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:8px;margin:0 2px;background:var(--muted);border-radius:4px;font-size:0">${kgText(handle)}</span>`;
+                return `<div style="display:flex;align-items:center;justify-content:center;margin:8px 0 4px">${left.slice().reverse().map(disc).join('')}${bar}${right.map(disc).join('')}</div>`;
+            }
+            function loadHowTo(w, ex) {  // Scheda esercizio: peso di ogni manubrio, disegno dei dischi e quanti dischi prendere
                 const handle = parseFloat(state.settings.handleWeight) || 0;
                 const single = loadMode(ex) === 'single';
                 const bells = plateSides(w, ex);
-                let html = `<div>🏋️ ${single ? 'Usa 1 manubrio da' : 'Prepara 2 manubri da'} <strong style="color:var(--white)">${kgText(w)}</strong>${single ? '' : ' ciascuno'}</div>`;
+                let html = `<div style="font-size:13px">🏋️ ${single ? 'Usa <strong style="color:var(--white)">1 manubrio</strong> da' : 'Prepara <strong style="color:var(--white)">2 manubri</strong> da'} <strong style="color:var(--white)">${kgText(w)}</strong>${single ? '' : ' ciascuno'}</div>`;
                 if (!bells) return html + `<div>Con i tuoi dischi questo peso non si monta: usa − / + per sceglierne uno montabile</div>`;
                 const discs = Math.round((w - handle) * 100) / 100;  // Dischi su un manubrio
                 if (discs <= 0) return html + `<div>Manubrio vuoto, senza dischi</div>`;
-                const b = s => `<strong style="color:var(--white)">${sideText(s)}</strong>`;
-                const all = [].concat(...bells).map(sideText);
-                if (new Set(all).size === 1) {  // Tutti i lati uguali: una riga sola
-                    html += `<div>Su ogni lato${single ? '' : ' di ogni manubrio'}: ${b(bells[0][0])}</div>`;
-                } else {  // Lati composti in modo diverso (stesso peso): manubrio per manubrio
-                    bells.forEach((bell, i) => { html += `<div>${single ? 'Sinistra' : 'Manubrio ' + (i + 1) + ' → sinistra'} ${b(bell[0])} · destra ${b(bell[1])}</div>`; });
+                const same = new Set([].concat(...bells).map(sideText)).size === 1;  // Tutti i lati uguali
+                const strong = t => `<strong style="color:var(--white)">${t}</strong>`;
+                if (same) {  // Un solo disegno: tutti i manubri si montano uguali
+                    html += bellDrawing(bells[0][0], bells[0][1], handle);
+                    html += `<div>Su ogni lato metti ${strong(discCount(bells[0][0]))}${single ? '' : ', su entrambi i manubri'}.</div>`;
+                } else {  // Lati composti in modo diverso (stesso peso): un disegno per manubrio
+                    bells.forEach((bell, i) => {
+                        if (!single) html += `<div style="margin-top:6px">Manubrio ${i + 1}</div>`;
+                        html += bellDrawing(bell[0], bell[1], handle);
+                    });
                 }
-                return html + `<div style="opacity:.75">(manubrio vuoto ${kgText(handle)} + ${kgText(discs)} di dischi${single ? '' : ' per manubrio'})</div>`;
+                const total = [].concat(...[].concat(...bells));  // Tutti i dischi da prendere
+                html += `<div>Prendi in tutto: ${strong(discCount(total))}.</div>`;
+                return html + `<div style="opacity:.75">Ogni manubrio: ${kgText(handle)} di manubrio + ${kgText(discs)} di dischi = ${kgText(w)}</div>`;
             }
             function platesText() {  // Inventario dischi in forma leggibile, es. "8 da 5 kg · 3 da 2 kg · 4 da 1 kg"
                 return plateSizes().map(([w, n]) => `${n} da ${kgText(w)}`).join(' · ') || 'nessuno';
@@ -1525,7 +1543,7 @@
                     const exS = ensureExShape(exState[ex.id] || { completedSets: [], weight: ex.weight }, ex);
                     const unit = unitOf(ex);  // Le isometriche si misurano in secondi di tenuta, non in ripetizioni
                     const isDone = exS.completedSets.length >= exS.plannedSets;  // Esercizio completato?
-                    const planInfo = state.plan[ex.id];  // Piano adattivo (per mostrare il perché dei valori di oggi)
+                    const planInfo = planFor(ex.id, ex);  // Piano adattivo (per mostrare il perché dei valori di oggi; col programma o la variante nuovi spiega il cambio)
                     const adaptedMeta = `${exS.weight > 0 ? loadShort(exS.weight, ex) + ' · ' : 'Corpo · '}${exS.plannedSets} ${unit === 'sec' ? 'tenute' : 'serie'} × ${exS.targetReps} ${unit}${ex.perSide ? '/lato' : ex.perArm ? '/braccio' : ''} (range ${ex.reps})`;
                     // Intestazione esercizio con valori adattati, PB, stato
                     html += `<div class="ex-card ${isDone ? 'done' : ''}" data-exid="${ex.id}">
