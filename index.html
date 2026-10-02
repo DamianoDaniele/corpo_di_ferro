@@ -956,12 +956,13 @@
             }
 
             // Fasi del ciclo di 9 settimane (poi riparte). I carichi sono quelli componibili con i dischi reali:
-            // la progressione passa da ripetizioni → carico (se il salto è piccolo) → serie → estensione del range
-            // → carico (salto grande) → densità (recuperi più corti) → varianti. Ogni volta che il carico sale, serie e recuperi tornano quelli base.
+            // la progressione passa da ripetizioni → rip oltre il range finché al peso nuovo ne restano abbastanza → carico
+            // → serie → densità (recuperi più corti) → varianti. Ogni volta che il carico sale, serie e recuperi tornano quelli base.
+            // Sforzo: 2-3 ripetizioni in riserva bastano (ACSM 2026), arrivare al cedimento non dà più muscolo.
             const PROGRESSION = [
                 { weeks: '1–2', label: 'Adattamento', desc: '3 serie per esercizio · Recupero pieno 90-120 sec · Impara i movimenti con controllo. Ferma le serie con 2-3 ripetizioni in riserva.' },
-                { weeks: '3–4', label: 'Volume', desc: '3-4 serie · Discesa lenta 3 secondi. Il muscolo cresce se la serie arriva vicino al cedimento: scendi a 1-2 ripetizioni in riserva. Quando chiudi il range su tutte le serie, l\'app ti fa salire di dischi e riporta le serie a quelle base: più peso, volume ricostruito da capo.' },
-                { weeks: '5–6', label: 'Intensità', desc: '3-4 serie sui compound (la 4ª solo finché il peso non può salire) · Porta le serie a 1 ripetizione dalla fine. A parità di carico è la vicinanza al cedimento a fare la differenza, non i kg.' },
+                { weeks: '3–4', label: 'Volume', desc: '3-4 serie · Discesa lenta 3 secondi: la fase di discesa è quella che fa crescere di più. Ferma le serie a 2-3 ripetizioni dal cedimento: basta così, andare oltre non dà più muscolo. Quando chiudi il range l\'app ti fa fare qualche ripetizione in più, poi sale di dischi e riporta le serie a quelle base.' },
+                { weeks: '5–6', label: 'Intensità', desc: '3-4 serie sui compound (la 4ª solo finché il peso non può salire) · Ultima serie a 1-2 ripetizioni dalla fine, le altre a 2-3. Più peso sui manubri costruisce forza; per il volume del muscolo contano le serie della settimana.' },
                 { weeks: '7–8', label: 'Peak', desc: '5 serie sui compound · Massimo volume del ciclo · Recuperi pieni: a 43 anni il recupero fa parte dell\'allenamento, non è tempo perso.' },
                 { weeks: '9', label: 'Deload', desc: '2 serie · Carichi ridotti del 35% · Recupero +30 sec · Smaltisci la fatica accumulata prima di ripartire con il blocco successivo.' },
                 { weeks: 'Blocco 2+', label: 'Blocco', desc: 'Il ciclo riparte con varianti più difficili (unilaterale, pause, discesa lenta) e le serie extra guadagnate. Riparti dai carichi dove li hai lasciati: stimolo più alto.' }
@@ -1020,8 +1021,19 @@
             // ─── Carichi componibili: manubrio vuoto + dischi reali ───
             // Un carico è valido solo se i dischi si dividono in lati di peso identico: 4 lati per la coppia
             // di manubri, 2 lati per il manubrio singolo. Così l'app non propone mai un peso che non puoi montare.
-            const SMALL_LOAD_JUMP = 0.2;  // Salto di carico ≤ 20%: si sale subito dopo aver chiuso il range; oltre, prima serie e range
-            const MAX_LOAD_JUMP = 0.5;    // Oltre +50% le rip crollerebbero sotto il range: meglio densità e varianti
+            // Quando salire di peso. L'ACSM (2009) consiglia +2–10% quando superi il target di 1–2 rip; i nostri dischi
+            // fanno salti da +11% a +33%, che da soli farebbero crollare le rip (tabella NSCA: 12 rip = 70% del massimale,
+            // 7 rip = 83%). Quindi prima si accumulano ripetizioni oltre il range, poi si sale quando al peso nuovo
+            // restano almeno LANDING_DROP rip sotto il minimo del range, e da lì le rip risalgono.
+            const LANDING_DROP = 3;  // Dopo il salto si riparte da repMin − 3 (mai sotto 6): es. 7 rip su un range 10–12
+            function estRepsAt(w, reps, w2) {  // Rip possibili a w2 sapendo che a w ne fai `reps` (formula di Epley, coerente con la tabella NSCA)
+                const oneRM = w * (1 + reps / 30);
+                return Math.floor(30 * (oneRM / w2 - 1) + 1e-6);
+            }
+            function landingReps(ex) { return Math.max(6, ex.repMin - LANDING_DROP); }  // Rip minime accettate subito dopo un salto
+            function repsNeededFor(w, up, ex) {  // Rip da fare a w (su tutte le serie) perché al carico `up` ne restino abbastanza
+                return Math.ceil(30 * (up * (1 + landingReps(ex) / 30) / w - 1) - 1e-6);
+            }
             let loadCache = { key: '', lists: {} };  // Liste ricalcolate solo se cambiano manubrio o dischi
             function plateSizes() {  // Dischi disponibili ordinati dal più pesante: [[peso, quantità], …]
                 const pl = state.settings.plates || {};
@@ -1410,6 +1422,9 @@
                 return ex.maxExtraSets !== undefined ? ex.maxExtraSets : MAX_EXTRA_SETS;
             }
             function restFloorFor(ex) {  // Recupero minimo: sotto questa soglia crolla la performance delle serie successive
+                // Esercizi dinamici: mai sotto 60 s. Recuperi più corti di un minuto danno un po' meno ipertrofia
+                // (Singer 2024, meta-analisi); le tenute isometriche possono scendere a 45 s
+                if (unitOf(ex) !== 'sec') return 60;
                 return ex.restSec >= 90 ? 60 : 45;
             }
             function planFor(exId, ex) {  // Piano salvato, azzerato sulle leve se la variante dell'esercizio è cambiata
@@ -1752,8 +1767,9 @@
             }
 
             /** Motore adattivo: dato l'esito reale dell'esercizio, calcola il piano del prossimo workout.
-             *  Doppia progressione sui dischi reali: prima le rip (fino al tetto del range), poi il carico
-             *  componibile successivo se il salto è piccolo; se è grande, prima serie e range esteso, poi il salto.
+             *  Doppia progressione sui dischi reali: prima le rip fino al tetto del range, poi rip oltre il range finché
+             *  al carico componibile successivo ne restano almeno repMin − 3 (stima NSCA/Epley), poi il salto; se il salto
+             *  è irraggiungibile, serie in più, densità e varianti. Mancare il target di 1 rip non è una sessione difficile.
              *  Regola riposi (fonti: Project inVictus, Miletto, Body Comp Academy): il recupero incompleto
              *  riduce fisiologicamente le rip successive → un calo dopo un riposo saltato non è fatica reale,
              *  ma blocca la progressione; un riposo allungato rimanda solo l'aumento di peso. */
@@ -1769,10 +1785,14 @@
                 const repsOf = sn => (exS.repsPerSet && exS.repsPerSet[sn] !== undefined) ? exS.repsPerSet[sn] : (exS.actualReps !== undefined ? exS.actualReps : target);
                 const repsList = exS.completedSets.map(repsOf);
                 const worst = repsList.length ? Math.min(...repsList) : 0;
-                // Serie sotto target: distingue calo genuino da calo atteso dopo riposo saltato (fosfocreatina non ripristinata)
+                // Serie sotto target: distingue calo genuino da calo atteso dopo riposo saltato (fosfocreatina non ripristinata).
+                // Una rip (5 s sulle tenute) in meno rispetto al target è il calo fisiologico tra una serie e l'altra: con
+                // recuperi di 1-2 minuti le ultime serie perdono qualche rip (ACSM 2009, intervalli di recupero). Non è fatica
+                // e non deve far scendere il peso: prima, due sessioni con l'ultima serie a −1 riducevano il carico.
+                const tol = unit === 'sec' ? 5 : 1;
                 let genuineShortfall = false, restConfounded = false;
                 exS.completedSets.forEach(sn => {
-                    if (repsOf(sn) >= target) return;
+                    if (repsOf(sn) >= target - tol) return;
                     const prevRest = rest.entries[sn - 1];
                     if (prevRest && prevRest.skipped) restConfounded = true; else genuineShortfall = true;
                 });
@@ -1805,40 +1825,42 @@
                                : weightDelta < 0 ? `Peso ridotto a ${next.weight}kg nell'ultima sessione: si riparte da qui`
                                : `${unit === 'sec' ? 'Secondi' : 'Rip'} sotto target con riposo pieno: si ripete per consolidare`;
                     }
-                } else if (restConfounded && worst < target) {
+                } else if (restConfounded && worst < target - tol) {
                     // Calo dovuto solo ai riposi saltati: niente penalità piena, ma niente progressione
                     outcome = 'hold_rest'; next.holds = 0;
                     reason = `${unit === 'sec' ? 'Secondi' : 'Rip'} calate dopo riposi saltati: carico invariato — rispetta i recuperi, il calo è fisiologico`;
                 } else if (worst >= target && worst >= exDef.repMax) {
-                    // Tetto del range su tutte le serie → gradino successivo, anche se il target era più basso:
-                    // 12 rip su tutte le serie con target 10 valgono già il carico, non un'altra sessione di attesa.
-                    // Leve in ordine: carico (salto piccolo) → volume (serie) → range di ripetizioni → carico (salto grande)
-                    // → densità (recuperi) → variante. Si muove un parametro alla volta, così è chiaro cosa ha prodotto il progresso.
+                    // Tetto del range su tutte le serie → gradino successivo, anche se il target era più basso.
+                    // Leve in ordine: carico (se al peso nuovo restano abbastanza rip) → rip oltre il range, verso il salto
+                    // → serie in più → densità (recuperi) → variante. Un parametro alla volta, così è chiaro cosa ha prodotto il progresso.
                     next.holds = 0;
-                    const ceiling = repCeilingFor(exDef);  // Oltre ~25 rip (90 sec sul plank) lo stimolo cala
+                    const ceiling = repCeilingFor(exDef);  // Oltre ~20-25 rip (90 sec sul plank) lo stimolo cala
                     const restFloor = restFloorFor(exDef);
                     const curRest = Math.max(restFloor, exDef.restSec - next.restCut);
                     const up = bodyweight ? null : nextLoad(next.weight, exDef);  // Prossimo carico montabile con i dischi
-                    const jump = up ? (up - next.weight) / next.weight : 0;  // Salto relativo: con dischi da 5kg può superare il 30%
-                    const loadUp = kind => {  // Sale di carico e riparte da serie base, recuperi pieni e fondo del range
-                        const from = next.weight;
-                        next.weight = up; next.targetReps = exDef.repMin; next.extraSets = 0; next.restCut = 0; outcome = 'add_load';
-                        reason = `${kind}: ${kgText(from)} → ${kgText(up)} (+${Math.round(jump * 100)}%). Con più peso si torna a ${exDef.sets} serie × ${exDef.repMin} ${unit} · ${platesLabel(up, exDef)}`;
-                    };
+                    const jump = up ? (up - next.weight) / next.weight : 0;  // Salto relativo: con i dischi da 1-2-5 kg va dall'11% al 33%
+                    const landing = up ? estRepsAt(next.weight, worst, up) : 0;  // Rip stimate al peso nuovo, dalla serie peggiore di oggi
+                    const ready = up && landing >= landingReps(exDef);  // Al peso nuovo restano almeno repMin − 3 rip
                     if (globalFatigue === 'red') {
                         outcome = 'hold'; reason = 'Range completato ma fatica alta: si consolida prima di progredire';
                     } else if (rest.extendedCount > 0) {
                         outcome = 'hold'; reason = 'Pronto per il gradino successivo, ma hai allungato i recuperi: si consolida ancora una sessione';
-                    } else if (up && jump <= SMALL_LOAD_JUMP) {
-                        loadUp(`Tutte le serie a ${exDef.repMax} ${unit}, si sale di dischi`);
+                    } else if (ready) {
+                        // Sale di carico: serie base, recuperi pieni e rip dal valore stimato, che poi risalgono verso il range
+                        const from = next.weight;
+                        next.weight = up; next.targetReps = Math.min(exDef.repMin, landing); next.extraSets = 0; next.restCut = 0; outcome = 'add_load';
+                        reason = `${worst} ${unit} su tutte le serie, si sale di dischi: ${kgText(from)} → ${kgText(up)} (+${Math.round(jump * 100)}%). `
+                            + `Si riparte da ${exDef.sets} serie × ${next.targetReps} ${unit}${next.targetReps < exDef.repMin ? ` e si risale verso ${exDef.repMin}–${exDef.repMax}` : ''} · ${platesLabel(up, exDef)}`;
+                    } else if (target < ceiling) {
+                        // Rip oltre il range: è la strada verso il salto. A peso fisso, tra ~6 e ~25 rip vicino al cedimento
+                        // il muscolo cresce allo stesso modo (ACSM 2026: carichi dal 30% al 100% del massimale)
+                        next.targetReps = Math.min(Math.max(worst, target) + (unit === 'sec' ? 5 : 1), ceiling); outcome = 'advance';
+                        reason = up && repsNeededFor(next.weight, up, exDef) <= ceiling
+                            ? `Target ${target} → ${next.targetReps} ${unit}: a ${repsNeededFor(next.weight, up, exDef)} ${unit} su tutte le serie si sale a ${kgText(up)} (+${Math.round(jump * 100)}%)`
+                            : `Si allunga il range — target ${target} → ${next.targetReps} ${unit} (tetto ${ceiling})`;
                     } else if (next.extraSets < maxExtraSetsFor(exDef)) {
                         next.extraSets++; next.targetReps = exDef.repMin; outcome = 'add_set';
-                        reason = `Tutte le serie a ${exDef.repMax} ${unit}: +1 serie (più volume a parità di carico), ${unit} da ${exDef.repMin}`;
-                    } else if (target < ceiling) {
-                        next.targetReps = Math.min(Math.max(worst, target) + (unit === 'sec' ? 5 : 1), ceiling); outcome = 'advance';
-                        reason = `Volume al massimo: si allunga il range — target ${target} → ${next.targetReps} ${unit} (tetto ${ceiling})`;
-                    } else if (up && jump <= MAX_LOAD_JUMP) {
-                        loadUp('Serie e range esteso esauriti: salto di dischi');  // Il salto è grande, ma dopo ~20+ rip riporta giusto nel range
+                        reason = `Range esteso al tetto e salto di dischi ancora troppo grande: +1 serie (più volume a parità di carico), ${unit} da ${exDef.repMin}`;
                     } else if (curRest - REST_STEP >= restFloor) {
                         next.restCut += REST_STEP; outcome = 'add_density';
                         reason = `Serie e ripetizioni al massimo: recupero ${curRest}s → ${curRest - REST_STEP}s — stesso lavoro in meno tempo`;
@@ -1853,7 +1875,9 @@
                     next.targetReps = Math.min(Math.max(worst, target) + (unit === 'sec' ? 5 : 1), exDef.repMax); next.holds = 0; outcome = 'advance';
                     reason = `Target ${unit}: ${target} → ${next.targetReps} (range ${exDef.repMin}–${exDef.repMax})`;
                 } else {
-                    outcome = 'ok'; next.holds = 0; reason = 'Target raggiunto: si ripete per consolidare';
+                    // Arrivi qui con il target sfiorato (−1 rip su qualche serie): si ripete lo stesso target, senza penalità
+                    outcome = 'ok'; next.holds = 0;
+                    reason = worst < target ? `Quasi: ${worst}–${Math.max(...repsList)} ${unit} sul target ${target}. Si ripete lo stesso target` : 'Target raggiunto: si ripete per consolidare';
                 }
                 // Regola fissa: se il carico sale (dal motore o col + durante la sessione) serie e recuperi tornano quelli base.
                 // In definizione più peso con lo stesso volume fa salire troppo la fatica: il volume si ricostruisce sul carico nuovo.
@@ -3111,24 +3135,18 @@
                 if (p.deload) return 'Settimana di scarico: carichi ridotti, la progressione riparte dal ciclo dopo';
                 const unit = unitOf(ex), w = p.weight, target = p.targetReps;
                 const extra = planFor(ex.id, ex).extraSets || 0;
+                const ceiling = repCeilingFor(ex);
                 const up = w > 0 ? nextLoad(w, ex) : null;  // Prossimo carico montabile
-                const jump = up ? (up - w) / w : 0;
-                const loadUpText = () => `si sale a ${kgText(up)} e si torna a ${ex.sets} serie × ${ex.repMin} ${unit}`;
-                const need = Math.max(target, ex.repMax);  // Rip da fare su ogni serie perché scatti il gradino
                 const all = p.plannedSets === 2 ? 'su entrambe le serie' : `su tutte e ${p.plannedSets} le serie`;
-                let then;
-                if (target <= ex.repMax) {  // Dentro il range: al tetto scatta la prima leva disponibile
-                    if (up && jump <= SMALL_LOAD_JUMP) then = loadUpText();
-                    else if (extra < maxExtraSetsFor(ex)) then = up ? `+1 serie (${kgText(up)} sarebbe +${Math.round(jump * 100)}%, troppo per un passo solo)` : '+1 serie (dischi finiti)';
-                    else then = `il range si allunga oltre ${ex.repMax} ${unit}`;
-                } else if (target < repCeilingFor(ex)) {  // Range esteso: si allunga fino al tetto
-                    then = `il range si allunga verso ${repCeilingFor(ex)} ${unit}`;
-                } else if (up && jump <= MAX_LOAD_JUMP) {
-                    then = loadUpText();
-                } else {
-                    then = 'recuperi più corti, poi una variante più dura';
+                const need = up ? Math.max(ex.repMax, repsNeededFor(w, up, ex)) : null;  // Rip che fanno scattare il salto
+                if (up && need <= ceiling) {  // Il salto è raggiungibile allungando le rip
+                    const restart = Math.min(ex.repMin, estRepsAt(w, need, up));
+                    return `${need} ${unit} ${all} → si sale a ${kgText(up)} (+${Math.round((up - w) / w * 100)}%) e si riparte da ${ex.sets} serie × ${restart} ${unit}`;
                 }
-                return `${need} ${unit} ${all} → ${then}`;
+                const why = up ? `il salto a ${kgText(up)} è troppo grande per i tuoi dischi` : 'dischi finiti';
+                if (target < ceiling) return `${ceiling} ${unit} ${all} → poi +1 serie (${why})`;
+                if (extra < maxExtraSetsFor(ex)) return `${target} ${unit} ${all} → +1 serie (${why})`;
+                return 'Serie e rip al massimo: recuperi più corti, poi una variante più dura (discesa lenta, pausa, un braccio)';
             }
 
             function renderLoadProgress() {  // Carichi: per ogni esercizio coi manubri peso attuale, cosa serve per salire, ultime sessioni e record
@@ -3176,7 +3194,7 @@
                         h += `</div>`;
                     });
                 });
-                h += `<div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px">Pesi per manubrio. Quando il peso sale, le serie tornano a quelle base: più carico, volume ricostruito da capo.</div>`;
+                h += `<div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px">Pesi per manubrio. Si sale di dischi quando al peso nuovo restano almeno 7 ripetizioni (6 sul rematore): prima si fanno rip oltre il range, poi il salto, poi le rip risalgono. Quando il peso sale, le serie tornano a quelle base.</div>`;
                 box.innerHTML = h;
             }
 
