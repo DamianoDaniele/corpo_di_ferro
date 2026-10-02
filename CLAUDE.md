@@ -35,11 +35,13 @@ The script is split into sections marked with `// ──────────
   - The function then applies cycle modifiers: peak weeks add sets, the deload week drops to 2 sets, and block ≥2 switches to harder variants and adds exercises. Never cache what it returns across cycle changes.
   - Exercise ids (`cp`, `af`, `rw`, `rd`, `pl`, `ws`, …) are the keys used in `state.plan` and `session.exercises`.
 - **Cycle:** `getCycleInfo()` is the single source of truth. A cycle is `CYCLE_WEEKS = 9` weeks: 8 working weeks and week 9 as deload. It is derived only from the count of **strength** sessions (2 = 1 week). Isometric session C never advances the cycle. `PROGRESSION[phaseIdx]` holds the text for each phase.
-- **Real plates, not a free number:** the user has adjustable dumbbells. `settings.handleWeight` is the empty dumbbell (default 2.5 kg, not yet weighed) and `settings.plates` is the plate inventory (`{5: 8, 2: 3, 1: 4}`). The two 20 kg plates don't fit the handles and are left out.
+- **Real plates, not a free number:** the user has adjustable dumbbells. `settings.handleWeight` is the empty dumbbell (2 kg, weighed; `settings.handleWeighed` marks that the old 2.5 kg estimate was migrated) and `settings.plates` is the plate inventory (`{5: 8, 2: 3, 1: 4}`). The two 20 kg plates don't fit the handles and are left out.
   - `loadsFor(ex)` lists only the loads that can really be mounted. The plates must split into sides of equal weight: 4 sides for a pair of dumbbells, 2 for one dumbbell (`load: 'single'`, used by `rw`, the curls and `cp` from block 2).
-  - `snapLoad` / `nextLoad` / `prevLoad` / `platesLabel` are the only way weights move. The +/− buttons, the plan, the deload and the engine never produce a load that can't be mounted.
-  - The pair has a big gap (6.5 → 12.5 kg). A fourth 2 kg plate would add 8.5, 18.5 and 28.5.
-- **Progression levers, in order:** reps → load if the jump is ≤ 20% (`SMALL_LOAD_JUMP`) → sets → extended range → load if the jump is ≤ 50% (`MAX_LOAD_JUMP`) → density (rest cuts) → harder variants.
+  - `snapLoad` / `nextLoad` / `prevLoad` are the only way weights move. The +/− buttons, the plan, the deload and the engine never produce a load that can't be mounted. `syncPlanToLoads()` re-snaps `state.plan` and an unfinished `todaySession` at startup, after import and after a handle/plates change.
+  - `loadShort` / `loadHowTo` / `platesLabel` are the user-facing text: dumbbell count, weight of each dumbbell, and the plates for every side.
+  - The pair has a big gap (6 → 12 kg). A fourth 2 kg plate would add 8, 18 and 28.
+- **Progression levers, in order:** reps → load if the jump is ≤ 20% (`SMALL_LOAD_JUMP`) → sets → extended range → load if the jump is ≤ 50% (`MAX_LOAD_JUMP`) → density (rest cuts) → harder variants. Reaching `repMax` on every set jumps straight to the next lever even if the target was lower.
+  - **Whenever the load goes up** (engine, the + button during a session, or a plan snapped upward) extra sets and rest cuts reset: back to the base sets with full rests. The goal is a lean, hard physique in a deficit, so volume is rebuilt on the new load.
 - **Adaptive engine:** `finishSession()` snapshots the session into `state.sessions`. For every exercise it calls `computeNextPlan()`, which writes `state.plan[exId]` and logs fatigue events. In deload, adaptation is skipped on purpose.
   - `computeNextPlan()` separates a genuine rep shortfall from one caused by a skipped rest.
   - Fatigue is a weighted score over a 14-day window: `FATIGUE_WEIGHTS`, `getFatigueLevel()` → green/yellow/red.

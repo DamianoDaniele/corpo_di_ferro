@@ -613,11 +613,11 @@
                     <div class="setting-value" id="objectiveValue" style="cursor:pointer">🔥 Cut</div>
                 </div>
                 <div class="setting-row" data-action="setHandleWeight">
-                    <div><div class="setting-label">Manubrio vuoto</div><div class="setting-sub">Impugnatura + ghiere, pesalo una volta</div></div>
-                    <div class="setting-value" id="settingHandleWeight">2.5 kg</div>
+                    <div><div class="setting-label">Peso del manubrio vuoto</div><div class="setting-sub">Solo asta e ghiere, senza dischi</div></div>
+                    <div class="setting-value" id="settingHandleWeight">2 kg</div>
                 </div>
                 <div class="setting-row" data-action="setPlates">
-                    <div><div class="setting-label">Dischi</div><div class="setting-sub" id="settingLoadsSub">Carichi componibili</div></div>
+                    <div><div class="setting-label">Dischi che hai</div><div class="setting-sub" id="settingLoadsSub">Pesi possibili</div></div>
                     <div class="setting-value" id="settingPlates" style="font-size:12px;text-align:right">—</div>
                 </div>
                 <div class="setting-row">
@@ -767,18 +767,18 @@
                     A: {
                         name: 'Spinta (Push)', sub: 'Venerdì · Petto, spalle, tricipiti, quadricipiti', day: 5,
                         exercises: [
-                            { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: 'Manubri · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 12.5, restSec: 90, variant: 'base', tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
-                            { id: 'af', name: 'Affondi con manubri', meta: 'Manubri · 3 serie × 10–12 per gamba', sets: 3, reps: '10–12/gamba', repMin: 10, repMid: 11, repMax: 12, weight: 12.5, restSec: 90, variant: 'base', tip: 'Passo lungo, ginocchio anteriore a 90°. Tronco dritto. Spingi col tallone per risalire.' },
-                            { id: 'hc', name: 'Curl a martello (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 6.5, load: 'single', restSec: 60, variant: 'base', tip: 'Un braccio alla volta con un manubrio solo: così i carichi salgono di 2kg invece di saltare da 6,5 a 12,5. Palmo rivolto verso l\'interno, gomito fisso.' },
+                            { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: 'Manubri · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 12, restSec: 90, variant: 'base', tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
+                            { id: 'af', name: 'Affondi con manubri', meta: 'Manubri · 3 serie × 10–12 per gamba', sets: 3, reps: '10–12/gamba', repMin: 10, repMid: 11, repMax: 12, weight: 12, restSec: 90, variant: 'base', tip: 'Passo lungo, ginocchio anteriore a 90°. Tronco dritto. Spingi col tallone per risalire.' },
+                            { id: 'hc', name: 'Curl a martello (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 6, load: 'single', restSec: 60, variant: 'base', tip: 'Un braccio alla volta con un manubrio solo: così i carichi salgono di 2 kg alla volta invece di saltare da 6 a 12 kg. Palmo rivolto verso l\'interno, gomito fisso.' },
                             { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 90, variant: 'base', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     },
                     B: {
                         name: 'Trazione (Pull)', sub: 'Sabato · Schiena, bicipiti, glutei, femorali', day: 6,
                         exercises: [
-                            { id: 'rw', name: 'Rowing manubrio', meta: 'Manubrio · 3 serie × 8–10 rip', sets: 3, reps: '8–10', repMin: 8, repMid: 9, repMax: 10, weight: 14.5, load: 'single', restSec: 120, variant: 'base', tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
-                            { id: 'rd', name: 'Stacco Rumeno', meta: 'Manubri · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 14.5, restSec: 90, variant: 'base', tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
-                            { id: 'cu', name: 'Curl con manubrio (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 8.5, load: 'single', restSec: 60, variant: 'base', tip: 'Tutte le rip con un braccio, poi l\'altro: con un manubrio solo i carichi salgono di 2kg. Gomito incollato al fianco, abbassa lentamente — qui crescono i bicipiti.' },
+                            { id: 'rw', name: 'Rowing manubrio', meta: 'Manubrio · 3 serie × 8–10 rip', sets: 3, reps: '8–10', repMin: 8, repMid: 9, repMax: 10, weight: 14, load: 'single', restSec: 120, variant: 'base', tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
+                            { id: 'rd', name: 'Stacco Rumeno', meta: 'Manubri · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 14, restSec: 90, variant: 'base', tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
+                            { id: 'cu', name: 'Curl con manubrio (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 8, load: 'single', restSec: 60, variant: 'base', tip: 'Tutte le rip con un braccio, poi l\'altro: con un manubrio solo i carichi salgono di 2 kg alla volta. Gomito incollato al fianco, abbassa lentamente — qui crescono i bicipiti.' },
                             { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 90, variant: 'base', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     },
@@ -950,11 +950,11 @@
 
             // Fasi del ciclo di 9 settimane (poi riparte). I carichi sono quelli componibili con i dischi reali:
             // la progressione passa da ripetizioni → carico (se il salto è piccolo) → serie → estensione del range
-            // → carico (salto grande) → densità (recuperi più corti) → varianti.
+            // → carico (salto grande) → densità (recuperi più corti) → varianti. Ogni volta che il carico sale, serie e recuperi tornano quelli base.
             const PROGRESSION = [
                 { weeks: '1–2', label: 'Adattamento', desc: '3 serie per esercizio · Recupero pieno 90-120 sec · Impara i movimenti con controllo. Ferma le serie con 2-3 ripetizioni in riserva.' },
-                { weeks: '3–4', label: 'Volume', desc: '3-4 serie · Discesa lenta 3 secondi. Il muscolo cresce se la serie arriva vicino al cedimento: scendi a 1-2 ripetizioni in riserva. Quando chiudi il range su tutte le serie, l\'app ti fa salire di dischi.' },
-                { weeks: '5–6', label: 'Intensità', desc: '4 serie sui compound · Porta le serie a 1 ripetizione dalla fine. A parità di carico è la vicinanza al cedimento a fare la differenza, non i kg.' },
+                { weeks: '3–4', label: 'Volume', desc: '3-4 serie · Discesa lenta 3 secondi. Il muscolo cresce se la serie arriva vicino al cedimento: scendi a 1-2 ripetizioni in riserva. Quando chiudi il range su tutte le serie, l\'app ti fa salire di dischi e riporta le serie a quelle base: più peso, volume ricostruito da capo.' },
+                { weeks: '5–6', label: 'Intensità', desc: '3-4 serie sui compound (la 4ª solo finché il peso non può salire) · Porta le serie a 1 ripetizione dalla fine. A parità di carico è la vicinanza al cedimento a fare la differenza, non i kg.' },
                 { weeks: '7–8', label: 'Peak', desc: '5 serie sui compound · Massimo volume del ciclo · Recuperi pieni: a 43 anni il recupero fa parte dell\'allenamento, non è tempo perso.' },
                 { weeks: '9', label: 'Deload', desc: '2 serie · Carichi ridotti del 35% · Recupero +30 sec · Smaltisci la fatica accumulata prima di ripartire con il blocco successivo.' },
                 { weeks: 'Blocco 2+', label: 'Blocco', desc: 'Il ciclo riparte con varianti più difficili (unilaterale, pause, discesa lenta) e le serie extra guadagnate. Riparti dai carichi dove li hai lasciati: stimolo più alto.' }
@@ -981,13 +981,23 @@
             if (!state) {  // Se nessuno stato salvato, inizializza con valori predefiniti
                 state = {
                 sessions: [], todaySession: null, water: { date: '', count: 0 }, mealsChecked: { date: '', checked: [] },
-                settings: { sound: true, vibration: true, weight: 75, objective: 'cut', handleWeight: 2.5, plates: { 5: 8, 2: 3, 1: 4 } }, fatigue: [], bodyMeasurements: [],
+                settings: { sound: true, vibration: true, weight: 75, objective: 'cut', handleWeight: 2, handleWeighed: true, plates: { 5: 8, 2: 3, 1: 4 } }, fatigue: [], bodyMeasurements: [],
                 lastSessionType: null, plan: {}, forceDeload: false
                 };
             }
             // Migrazione per stati salvati prima del motore adattivo
             if (!state.plan || typeof state.plan !== 'object') state.plan = {};  // Piano adattivo per esercizio
-            if (state.settings.handleWeight === undefined) state.settings.handleWeight = 2.5;  // Manubrio vuoto (impugnatura piena + ghiere)
+            if (state.settings.handleWeight === undefined) state.settings.handleWeight = 2;  // Manubrio vuoto (impugnatura piena + ghiere)
+            if (!state.settings.handleWeighed) {  // I 2.5 kg erano una stima prima di pesarlo: il manubrio vuoto pesa 2 kg
+                if (state.settings.handleWeight === 2.5) {
+                    state.settings.handleWeight = 2;
+                    // Sessioni registrate con i carichi a dischi (dal 27/09) sulla stima da 2.5 kg: stessi dischi, 0.5 kg in meno
+                    (state.sessions || []).filter(s => s.date >= '2026-09-27').forEach(s => Object.values(s.exercises || {}).forEach(e => {
+                        ['weight', 'weightPlanned'].forEach(k => { if (e[k] > 0 && Math.abs(e[k] % 1 - 0.5) < 1e-6) e[k] -= 0.5; });
+                    }));
+                }
+                state.settings.handleWeighed = true;  // Da qui in poi vale solo il valore scelto in Impostazioni
+            }
             if (!state.settings.plates || typeof state.settings.plates !== 'object') state.settings.plates = { 5: 8, 2: 3, 1: 4 };  // Dischi reali: peso → quantità
             delete state.settings.maxWeight;  // Il vecchio tetto fisso di 10kg è sostituito dai carichi componibili con i dischi
             if (state.forceDeload === undefined) state.forceDeload = false;  // Scarico attivato a mano
@@ -1059,22 +1069,80 @@
             }
             function nextLoad(w, ex) { return loadsFor(ex).find(l => l > w + 1e-6) || null; }  // Gradino successivo, null se i dischi sono finiti
             function prevLoad(w, ex) { const lower = loadsFor(ex).filter(l => l < w - 1e-6); return lower.length ? lower[lower.length - 1] : null; }  // Gradino precedente
-            function platesLabel(w, ex) {  // Come montare il carico: dischi per lato (i lati uguali vengono raggruppati)
+            function kgText(w) { return String(Math.round(w * 100) / 100).replace('.', ',') + ' kg'; }  // 12 → "12 kg", 2.5 → "2,5 kg"
+            function sideText(side) { return side.length ? side.map(kgText).join(' + ') : 'niente'; }  // Dischi di un lato: "5 kg + 1 kg"
+            function loadShort(w, ex) {  // Carico in breve per titoli e Home: "2 manubri da 12 kg" o "1 manubrio da 10 kg"
+                if (!(w > 0)) return 'Corpo libero';
+                return loadMode(ex) === 'single' ? `1 manubrio da ${kgText(w)}` : `2 manubri da ${kgText(w)}`;
+            }
+            function plateSides(w, ex) {  // Dischi di ogni manubrio come [sinistra, destra]; null se il carico non è montabile
                 const handle = parseFloat(state.settings.handleWeight) || 0;
-                const side = Math.round((w - handle) / 2 * 100) / 100;
-                if (side <= 0) return 'Manubrio vuoto, senza dischi';
-                const nSides = loadMode(ex) === 'single' ? 2 : 4;
-                const sides = splitPlates(nSides, side);
-                if (!sides) return '';
-                const groups = {};
-                sides.forEach(s => { const k = s.join('+'); groups[k] = (groups[k] || 0) + 1; });
-                const keys = Object.keys(groups);
-                if (keys.length === 1) return `Per lato: ${keys[0]} kg`;
-                return 'Lati: ' + keys.map(k => `${k} kg ×${groups[k]}`).join(' · ');
+                const side = Math.round((w - handle) / 2 * 100) / 100;  // Peso di dischi su ciascun lato
+                const nBells = loadMode(ex) === 'single' ? 1 : 2;  // Manubri da preparare
+                if (side <= 0) return Array.from({ length: nBells }, () => [[], []]);  // Manubrio vuoto
+                const sides = splitPlates(nBells * 2, side);
+                if (!sides) return null;
+                return Array.from({ length: nBells }, (_, i) => [sides[2 * i], sides[2 * i + 1]]);  // Due lati consecutivi = un manubrio
             }
-            function platesText() {  // Inventario dischi in forma leggibile, es. "5kg×8 · 2kg×3 · 1kg×4"
-                return plateSizes().map(([w, n]) => `${w}kg×${n}`).join(' · ') || 'nessuno';
+            function platesLabel(w, ex) {  // Dischi in una riga, per i motivi del piano: "su ogni lato 5 kg + 1 kg"
+                const bells = plateSides(w, ex);
+                if (!bells) return '';
+                const all = [].concat(...bells).map(sideText);  // Testo di ogni lato
+                if (all.every(t => t === 'niente')) return 'manubrio vuoto, senza dischi';
+                if (new Set(all).size === 1) return `su ogni lato ${all[0]}`;
+                return bells.map((b, i) => `${bells.length > 1 ? 'manubrio ' + (i + 1) + ': ' : ''}${sideText(b[0])} a sinistra, ${sideText(b[1])} a destra`).join(' · ');
             }
+            function loadHowTo(w, ex) {  // Scheda esercizio: peso di ogni manubrio e dischi da montare lato per lato
+                const handle = parseFloat(state.settings.handleWeight) || 0;
+                const single = loadMode(ex) === 'single';
+                const bells = plateSides(w, ex);
+                let html = `<div>🏋️ ${single ? 'Usa 1 manubrio da' : 'Prepara 2 manubri da'} <strong style="color:var(--white)">${kgText(w)}</strong>${single ? '' : ' ciascuno'}</div>`;
+                if (!bells) return html + `<div>Con i tuoi dischi questo peso non si monta: usa − / + per sceglierne uno montabile</div>`;
+                const discs = Math.round((w - handle) * 100) / 100;  // Dischi su un manubrio
+                if (discs <= 0) return html + `<div>Manubrio vuoto, senza dischi</div>`;
+                const b = s => `<strong style="color:var(--white)">${sideText(s)}</strong>`;
+                const all = [].concat(...bells).map(sideText);
+                if (new Set(all).size === 1) {  // Tutti i lati uguali: una riga sola
+                    html += `<div>Su ogni lato${single ? '' : ' di ogni manubrio'}: ${b(bells[0][0])}</div>`;
+                } else {  // Lati composti in modo diverso (stesso peso): manubrio per manubrio
+                    bells.forEach((bell, i) => { html += `<div>${single ? 'Sinistra' : 'Manubrio ' + (i + 1) + ' → sinistra'} ${b(bell[0])} · destra ${b(bell[1])}</div>`; });
+                }
+                return html + `<div style="opacity:.75">(manubrio vuoto ${kgText(handle)} + ${kgText(discs)} di dischi${single ? '' : ' per manubrio'})</div>`;
+            }
+            function platesText() {  // Inventario dischi in forma leggibile, es. "8 da 5 kg · 3 da 2 kg · 4 da 1 kg"
+                return plateSizes().map(([w, n]) => `${n} da ${kgText(w)}`).join(' · ') || 'nessuno';
+            }
+            // Piano e sessione in corso sempre su carichi montabili: serve dopo un cambio di manubrio o dischi
+            // e per i piani scritti dal vecchio motore (tetto fisso 10 kg, pesi liberi). Restituisce true se ha cambiato qualcosa.
+            function syncPlanToLoads() {
+                const defs = {};  // Definizione di ogni esercizio per id: serve la modalità coppia o manubrio singolo
+                Object.values(getCurrentSessions()).forEach(s => s.exercises.forEach(ex => { defs[ex.id] = ex; }));
+                let changed = false;
+                Object.keys(state.plan).forEach(id => {
+                    const p = state.plan[id], ex = defs[id];
+                    if (!p || typeof p !== 'object' || !ex || !(p.weight > 0)) return;
+                    const snapped = snapLoad(p.weight, ex);
+                    if (Math.abs(snapped - p.weight) < 1e-6) return;  // Già montabile
+                    if (snapped > p.weight) {  // Il carico sale: come a ogni salto di carico, serie base, recuperi pieni e rip dal fondo del range
+                        p.extraSets = 0; p.restCut = 0; p.holds = 0; p.targetReps = ex.repMin; p.lastOutcome = 'add_load';
+                        p.reason = `Peso agganciato ai tuoi dischi: ${kgText(p.weight)} → ${kgText(snapped)}. Carico più alto, quindi si torna a ${ex.sets} serie × ${ex.repMin} ${unitOf(ex)}`;
+                    }
+                    p.weight = snapped;  // In discesa cambia solo il peso: serie e rip guadagnate restano
+                    changed = true;
+                });
+                const ts = state.todaySession;  // Sessione avviata ma non finita: anche lei sui carichi montabili
+                if (ts && !ts.done && ts.exercises) {
+                    Object.keys(ts.exercises).forEach(id => {
+                        const exS = ts.exercises[id], ex = defs[id];
+                        if (!exS || !ex) return;
+                        ['weight', 'weightPlanned'].forEach(k => {
+                            if (exS[k] > 0 && Math.abs(snapLoad(exS[k], ex) - exS[k]) > 1e-6) { exS[k] = snapLoad(exS[k], ex); changed = true; }
+                        });
+                    });
+                }
+                return changed;
+            }
+            if (syncPlanToLoads()) save();  // All'avvio: riallinea i dati salvati con manubrio e dischi attuali
             // Salva lo stato corrente in localStorage (ignora errori silenziosamente)
             function save() { try { localStorage.setItem('cdf_state', JSON.stringify(state)); } catch (e) {} }
 
@@ -1248,7 +1316,7 @@
                 if (nextS) {
                     nextS.exercises.forEach(function(ex) {
                         var p = getPlanFor(ex);
-                        if (p.reason) planItems.push({ name: ex.name, p: p, unit: unitOf(ex) });
+                        if (p.reason) planItems.push({ name: ex.name, ex: ex, p: p, unit: unitOf(ex) });
                     });
                 }
                 // Sceglie il messaggio raccomandazione in base a priorità: scarico attivo > deload > fatigue > piano > trend
@@ -1268,7 +1336,7 @@
                         + '<div class="rec-icon">🟡</div><div class="rec-text"><strong>Fatica media.</strong> Mantieni i carichi, concentrati sulla tecnica. Assicura sonno e alimentazione adeguati.</div></div></div>';
                 } else if (planItems.length > 0) {
                     var sugText = planItems.map(function(it) {
-                        var vals = (it.p.weight > 0 ? it.p.weight + 'kg · ' : '') + it.p.plannedSets + '×' + it.p.targetReps + ' ' + it.unit;
+                        var vals = (it.p.weight > 0 ? loadShort(it.p.weight, it.ex) + ' · ' : '') + it.p.plannedSets + ' serie × ' + it.p.targetReps + ' ' + it.unit;
                         return '<div style="margin-top:6px"><strong>' + it.name + '</strong>: ' + vals + '<br><span style="color:var(--muted);font-size:11px">' + it.p.reason + '</span></div>';
                     }).join('');
                     recHtml = '<div class="rec-card highlight"><div style="display:flex;align-items:flex-start">'
@@ -1442,7 +1510,7 @@
                     const unit = unitOf(ex);  // Le isometriche si misurano in secondi di tenuta, non in ripetizioni
                     const isDone = exS.completedSets.length >= exS.plannedSets;  // Esercizio completato?
                     const planInfo = state.plan[ex.id];  // Piano adattivo (per mostrare il perché dei valori di oggi)
-                    const adaptedMeta = `${exS.weight > 0 ? exS.weight + 'kg · ' : 'Corpo · '}${exS.plannedSets} ${unit === 'sec' ? 'tenute' : 'serie'} × ${exS.targetReps} ${unit}${ex.perSide ? '/lato' : ''} (range ${ex.reps})`;
+                    const adaptedMeta = `${exS.weight > 0 ? loadShort(exS.weight, ex) + ' · ' : 'Corpo · '}${exS.plannedSets} ${unit === 'sec' ? 'tenute' : 'serie'} × ${exS.targetReps} ${unit}${ex.perSide ? '/lato' : ''} (range ${ex.reps})`;
                     // Intestazione esercizio con valori adattati, PB, stato
                     html += `<div class="ex-card ${isDone ? 'done' : ''}" data-exid="${ex.id}">
                         <div class="ex-head">
@@ -1460,17 +1528,17 @@
                     // Controlli peso (solo per esercizi con peso > 0)
                     if (ex.weight > 0 || exS.weight > 0) {
                         html += `<div class="weight-row">
-                            <div class="weight-label">Peso per manubrio</div>
+                            <div class="weight-label">${loadMode(ex) === 'single' ? 'Peso del manubrio' : 'Peso di ogni manubrio'}</div>
                             <button class="w-btn dec-btn"><svg viewBox="0 0 24 24"><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
-                            <div class="weight-val">${exS.weight}kg</div>
+                            <div class="weight-val">${exS.weight > 0 ? kgText(exS.weight) : 'Corpo'}</div>
                             <button class="w-btn inc-btn"><svg viewBox="0 0 24 24"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
                         </div>`;
-                        if (exS.weight > 0) {  // Dischi da montare: evita i conti a mente tra una serie e l'altra
-                            html += `<div style="font-size:11px;color:var(--muted);margin:-2px 0 8px">🏋️ ${loadMode(ex) === 'single' ? '1 manubrio' : '2 manubri'} · ${platesLabel(exS.weight, ex)}</div>`;
+                        if (exS.weight > 0) {  // Dischi da montare lato per lato: evita i conti a mente tra una serie e l'altra
+                            html += `<div style="font-size:12px;line-height:1.55;color:var(--muted);margin:-2px 0 10px;padding:8px 10px;background:var(--g2);border-radius:8px">${loadHowTo(exS.weight, ex)}</div>`;
                         }
                         if (exS.weight !== exS.weightPlanned) {  // Warning se peso diverso dal piano adattato di oggi
-                            const diff = exS.weight - exS.weightPlanned;
-                            html += `<div style="font-size:11px;color:${diff > 0 ? 'var(--accent)' : 'var(--red)'};margin-bottom:8px;padding:4px 8px;background:rgba(200,255,0,0.05);border-radius:6px">⚠️ Peso: ${exS.weight}kg (piano di oggi ${exS.weightPlanned}kg · ${diff > 0 ? '+' : ''}${diff}kg) — verrà usato per modellare il prossimo workout</div>`;
+                            const diff = Math.round((exS.weight - exS.weightPlanned) * 100) / 100;
+                            html += `<div style="font-size:11px;color:${diff > 0 ? 'var(--accent)' : 'var(--red)'};margin-bottom:8px;padding:4px 8px;background:rgba(200,255,0,0.05);border-radius:6px">⚠️ Oggi ${kgText(exS.weight)} invece dei ${kgText(exS.weightPlanned)} del piano (${diff > 0 ? '+' : ''}${kgText(diff)})${diff > 0 && exS.plannedSets > ex.sets ? ' — dalla prossima volta si torna alle serie base' : ''}. Verrà usato per il prossimo workout</div>`;
                         }
                     }
                     // Rip/secondi della prossima serie: registrati per singola serie al momento del tocco
@@ -1740,31 +1808,28 @@
                     // Calo dovuto solo ai riposi saltati: niente penalità piena, ma niente progressione
                     outcome = 'hold_rest'; next.holds = 0;
                     reason = `${unit === 'sec' ? 'Secondi' : 'Rip'} calate dopo riposi saltati: carico invariato — rispetta i recuperi, il calo è fisiologico`;
-                } else if (worst >= target && target < exDef.repMax) {
-                    // Doppia progressione, fase rip: target verso il tetto del range (serie peggiore; i secondi avanzano di 5)
-                    next.targetReps = Math.min(Math.max(worst, target) + (unit === 'sec' ? 5 : 1), exDef.repMax); next.holds = 0; outcome = 'advance';
-                    reason = `Target ${unit}: ${target} → ${next.targetReps} (range ${exDef.repMin}–${exDef.repMax})`;
-                } else if (worst >= exDef.repMax) {
-                    // Tetto del range su tutte le serie → gradino successivo. Leve in ordine: carico (salto piccolo)
-                    // → volume (serie) → range di ripetizioni → carico (salto grande) → densità (recuperi) → variante.
-                    // Si muove un parametro alla volta, così è sempre chiaro cosa ha prodotto il progresso.
+                } else if (worst >= target && worst >= exDef.repMax) {
+                    // Tetto del range su tutte le serie → gradino successivo, anche se il target era più basso:
+                    // 12 rip su tutte le serie con target 10 valgono già il carico, non un'altra sessione di attesa.
+                    // Leve in ordine: carico (salto piccolo) → volume (serie) → range di ripetizioni → carico (salto grande)
+                    // → densità (recuperi) → variante. Si muove un parametro alla volta, così è chiaro cosa ha prodotto il progresso.
                     next.holds = 0;
                     const ceiling = repCeilingFor(exDef);  // Oltre ~25 rip (90 sec sul plank) lo stimolo cala
                     const restFloor = restFloorFor(exDef);
                     const curRest = Math.max(restFloor, exDef.restSec - next.restCut);
                     const up = bodyweight ? null : nextLoad(next.weight, exDef);  // Prossimo carico montabile con i dischi
                     const jump = up ? (up - next.weight) / next.weight : 0;  // Salto relativo: con dischi da 5kg può superare il 30%
-                    const loadUp = kind => {  // Sale di carico e riparte dal fondo del range
+                    const loadUp = kind => {  // Sale di carico e riparte da serie base, recuperi pieni e fondo del range
                         const from = next.weight;
-                        next.weight = up; next.targetReps = exDef.repMin; outcome = 'add_load';
-                        reason = `${kind}: ${from} → ${up}kg (+${Math.round(jump * 100)}%), ${unit} da ${exDef.repMin} · ${platesLabel(up, exDef)}`;
+                        next.weight = up; next.targetReps = exDef.repMin; next.extraSets = 0; next.restCut = 0; outcome = 'add_load';
+                        reason = `${kind}: ${kgText(from)} → ${kgText(up)} (+${Math.round(jump * 100)}%). Con più peso si torna a ${exDef.sets} serie × ${exDef.repMin} ${unit} · ${platesLabel(up, exDef)}`;
                     };
                     if (globalFatigue === 'red') {
                         outcome = 'hold'; reason = 'Range completato ma fatica alta: si consolida prima di progredire';
                     } else if (rest.extendedCount > 0) {
                         outcome = 'hold'; reason = 'Pronto per il gradino successivo, ma hai allungato i recuperi: si consolida ancora una sessione';
                     } else if (up && jump <= SMALL_LOAD_JUMP) {
-                        loadUp(`Tutte le serie a ${exDef.repMax} ${unit}: si sale di dischi`);
+                        loadUp(`Tutte le serie a ${exDef.repMax} ${unit}, si sale di dischi`);
                     } else if (next.extraSets < maxExtraSetsFor(exDef)) {
                         next.extraSets++; next.targetReps = exDef.repMin; outcome = 'add_set';
                         reason = `Tutte le serie a ${exDef.repMax} ${unit}: +1 serie (più volume a parità di carico), ${unit} da ${exDef.repMin}`;
@@ -1782,8 +1847,18 @@
                             ? 'Tenuta, serie e recuperi al massimo: passa a una variante più svantaggiosa (braccia in alto, appoggio su una gamba, leva più lunga)'
                             : 'Dischi finiti e tutte le altre leve esaurite: passa a una variante più dura (discesa 3-4 sec, pausa in basso, unilaterale)';
                     }
+                } else if (worst >= target && target < exDef.repMax) {
+                    // Doppia progressione, fase rip: target verso il tetto del range (serie peggiore; i secondi avanzano di 5)
+                    next.targetReps = Math.min(Math.max(worst, target) + (unit === 'sec' ? 5 : 1), exDef.repMax); next.holds = 0; outcome = 'advance';
+                    reason = `Target ${unit}: ${target} → ${next.targetReps} (range ${exDef.repMin}–${exDef.repMax})`;
                 } else {
                     outcome = 'ok'; next.holds = 0; reason = 'Target raggiunto: si ripete per consolidare';
+                }
+                // Regola fissa: se il carico sale (dal motore o col + durante la sessione) serie e recuperi tornano quelli base.
+                // In definizione più peso con lo stesso volume fa salire troppo la fatica: il volume si ricostruisce sul carico nuovo.
+                if (next.weight > (exS.weightPlanned || 0) + 1e-6 && (next.extraSets > 0 || next.restCut > 0)) {
+                    next.extraSets = 0; next.restCut = 0;
+                    reason += ` · Carico salito a ${kgText(next.weight)}: si torna a ${exDef.sets} serie con recuperi pieni`;
                 }
                 return { next, outcome, reason, events };
             }
@@ -3079,9 +3154,10 @@
             // ─────────── IMPOSTAZIONI: toggle suono, vibrazione, esportazione dati ───────────
             function renderSettings() {  // Renderizza la pagina impostazioni (peso, suono, vibrazione, obiettivo)
                 document.getElementById('settingWeight').textContent = (state.settings.weight || 75) + ' kg';
-                document.getElementById('settingHandleWeight').textContent = (state.settings.handleWeight || 0) + ' kg';
-                document.getElementById('settingPlates').textContent = platesText();
-                document.getElementById('settingLoadsSub').textContent = 'Coppia: ' + loadsFor({}).join(' · ') + ' kg';
+                document.getElementById('settingHandleWeight').textContent = kgText(state.settings.handleWeight || 0);
+                document.getElementById('settingPlates').innerHTML = platesText().split(' · ').map(t => `<span style="white-space:nowrap">${t}</span>`).join('<br>');  // Un tipo di disco per riga, senza a capo
+                const loadsList = l => (l.length > 8 ? l.slice(0, 6).join(', ') + ' … ' + l[l.length - 1] : l.join(', ')) + ' kg';  // Elenco corto dei pesi montabili
+                document.getElementById('settingLoadsSub').textContent = `Pesi possibili per manubrio — con 2 manubri: ${loadsList(loadsFor({}))} · con 1 manubrio: ${loadsList(loadsFor({ load: 'single' }))}`;
                 document.getElementById('toggleSound').classList.toggle('on', state.settings.sound);
                 document.getElementById('toggleVibration').classList.toggle('on', state.settings.vibration);
                 document.getElementById('objectiveValue').textContent = state.settings.objective === 'cut' ? '🔥 Cut' : '⚡ Bulk';
@@ -3092,10 +3168,10 @@
             function toggleObjective() { state.settings.objective = state.settings.objective === 'cut' ? 'bulk' : 'cut'; save(); renderSettings(); if (document.getElementById('page-nutrition').classList.contains('active')) renderNutrition(); }  // Alterna obiettivo cut/bulk
             
             window.setHandleWeight = async function() {  // Peso del manubrio vuoto: base di tutti i carichi componibili
-                const v = await showPrompt('Peso del manubrio vuoto (kg, impugnatura + ghiere):', state.settings.handleWeight || 2.5);
+                const v = await showPrompt('Quanto pesa un manubrio vuoto? (kg, solo asta e ghiere, senza dischi)', state.settings.handleWeight || 2);
                 if (v === null) return;
                 const n = parseFloat(String(v).replace(',', '.'));
-                if (!isNaN(n) && n >= 0) { state.settings.handleWeight = n; save(); renderSettings(); }
+                if (!isNaN(n) && n >= 0) { state.settings.handleWeight = n; state.settings.handleWeighed = true; syncPlanToLoads(); save(); renderSettings(); renderHome(); }
             };
             window.setPlates = async function() {  // Inventario dischi nel formato "peso x quantità", es. "5x8, 2x3, 1x4"
                 const cur = plateSizes().map(([w, n]) => `${w}x${n}`).join(', ');
@@ -3108,7 +3184,7 @@
                     return m;
                 });
                 if (!Object.keys(plates).length) { await showAlert('Formato non valido. Esempio: 5x8, 2x3, 1x4'); return; }
-                state.settings.plates = plates; save(); renderSettings();
+                state.settings.plates = plates; syncPlanToLoads(); save(); renderSettings(); renderHome();  // Il piano si riaggancia ai nuovi carichi montabili
             };
 
             window.resetToday = async function() { if (await showConfirm('Resettare la sessione di oggi?')) { state.todaySession = null; save(); renderWorkout(); } };  // Resetta la sessione di oggi
@@ -3138,9 +3214,12 @@
                         vibration: true,
                         weight: 75,
                         objective: 'cut',
-                        handleWeight: 2.5,
+                        handleWeight: 2,
                         plates: { 5: 8, 2: 3, 1: 4 },
-                        ...(loaded.settings || {})
+                        ...(loaded.settings || {}),
+                        // Backup fatti prima della pesata: i 2.5 kg di stima diventano i 2 kg reali
+                        ...(loaded.settings && !loaded.settings.handleWeighed && loaded.settings.handleWeight === 2.5 ? { handleWeight: 2 } : {}),
+                        handleWeighed: true
                     },
                     fatigue: Array.isArray(loaded.fatigue) ? loaded.fatigue : [],
                     bodyMeasurements: Array.isArray(loaded.bodyMeasurements) ? loaded.bodyMeasurements : [],
@@ -3171,6 +3250,7 @@
                     const loaded = JSON.parse(raw);
                     if (!loaded || typeof loaded !== 'object') throw new Error('Formato JSON non valido');
                     state = normalizeImportedState(loaded);
+                    syncPlanToLoads();  // Backup vecchi: pesi riagganciati a manubrio e dischi reali
                     save();
                     renderHome();
                     renderWorkout();
@@ -3236,7 +3316,7 @@
                     + `PROFILO: 43 anni, allenamento a casa con manubri componibili (manubrio vuoto ${state.settings.handleWeight} kg, dischi ${platesText()}; carichi per manubrio con la coppia: ${loadsFor({}).join(', ')} kg; con un manubrio solo: ${loadsFor({ load: 'single' }).join(', ')} kg) + corpo libero. `
                     + `Obiettivo: ${state.settings.objective === 'cut' ? 'definizione (cut)' : 'massa (bulk)'}. Peso corporeo: ${state.settings.weight} kg`
                     + (lastBm ? ` (ultima misura ${lastBm.date}${lastBm.waist ? ', vita ' + lastBm.waist + ' cm' : ''}${lastBm.chest ? ', petto ' + lastBm.chest + ' cm' : ''})` : '') + '.\n'
-                    + `PROGRAMMA: ciclo di 9 settimane (8 lavoro + 1 scarico), sessioni A Spinta (ven), B Trazione (sab), C Isometria (dom). `
+                    + `PROGRAMMA: ciclo di 9 settimane (8 lavoro + 1 scarico), sessioni A Spinta (ven), B Trazione (sab), C Isometria (dom). Quando il carico sale, le serie tornano a quelle base. `
                     + `Ora: blocco ${cyc.blockNum}, settimana ${cyc.cycleWeek}/9, fase "${PROGRESSION[cyc.phaseIdx].label}". `
                     + `Stato fatica ultimi 14 giorni: ${({ green: 'basso', yellow: 'medio', red: 'alto' })[getFatigueLevel()]}.\n\n`;
             }
