@@ -557,6 +557,11 @@
             </div>
 
             <div class="progress-section">
+                <div class="progress-title">Carichi e prossimo passo</div>
+                <div id="loadProgress"></div>
+            </div>
+
+            <div class="progress-section">
                 <div class="progress-title">Valutazione AI (Claude)</div>
                 <div class="card" style="padding:16px;">
                     <div style="font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.5">Genera un prompt con i tuoi dati e lo invia all'app Claude (menu Condividi). Se Condividi non è disponibile, il testo viene copiato: incollalo in Claude.</div>
@@ -576,7 +581,7 @@
             </div>
 
             <div class="progress-section">
-                <div class="progress-title">Calendario allenamenti</div>
+                <div class="progress-title">Calendario allenamenti <span id="calMonth" style="color:var(--muted);font-weight:500"></span></div>
                 <div class="calendar-grid" id="calDays"></div>
                 <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
                     <div style="width:12px;height:12px;background:rgba(200,255,0,0.15);border-radius:3px"></div>
@@ -604,8 +609,8 @@
             <!-- ─── IMPOSTAZIONI ─── -->
             <div class="section-title">Impostazioni</div>
             <div class="settings-panel">
-                <div class="setting-row">
-                    <div><div class="setting-label">Peso corporeo</div><div class="setting-sub">Per calcoli personalizzati</div></div>
+                <div class="setting-row" data-action="setBodyWeight">
+                    <div><div class="setting-label">Peso corporeo</div><div class="setting-sub">Tocca per cambiarlo · per il diario Cibo vale l'ultima misura in Progressi</div></div>
                     <div class="setting-value" id="settingWeight">75 kg</div>
                 </div>
                 <div class="setting-row">
@@ -644,7 +649,7 @@
                     <div class="setting-value" style="color:var(--accent)">Esporta</div>
                 </div>
                 <div class="setting-row" data-action="importAppData">
-                    <div><div class="setting-label">Importa dati</div><div class="setting-sub">Incolla qui il backup JSON per ripristinare tutto</div></div>
+                    <div><div class="setting-label">Importa dati</div><div class="setting-sub">Scegli il file di backup JSON per ripristinare tutto</div></div>
                     <div class="setting-value" style="color:var(--accent)">Importa</div>
                 </div>
             </div>
@@ -749,7 +754,9 @@
                 // Il ciclo resta agganciato alle sole sessioni di forza: la domenica isometrica è lavoro aggiuntivo
                 // a corpo libero e non deve far avanzare le settimane né anticipare lo scarico.
                 const strengthDone = state.sessions.filter(s => !isIsoSession(s.session)).length;
-                const weekNum = Math.ceil(strengthDone / 2) || 1;  // Settimana assoluta (2 sessioni di forza = 1 settimana)
+                // Settimana della PROSSIMA sessione di forza (2 sessioni = 1 settimana): con 2 fatte si è nella 2ª.
+                // Prima era ceil(fatte / 2): il venerdì finiva nella settimana precedente e picco e scarico partivano una sessione in ritardo.
+                const weekNum = Math.floor(strengthDone / 2) + 1;
                 const blockNum = Math.floor((weekNum - 1) / CYCLE_WEEKS) + 1;  // Blocco in corso: il ciclo si ripete all'infinito
                 const cycleWeek = ((weekNum - 1) % CYCLE_WEEKS) + 1;  // Settimana dentro il ciclo (1…9)
                 const deload = cycleWeek === CYCLE_WEEKS;  // La 9ª settimana di ogni ciclo è scarico
@@ -963,7 +970,7 @@
             // Piano settimanale di riferimento (indice = giorno, 0=Dom … 6=Sab).
             // Unica fonte per le icone della striscia settimanale e per la nota camminata/riposo in Home:
             // prima le due cose erano hardcoded separatamente e si contraddicevano.
-            // Allineato ai campi `day` delle sessioni: A → Sabato (6), B → Domenica (0).
+            // Allineato ai campi `day` delle sessioni: A → Venerdì (5), B → Sabato (6), C → Domenica (0).
             // Il campo `session` lega ogni giorno alla sua scheda: è la fonte che decide cosa proporre oggi.
             const WEEK_PLAN = [
                 { type: 'workout', icon: '🗿', label: 'Isometria',    session: 'C' },  // Dom — Sessione C (Isometria)
@@ -1154,42 +1161,35 @@
             const modalConfirm = document.getElementById('modalConfirmBtn');  // Pulsante conferma
             const modalCancel = document.getElementById('modalCancelBtn');  // Pulsante annulla
 
-            function showAlert(msg) {  // Mostra un alert modale semplice con solo OK
+            // Un solo modale aperto alla volta, con ascoltatori fissi: prima ogni apertura aggiungeva ascoltatori
+            // { once } che, se non usati (es. Annulla dopo una conferma), restavano attaccati e si sommavano.
+            let modalDone = null;  // Chiude il modale aperto restituendo il risultato a chi l'ha chiesto
+            function openModal(msg, opts) {  // opts: { input, value, cancel, ok, onOk, onCancel }
+                if (modalDone) modalDone(modalEl._cancel());  // Un modale nuovo chiude quello rimasto aperto, come se avessi annullato
                 return new Promise(resolve => {
                     modalMsg.textContent = msg;  // Imposta il messaggio
-                    modalInputWrap.style.display = 'none';  // Nasconde campo input
-                    modalCancel.style.display = 'none';  // Nasconde pulsante Annulla
-                    modalConfirm.textContent = 'OK';  // Testo pulsante
+                    modalInputWrap.style.display = opts.input ? 'block' : 'none';  // Campo di testo solo per i prompt
+                    if (opts.input) modalInput.value = opts.value == null ? '' : opts.value;  // Valore predefinito
+                    modalCancel.style.display = opts.cancel ? 'block' : 'none';  // Annulla solo dove serve
+                    modalConfirm.textContent = opts.ok;  // Testo pulsante
+                    modalDone = (result) => { modalDone = null; modalEl.classList.remove('active'); resolve(result); };
+                    modalEl._ok = opts.onOk; modalEl._cancel = opts.onCancel;  // Risultati del pulsante conferma e di Annulla
                     modalEl.classList.add('active');  // Mostra overlay
-                    modalConfirm.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(); }, { once: true });  // Alla conferma, chiude
+                    if (opts.input) setTimeout(() => modalInput.focus(), 100);  // Focus sul campo dopo apertura
                 });
             }
+            modalConfirm.addEventListener('click', () => { if (modalDone) modalDone(modalEl._ok()); });
+            modalCancel.addEventListener('click', () => { if (modalDone) modalDone(modalEl._cancel()); });
+            modalInput.addEventListener('keydown', e => { if (e.key === 'Enter' && modalDone) modalDone(modalEl._ok()); });  // Invio = conferma
 
-            function showConfirm(msg) {  // Mostra un modale di conferma con Annulla/Conferma
-                return new Promise(resolve => {
-                    modalMsg.textContent = msg;  // Imposta il messaggio
-                    modalInputWrap.style.display = 'none';  // Nasconde input
-                    modalCancel.style.display = 'block';  // Mostra Annulla
-                    modalConfirm.textContent = 'Conferma';  // Testo pulsante
-                    modalEl.classList.add('active');  // Mostra overlay
-                    modalConfirm.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(true); }, { once: true });  // True = confermato
-                    modalCancel.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(false); }, { once: true });  // False = annullato
-                });
+            function showAlert(msg) {  // Alert modale semplice con solo OK
+                return openModal(msg, { ok: 'OK', onOk: () => undefined, onCancel: () => undefined });
             }
-
-            function showPrompt(msg, defaultValue) {  // Mostra un modale con campo input
-                return new Promise(resolve => {
-                    modalMsg.textContent = msg;  // Messaggio
-                    modalInputWrap.style.display = 'block';  // Mostra input
-                    modalInput.value = defaultValue || '';  // Valore predefinito
-                    modalCancel.style.display = 'block';  // Mostra Annulla
-                    modalConfirm.textContent = 'Conferma';  // Testo pulsante
-                    modalEl.classList.add('active');  // Mostra overlay
-                    setTimeout(() => modalInput.focus(), 100);  // Focus sul campo dopo apertura
-                    modalConfirm.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(modalInput.value); }, { once: true });  // Restituisce valore
-                    modalCancel.addEventListener('click', function handler() { modalEl.classList.remove('active'); resolve(null); }, { once: true });  // Restituisce null
-                    modalInput.addEventListener('keydown', function handler(e) { if (e.key === 'Enter') { modalEl.classList.remove('active'); resolve(modalInput.value); } }, { once: true });  // Invio conferma
-                });
+            function showConfirm(msg) {  // Conferma con Annulla/Conferma: true se confermato
+                return openModal(msg, { cancel: true, ok: 'Conferma', onOk: () => true, onCancel: () => false });
+            }
+            function showPrompt(msg, defaultValue) {  // Campo di testo: restituisce il valore scritto, null se annullato
+                return openModal(msg, { input: true, value: defaultValue, cancel: true, ok: 'Conferma', onOk: () => modalInput.value, onCancel: () => null });
             }
             function dateStr(d) {  // Formatta una data in YYYY-MM-DD nel fuso locale (toISOString usa UTC e in Italia sfasa di un giorno prima delle 02:00)
                 return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -1229,7 +1229,7 @@
                 if (page === 'home') renderHome();
                 if (page === 'workout') renderWorkout();
                 if (page === 'nutrition') renderNutrition();
-                if (page === 'food') renderFood();
+                if (page === 'food') { foodView = todayStr(); renderFood(); }  // Si riparte da oggi anche se l'app è rimasta aperta dal giorno prima
                 if (page === 'progress') renderProgress();
                 if (page === 'settings') renderSettings();
             }
@@ -1288,6 +1288,7 @@
                 document.getElementById('statSessions').textContent = state.sessions.length;
                 const weekStart = getWeekStart();  // Inizio settimana corrente
                 document.getElementById('statWeek').textContent = state.sessions.filter(s => s.date >= weekStart).length;
+                document.getElementById('statStreak').textContent = calculateStreak();  // Prima non veniva mai aggiornato: restava sempre 0
                 // Insight motivazionale intelligente
                 const insight = getSmartInsight();
                 const insightEl = document.getElementById('smartInsight');
@@ -1344,14 +1345,14 @@
                 } else if (trend.direction === 'crescita' && trend.pct > 5) {
                     recHtml = '<div class="rec-card highlight"><div style="display:flex;align-items:flex-start">'
                         + '<div class="rec-icon">📈</div><div class="rec-text"><strong>Volume in crescita del ' + trend.pct + '%!</strong> Ottimo momento per mantenere lo slancio. Continua così.</div></div></div>';
-                } else if (trend.direction === 'calo') {
+                } else if (trend.direction === 'calo') {  // Solo cali veri: quelli voluti dal piano (più peso, meno serie) sono 'programmato'
                     recHtml = '<div class="rec-card"><div style="display:flex;align-items:flex-start">'
                         + '<div class="rec-icon">📉</div><div class="rec-text">Volume in calo del ' + Math.abs(trend.pct) + '%. <strong>Valuta recupero extra</strong> o riduci leggermente i carichi per ritrovare consistenza.</div></div></div>';
                 } else if (state.sessions.length >= 2) {
                     recHtml = '<div class="rec-card"><div style="display:flex;align-items:flex-start">'
                         + '<div class="rec-icon">🎯</div><div class="rec-text">Allenamento costante. <strong>Obiettivo: ' + (state.settings.objective === 'cut' ? 'Definizione' : 'Massa') + '.</strong> Prossima sessione: ' + nextS.name + '. Mantieni il ritmo!</div></div></div>';
                 }
-                if (recHtml) recEl.innerHTML = recHtml;
+                recEl.innerHTML = recHtml;  // Sempre riscritto: se non c'è niente da dire sparisce il consiglio vecchio (es. dopo "Annulla scarico")
                 // Il consiglio di scarico ora è azionabile: prima era solo testo senza effetto sul piano
                 var fdBtn = document.getElementById('forceDeloadBtn');
                 if (fdBtn) fdBtn.addEventListener('click', function() { state.forceDeload = true; save(); renderHome(); });
@@ -1517,7 +1518,7 @@
                             <div class="ex-num">${isDone ? '✓' : (idx + 1)}</div>
                             <div style="flex:1">
                                 <div class="ex-name">${ex.name}</div>
-                                <div class="ex-meta">${adaptedMeta}${getPersonalBest(ex.id) ? ` · PB: ${getPersonalBest(ex.id)}kg` : ''}</div>
+                                <div class="ex-meta">${adaptedMeta}${getPersonalBest(ex.id) ? ` · Record: ${kgText(getPersonalBest(ex.id))}` : ''}</div>
                             </div>
                             <div class="ex-check">${isDone ? '✅' : '○'}</div>
                         </div>
@@ -1921,12 +1922,47 @@
 
             // ─────────── TIMER: conto alla rovescia tra serie, con tracking dei riposi ───────────
             let timerInterval = null; let timerTotal = 60; let timerRemaining = 60; let timerPaused = false;
+            // Il conto alla rovescia segue l'orologio, non il numero di tick: con lo schermo spento Chrome rallenta
+            // setInterval e prima il riposo "si fermava" mentre il telefono era in tasca.
+            let timerEndAt = 0;  // Istante (ms) in cui il timer arriva a zero; vale solo quando non è in pausa
             let restCtx = null;  // Riposo in corso: { exId, set, planned, extended, between }
             let timerMode = 'rest';  // 'rest' = recupero tra le serie · 'hold' = tenuta isometrica cronometrata
             let holdCtx = null;      // Tenuta in corso: { exId, set, sec, side, sides }
 
+            function syncRemaining() {  // Secondi rimasti calcolati dall'orologio (in pausa restano fermi)
+                if (!timerPaused) timerRemaining = Math.max(0, Math.ceil((timerEndAt - Date.now()) / 1000));
+            }
+            let audioCtx = null;  // Audio del bip: si sblocca col tocco che avvia il timer (Chrome lo richiede)
+            function unlockAudio() {
+                if (!state.settings.sound) return;
+                try {
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
+                } catch (e) { audioCtx = null; }
+            }
+            function beep() {  // Tre bip brevi a fine riposo o tenuta, se il suono è attivo nelle impostazioni
+                if (!state.settings.sound || !audioCtx) return;
+                try {
+                    const t0 = audioCtx.currentTime;
+                    [0, 0.25, 0.5].forEach((dt, i) => {
+                        const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+                        osc.frequency.value = i === 2 ? 1320 : 880;  // L'ultimo più acuto: si riparte
+                        gain.gain.setValueAtTime(0.0001, t0 + dt);
+                        gain.gain.exponentialRampToValueAtTime(0.4, t0 + dt + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.18);
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        osc.start(t0 + dt); osc.stop(t0 + dt + 0.2);
+                    });
+                } catch (e) { /* audio non disponibile: resta la vibrazione */ }
+            }
+            function timerAlert() {  // Avviso di fine: vibrazione e bip, ognuno secondo le impostazioni
+                if (state.settings.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                beep();
+            }
+
             function recordRest(skipped) {  // Registra l'esito del riposo nel log della sessione
                 if (!restCtx) return;
+                syncRemaining();  // Quanti secondi mancavano davvero al momento del salto
                 if (state.todaySession) {
                     if (!state.todaySession.restLog) state.todaySession.restLog = {};
                     state.todaySession.restLog[restCtx.exId + '_' + restCtx.set] = {
@@ -1944,6 +1980,8 @@
                 restCtx = ctx ? { exId: ctx.exId, set: ctx.set, planned: ctx.planned || seconds, extended: 0, between: !!ctx.between } : null;
                 timerMode = 'rest'; holdCtx = null;  // L'overlay torna in modalità recupero
                 timerTotal = seconds; timerRemaining = seconds; timerPaused = false;  // Imposta durata
+                timerEndAt = Date.now() + seconds * 1000;  // Fine del riposo secondo l'orologio
+                unlockAudio();  // Siamo dentro il tocco sulla serie: è il momento di sbloccare l'audio
                 document.getElementById('timerTitle').textContent = 'RIPOSO';
                 document.getElementById('timerAddBtn').textContent = '+15s';
                 document.getElementById('timerSkipBtn').textContent = 'Salta ›';
@@ -1951,7 +1989,7 @@
                 document.getElementById('timerPauseBtn').textContent = 'Pausa';  // Testo pulsante pausa
                 updateTimerUI();  // Aggiorna UI circolare
                 document.getElementById('timerOverlay').classList.add('active');  // Mostra overlay
-                timerInterval = setInterval(tickTimer, 1000);  // Tick ogni secondo
+                timerInterval = setInterval(tickTimer, 250);  // Controllo frequente: il valore viene dall'orologio, non dal conteggio
             }
 
             /** Avvia il cronometro di una tenuta isometrica: alla fine registra da solo la serie con i secondi
@@ -1971,6 +2009,8 @@
                 timerMode = 'hold'; holdCtx = ctx;
                 timerTotal = ctx.sec; timerRemaining = ctx.sec;
                 timerPaused = ctx.side > 1;  // Il lato successivo aspetta: serve il tempo di rimettersi in posizione
+                timerEndAt = Date.now() + ctx.sec * 1000;  // In pausa viene ricalcolato alla ripartenza
+                unlockAudio();
                 document.getElementById('timerTitle').textContent = ctx.sides > 1 ? 'TENUTA · LATO ' + ctx.side : 'TENUTA';
                 document.getElementById('timerExName').textContent = exName;
                 document.getElementById('timerAddBtn').textContent = '+10s';
@@ -1978,7 +2018,7 @@
                 document.getElementById('timerSkipBtn').textContent = 'Fermati ›';
                 updateTimerUI();
                 document.getElementById('timerOverlay').classList.add('active');
-                timerInterval = setInterval(tickTimer, 1000);
+                timerInterval = setInterval(tickTimer, 250);
             }
 
             function endHold(heldSec) {  // Chiude la tenuta e registra la serie con i secondi effettivi
@@ -1995,10 +2035,10 @@
 
             function tickTimer() {  // Decrementa il timer ogni secondo
                 if (timerPaused) return;  // Se in pausa, non fare nulla
-                timerRemaining--; updateTimerUI();  // Decrementa e aggiorna UI
+                syncRemaining(); updateTimerUI();  // Secondi rimasti secondo l'orologio
                 if (timerRemaining <= 0) {  // Tempo scaduto
                     if (timerMode === 'hold') {  // Tenuta completata: se l'esercizio è per lato si passa all'altro, altrimenti si registra
-                        if (state.settings.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                        timerAlert();
                         if (holdCtx && holdCtx.side < holdCtx.sides) {
                             const nextSide = Object.assign({}, holdCtx, { side: holdCtx.side + 1 });
                             runHold(nextSide, document.getElementById('timerExName').textContent);
@@ -2010,7 +2050,7 @@
                     clearInterval(timerInterval);
                     document.getElementById('timerOverlay').classList.remove('active');  // Nascondi overlay
                     recordRest(false);  // Riposo completato regolarmente
-                    if (state.settings.vibration && navigator.vibrate) navigator.vibrate([200, 100, 200]);  // Vibra se abilitato
+                    timerAlert();  // Vibrazione e bip, secondo le impostazioni
                 }
             }
 
@@ -2024,14 +2064,21 @@
             let timerPauseListener, timerSkipListener, timerAddListener;
             function bindTimerButtons() {  // Collega listener ai pulsanti timer (una sola volta)
                 if (timerPauseListener) return;  // Già collegati
-                timerPauseListener = () => { timerPaused = !timerPaused; document.getElementById('timerPauseBtn').textContent = timerPaused ? 'Riprendi' : 'Pausa'; };  // Pausa/Riprendi
+                timerPauseListener = () => {  // Pausa/Riprendi: in pausa si congelano i secondi, alla ripresa riparte l'orologio
+                    if (!timerPaused) { syncRemaining(); timerPaused = true; }
+                    else { timerPaused = false; timerEndAt = Date.now() + timerRemaining * 1000; unlockAudio(); }
+                    document.getElementById('timerPauseBtn').textContent = timerPaused ? 'Riprendi' : 'Pausa';
+                };
                 timerSkipListener = () => {  // In tenuta: chiude la tenuta col tempo davvero retto · in riposo: salta il recupero (registrato per l'analisi)
+                    syncRemaining();  // Secondi davvero trascorsi fino al tocco
                     if (timerMode === 'hold') { endHold(Math.max(1, timerTotal - timerRemaining)); return; }
                     if (timerInterval) clearInterval(timerInterval); document.getElementById('timerOverlay').classList.remove('active'); recordRest(true);
                 };
                 timerAddListener = () => {  // In tenuta: allunga la tenuta di 10 sec · in riposo: +15 sec, registrato come riposo allungato
-                    if (timerMode === 'hold') { timerRemaining += 10; timerTotal += 10; updateTimerUI(); return; }
-                    timerRemaining += 15; timerTotal += 15; if (restCtx) restCtx.extended += 15; updateTimerUI();
+                    const add = timerMode === 'hold' ? 10 : 15;
+                    timerRemaining += add; timerTotal += add; timerEndAt += add * 1000;  // In pausa conta timerRemaining, altrimenti timerEndAt
+                    if (timerMode !== 'hold' && restCtx) restCtx.extended += 15;
+                    updateTimerUI();
                 };
                 document.getElementById('timerPauseBtn').addEventListener('click', timerPauseListener);
                 document.getElementById('timerSkipBtn').addEventListener('click', timerSkipListener);
@@ -2098,9 +2145,6 @@
                 ml.querySelectorAll('.meal-check-btn').forEach(btn => btn.addEventListener('click', function() {
                     toggleMealCheck(parseInt(this.closest('.meal-card').dataset.meal));
                 }));
-
-                const btnWater = document.getElementById('addWaterBtn');
-                if(btnWater) btnWater.addEventListener('click', addWater, { once: true });  // Bottone aggiungi acqua
             }
 
             function toggleMealCheck(i) {  // Spunta/toglie un pasto come consumato
@@ -2746,6 +2790,7 @@
                 document.getElementById('pStatTotal').textContent = state.sessions.length;  // Sessioni totali
                 const monthStart = dateStr(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
                 document.getElementById('pStatMonth').textContent = state.sessions.filter(s => s.date >= monthStart).length;  // Sessioni questo mese
+                renderLoadProgress();  // Carichi attuali, prossimo gradino e storico per esercizio
                 // Grafico volume: ultime 8 sessioni, volume reale vs pianificato
                 const volumeChart = document.getElementById('volumeChart');
                 // Il grafico misura kg × rip: le sessioni isometriche sono a corpo libero, entrerebbero a zero e
@@ -2756,22 +2801,7 @@
                 if (last8.length === 0) {
                     volumeChart.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Nessuna sessione con carico ancora</div>';
                 } else {
-                    var volData = last8.map(function(s) {  // Calcola volume attuale e pianificato per ogni sessione
-                        var sessionDef = getCurrentSessions()[s.session];
-                        if (!sessionDef) return { actual: 0, planned: 0 };
-                        var actual = 0, planned = 0;
-                        sessionDef.exercises.forEach(function(ex) {
-                            var exData = s.exercises[ex.id];
-                            if (exData && exData.completedSets.length > 0) {
-                                actual += exActualVolume(exData, ex);  // Volume reale: peso × somma rip per serie
-                            }
-                            var pSets = (exData && exData.plannedSets) || ex.sets;  // Serie pianificate
-                            var pWeight = (exData && exData.weightPlanned) || ex.weight;  // Peso pianificato
-                            var pReps = (exData && exData.repPlanned) || ex.repMid;  // Rip pianificate (fallback repMid per vecchie sessioni)
-                            planned += pWeight * pSets * pReps;  // Volume pianificato
-                        });
-                        return { actual: actual, planned: planned };
-                    });
+                    var volData = last8.map(sessionVolume);  // Volume reale e pianificato di ogni sessione
                     var maxVol = 1;
                     volData.forEach(function(v) { if (v.planned > maxVol) maxVol = v.planned; });  // Trova il volume max per scala barre
                     var totalActual = 0, totalPlanned = 0, bestIdx = 0, bestVol = 0;
@@ -2839,6 +2869,7 @@
                 const cal = document.getElementById('calDays');
                 const now = new Date(); const y = now.getFullYear(), m = now.getMonth();
                 const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m + 1, 0).getDate();
+                document.getElementById('calMonth').textContent = '· ' + now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
                 cal.innerHTML = '';
                 ['D', 'L', 'M', 'M', 'G', 'V', 'S'].forEach(d => cal.innerHTML += `<div style="font-size:9px;color:var(--muted);text-align:center;padding:4px 0">${d}</div>`);  // Intestazione giorni
                 for (let i = 0; i < firstDay; i++) cal.innerHTML += `<div></div>`;  // Spazi vuoti prima del primo giorno
@@ -2907,11 +2938,13 @@
                 document.getElementById('addMeasurementBtn').addEventListener('click', addMeasurement, { once: true });
                 // Piano progressione: elenco fasi
                 const pp = document.getElementById('progressionPlan'); pp.innerHTML = '';
+                const curPhase = getCycleInfo().phaseIdx;  // Fase in corso, evidenziata nell'elenco
                 PROGRESSION.forEach((p, i) => {
                     const isBlockNote = i === PROGRESSION.length - 1;  // L'ultima voce non è una settimana del ciclo, è cosa succede quando riparte
-                    pp.innerHTML += `<div class="card" style="margin-bottom:8px"><div class="card-body" style="display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:start">
+                    const isNow = i === curPhase;
+                    pp.innerHTML += `<div class="card" style="margin-bottom:8px${isNow ? ';border-color:var(--accent)' : ''}"><div class="card-body" style="display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:start">
                         <div style="font-size:13px;font-weight:700;color:var(--accent)">${isBlockNote ? '🔁 Poi' : 'Sett. ' + p.weeks}</div>
-                        <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">${p.label}</div><div style="font-size:12px;color:var(--muted);line-height:1.6">${p.desc}</div></div>
+                        <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">${p.label}${isNow ? ' <span style="font-size:11px;color:var(--accent)">· sei qui</span>' : ''}</div><div style="font-size:12px;color:var(--muted);line-height:1.6">${p.desc}</div></div>
                     </div></div>`;
                 });
                 // La domenica isometrica non è una fase del ciclo: è un blocco a sé, con regole sue. Va spiegata qui,
@@ -2997,8 +3030,8 @@
                 cs.innerHTML += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
                 cs.innerHTML += '<div class="card" style="padding:12px">'
                     + '<div style="font-size:12px;font-weight:600;margin-bottom:4px">Trend Volume</div>'
-                    + '<div style="font-size:20px;font-weight:700;color:' + (trend.pct > 5 ? 'var(--accent)' : trend.pct < -5 ? 'var(--red)' : 'var(--muted)') + '">' + (trend.direction === 'crescita' ? '📈' : trend.direction === 'calo' ? '📉' : '➡️') + ' ' + (trend.pct > 0 ? '+' : '') + trend.pct + '%</div>'
-                    + '<div style="font-size:10px;color:var(--muted);margin-top:2px">Ultime 3 vs precedenti 3</div>'
+                    + '<div style="font-size:20px;font-weight:700;color:' + (trend.direction === 'crescita' ? 'var(--accent)' : trend.direction === 'calo' ? 'var(--red)' : 'var(--muted)') + '">' + (trend.direction === 'crescita' ? '📈' : trend.direction === 'calo' ? '📉' : trend.direction === 'programmato' ? '↘️' : '➡️') + ' ' + (trend.pct > 0 ? '+' : '') + trend.pct + '%</div>'
+                    + '<div style="font-size:10px;color:var(--muted);margin-top:2px">' + (trend.direction === 'programmato' ? 'Voluto dal piano: più peso, meno serie' : 'Ultime 3 vs precedenti 3') + '</div>'
                     + '</div>';
                 cs.innerHTML += '<div class="card" style="padding:12px">'
                     + '<div style="font-size:12px;font-weight:600;margin-bottom:4px">Affaticamento</div>'
@@ -3055,7 +3088,7 @@
                             detHtml += '<div style="display:flex;gap:8px;flex-shrink:0">';
                             detHtml += '<span style="color:' + setColor + '">' + setsDone + '/' + setsPlanned + '</span>';  // Serie
                             var exUnit = unitOf(ex);  // 'sec' sulle tenute isometriche, 'rip' sugli esercizi dinamici
-                            if (weightUsed > 0 || weightPlanned > 0) detHtml += '<span style="color:' + weightColor + '">' + weightUsed + 'kg' + (!weightOk ? ' (' + weightPlanned + ')' : '') + '</span>';  // Peso (omesso a corpo libero)
+                            if (weightUsed > 0 || weightPlanned > 0) detHtml += '<span style="color:' + weightColor + '">' + kgText(weightUsed) + (!weightOk ? ' (' + kgText(weightPlanned) + ')' : '') + '</span>';  // Peso per manubrio (omesso a corpo libero)
                             detHtml += '<span style="color:' + repsColor + '">' + (repsDetail || repsActual) + exUnit + (!repsOk ? ' (target ' + repsPlanned + ')' : '') + '</span>';  // Rip o secondi per serie
                             var exTut = 0;  // Tempo sotto tensione dell'esercizio: l'equivalente del volume per le tenute
                             if (exUnit === 'sec') (exData.completedSets || []).forEach(function(sn) {
@@ -3066,11 +3099,85 @@
                         });
                         detHtml += isIsoSession(lastSess.session)
                             ? '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Isometria: si misura in secondi, non in kg — tensione totale ' + formatTUT(sessionTUT(lastSess)) + '</div>'
-                            : '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Volume: peso × serie × rip</div>';
+                            : '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Serie · peso per manubrio · rip per serie · volume (peso × rip)</div>';
                         detHtml += '</div>';
                         cs.innerHTML += detHtml;
                     }
                 }
+            }
+
+            function nextStepFor(ex) {  // Cosa serve per il prossimo gradino, con le stesse regole di computeNextPlan
+                const p = getPlanFor(ex);
+                if (p.deload) return 'Settimana di scarico: carichi ridotti, la progressione riparte dal ciclo dopo';
+                const unit = unitOf(ex), w = p.weight, target = p.targetReps;
+                const extra = planFor(ex.id, ex).extraSets || 0;
+                const up = w > 0 ? nextLoad(w, ex) : null;  // Prossimo carico montabile
+                const jump = up ? (up - w) / w : 0;
+                const loadUpText = () => `si sale a ${kgText(up)} e si torna a ${ex.sets} serie × ${ex.repMin} ${unit}`;
+                const need = Math.max(target, ex.repMax);  // Rip da fare su ogni serie perché scatti il gradino
+                const all = p.plannedSets === 2 ? 'su entrambe le serie' : `su tutte e ${p.plannedSets} le serie`;
+                let then;
+                if (target <= ex.repMax) {  // Dentro il range: al tetto scatta la prima leva disponibile
+                    if (up && jump <= SMALL_LOAD_JUMP) then = loadUpText();
+                    else if (extra < maxExtraSetsFor(ex)) then = up ? `+1 serie (${kgText(up)} sarebbe +${Math.round(jump * 100)}%, troppo per un passo solo)` : '+1 serie (dischi finiti)';
+                    else then = `il range si allunga oltre ${ex.repMax} ${unit}`;
+                } else if (target < repCeilingFor(ex)) {  // Range esteso: si allunga fino al tetto
+                    then = `il range si allunga verso ${repCeilingFor(ex)} ${unit}`;
+                } else if (up && jump <= MAX_LOAD_JUMP) {
+                    then = loadUpText();
+                } else {
+                    then = 'recuperi più corti, poi una variante più dura';
+                }
+                return `${need} ${unit} ${all} → ${then}`;
+            }
+
+            function renderLoadProgress() {  // Carichi: per ogni esercizio coi manubri peso attuale, cosa serve per salire, ultime sessioni e record
+                const box = document.getElementById('loadProgress'); if (!box) return;
+                const defs = getCurrentSessions();
+                const byDate = [...state.sessions].sort((a, b) => a.date.localeCompare(b.date));
+                const shortDate = ds => ds.slice(8) + '/' + ds.slice(5, 7);  // 2026-10-02 → 02/10
+                let h = '';
+                ['A', 'B'].forEach(key => {
+                    const exs = defs[key].exercises.filter(ex => ex.weight > 0);  // Solo esercizi con i manubri: le tenute hanno il loro riepilogo
+                    h += `<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:${h ? '16px' : '0'} 0 8px">${defs[key].name}</div>`;
+                    exs.forEach(ex => {
+                        const p = getPlanFor(ex), unit = unitOf(ex);
+                        const done = byDate.filter(s => s.exercises && s.exercises[ex.id] && (s.exercises[ex.id].completedSets || []).length);
+                        // Record: peso più alto usato, con le rip migliori fatte a quel peso
+                        let bestW = 0, bestR = 0;
+                        done.forEach(s => {
+                            const d = s.exercises[ex.id];
+                            const reps = d.completedSets.map(sn => (d.repsPerSet && d.repsPerSet[sn] !== undefined) ? d.repsPerSet[sn] : (d.actualReps || 0));
+                            const top = Math.max(0, ...reps);
+                            if (d.weight > bestW || (d.weight === bestW && top > bestR)) { bestW = d.weight; bestR = top; }
+                        });
+                        h += `<div class="card" style="padding:12px;margin-bottom:8px">
+                            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+                                <div style="font-size:13px;font-weight:600;min-width:0">${ex.name}</div>
+                                <div style="font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap">${kgText(p.weight)}</div>
+                            </div>
+                            <div style="font-size:12px;color:var(--muted);margin-top:2px">${loadShort(p.weight, ex)} · ${p.plannedSets} serie × ${p.targetReps} ${unit}${ex.load === 'single' ? ' per braccio' : ''}</div>
+                            <div style="font-size:12px;line-height:1.5;margin-top:8px;padding:6px 8px;background:rgba(200,255,0,0.06);border-radius:6px">🎯 ${nextStepFor(ex)}</div>`;
+                        if (done.length) {
+                            h += `<div style="display:grid;grid-template-columns:auto auto 1fr;gap:3px 12px;font-size:11px;color:var(--muted);margin-top:8px">`;
+                            let prevW = null;
+                            done.slice(-4).forEach((s, i, arr) => {  // Ultime 4 sessioni: data, peso, rip di ogni serie
+                                const d = s.exercises[ex.id];
+                                const reps = d.completedSets.slice().sort((a, b) => a - b).map(sn => (d.repsPerSet && d.repsPerSet[sn] !== undefined) ? d.repsPerSet[sn] : (d.actualReps || '–'));
+                                const prev = i > 0 ? arr[i - 1].exercises[ex.id].weight : (done.length > arr.length ? done[done.length - arr.length - 1].exercises[ex.id].weight : null);
+                                const upMark = prev !== null && d.weight > prev ? ' <span style="color:var(--accent)">↑</span>' : '';
+                                h += `<span>${shortDate(s.date)}</span><span style="color:var(--white)">${kgText(d.weight || 0)}${upMark}</span><span>${reps.join(' · ')} ${unit}</span>`;
+                            });
+                            h += `</div>`;
+                            if (bestW > 0) h += `<div style="font-size:11px;color:var(--muted);margin-top:6px">🏆 Record: ${kgText(bestW)} × ${bestR} ${unit}</div>`;
+                        } else {
+                            h += `<div style="font-size:11px;color:var(--muted);margin-top:8px">Ancora nessuna sessione registrata</div>`;
+                        }
+                        h += `</div>`;
+                    });
+                });
+                h += `<div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px">Pesi per manubrio. Quando il peso sale, le serie tornano a quelle base: più carico, volume ricostruito da capo.</div>`;
+                box.innerHTML = h;
             }
 
             function drawWeightChart() {  // Disegna il grafico dell'andamento peso corporeo su canvas, con griglia, assi ed etichette
@@ -3144,16 +3251,23 @@
             }
 
             async function addMeasurement() {  // Aggiunge una nuova misurazione corporea (peso, vita, petto)
-                const weight = await showPrompt('Peso corporeo (kg):', state.settings.weight || 75); if (!weight) return;
-                const waist = await showPrompt('Circonferenza vita (cm):', ''); const chest = await showPrompt('Circonferenza petto (cm):', '');
-                state.bodyMeasurements.push({ date: todayStr(), weight: parseFloat(weight), waist: waist ? parseFloat(waist) : null, chest: chest ? parseFloat(chest) : null });
-                if (parseFloat(weight) !== state.settings.weight) state.settings.weight = parseFloat(weight);
+                // Numeri con la virgola italiana: prima "82,5" diventava 82 e un testo non valido salvava NaN
+                const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isNaN(n) ? null : n; };
+                const weight = num(await showPrompt('Peso corporeo (kg):', String(state.settings.weight || 75).replace('.', ',')));
+                if (weight === null) return;
+                if (weight < 30 || weight > 250) { await showAlert('Peso non valido: scrivi un numero in kg, es. 78,5'); return; }
+                const waist = num(await showPrompt('Circonferenza vita (cm) — lascia vuoto se non la misuri:', ''));
+                const chest = num(await showPrompt('Circonferenza petto (cm) — lascia vuoto se non la misuri:', ''));
+                const entry = { date: todayStr(), weight, waist: waist > 0 ? waist : null, chest: chest > 0 ? chest : null };
+                const same = state.bodyMeasurements.findIndex(m => m.date === entry.date);  // Seconda misura nello stesso giorno: sostituisce la prima
+                if (same >= 0) state.bodyMeasurements[same] = entry; else state.bodyMeasurements.push(entry);
+                state.settings.weight = weight;
                 save(); renderProgress();
             }
 
             // ─────────── IMPOSTAZIONI: toggle suono, vibrazione, esportazione dati ───────────
             function renderSettings() {  // Renderizza la pagina impostazioni (peso, suono, vibrazione, obiettivo)
-                document.getElementById('settingWeight').textContent = (state.settings.weight || 75) + ' kg';
+                document.getElementById('settingWeight').textContent = kgText(state.settings.weight || 75);
                 document.getElementById('settingHandleWeight').textContent = kgText(state.settings.handleWeight || 0);
                 document.getElementById('settingPlates').innerHTML = platesText().split(' · ').map(t => `<span style="white-space:nowrap">${t}</span>`).join('<br>');  // Un tipo di disco per riga, senza a capo
                 const loadsList = l => (l.length > 8 ? l.slice(0, 6).join(', ') + ' … ' + l[l.length - 1] : l.join(', ')) + ' kg';  // Elenco corto dei pesi montabili
@@ -3167,6 +3281,13 @@
             function toggleSetting(key) { state.settings[key] = !state.settings[key]; save(); renderSettings(); }  // Alterna un'impostazione booleana
             function toggleObjective() { state.settings.objective = state.settings.objective === 'cut' ? 'bulk' : 'cut'; save(); renderSettings(); if (document.getElementById('page-nutrition').classList.contains('active')) renderNutrition(); }  // Alterna obiettivo cut/bulk
             
+            window.setBodyWeight = async function() {  // Peso corporeo: prima la riga c'era ma non si poteva toccare
+                const v = await showPrompt('Il tuo peso corporeo (kg):', String(state.settings.weight || 75).replace('.', ','));
+                if (v === null) return;
+                const n = parseFloat(String(v).replace(',', '.'));
+                if (isNaN(n) || n < 30 || n > 250) { await showAlert('Peso non valido: scrivi un numero in kg, es. 78,5'); return; }
+                state.settings.weight = n; save(); renderSettings();
+            };
             window.setHandleWeight = async function() {  // Peso del manubrio vuoto: base di tutti i carichi componibili
                 const v = await showPrompt('Quanto pesa un manubrio vuoto? (kg, solo asta e ghiere, senza dischi)', state.settings.handleWeight || 2);
                 if (v === null) return;
@@ -3303,7 +3424,7 @@
                 const reps = Object.keys(d.repsPerSet || {}).sort((a, b) => a - b).map(k => d.repsPerSet[k]);
                 let line = `- ${names[exId] || exId}: ${reps.length ? reps.join(' / ') + ' ' + u : 'nessuna serie registrata'}`;
                 if (d.plannedSets) line += ` (serie pianificate ${d.plannedSets}${d.repPlanned ? ', target ' + d.repPlanned + ' ' + u : ''})`;
-                if (u !== 'sec' && d.weight) line += `, carico ${d.weight} kg${d.weightPlanned && d.weightPlanned !== d.weight ? ' (pianificato ' + d.weightPlanned + ')' : ''}`;
+                if (u !== 'sec' && d.weight) line += `, carico ${loadShort(d.weight, def)}${d.weightPlanned && d.weightPlanned !== d.weight ? ' (pianificato ' + kgText(d.weightPlanned) + ')' : ''}`;
                 if (d.restSkips) line += `, riposi saltati ${d.restSkips}`;
                 if (d.restExtended) line += `, riposi allungati ${d.restExtended}`;
                 if (d.outcome) line += `, esito algoritmo: ${d.outcome}`;
@@ -3443,6 +3564,21 @@
             /** Secondi → m:ss, per leggere il tempo sotto tensione a colpo d'occhio */
             function formatTUT(sec) { return Math.floor(sec / 60) + ':' + String(Math.round(sec % 60)).padStart(2, '0'); }
 
+            /** Volume reale e pianificato di una sessione salvata (peso per manubrio × rip). Contano solo gli
+             *  esercizi presenti nella sessione: quelli aggiunti dopo non gonfiano il pianificato delle sessioni vecchie. */
+            function sessionVolume(s) {
+                const sd = getCurrentSessions()[s.session];
+                if (!sd) return { actual: 0, planned: 0 };
+                let actual = 0, planned = 0;
+                sd.exercises.forEach(ex => {
+                    const d = s.exercises && s.exercises[ex.id];
+                    if (!d) return;
+                    actual += exActualVolume(d, ex);  // Peso × somma delle rip fatte
+                    planned += (d.weightPlanned || ex.weight) * (d.plannedSets || ex.sets) * (d.repPlanned || ex.repMid);  // Peso × serie × target
+                });
+                return { actual, planned };
+            }
+
             /** Trend volume: confronta ultime 3 sessioni con le 3 precedenti */
             function getVolumeTrend() {
                 // Solo sessioni con carico: l'isometria a corpo libero ha volume 0 in kg e farebbe leggere un calo inesistente
@@ -3450,19 +3586,13 @@
                 if (all.length < 4) return { direction: 'stabile', pct: 0 };
                 const recent = all.slice(-3);
                 const older = all.slice(-6, -3);
-                function calcVol(arr) {  // Calcola volume medio di un gruppo di sessioni
-                    return arr.reduce((acc, s) => {
-                        const sd = getCurrentSessions()[s.session];
-                        if (!sd) return acc;
-                        return acc + sd.exercises.reduce((a, ex) => {
-                            const d = s.exercises?.[ex.id];
-                            return a + exActualVolume(d, ex);
-                        }, 0);
-                    }, 0) / Math.max(arr.length, 1);
-                }
-                const r = calcVol(recent), o = calcVol(older);
-                const pct = o > 0 ? Math.round(((r - o) / o) * 100) : 0;
-                return { direction: pct > 5 ? 'crescita' : pct < -5 ? 'calo' : 'stabile', pct };
+                const avg = arr => arr.reduce((a, s) => { const v = sessionVolume(s); a.actual += v.actual / arr.length; a.planned += v.planned / arr.length; return a; }, { actual: 0, planned: 0 });
+                const r = avg(recent), o = avg(older);
+                const pct = o.actual > 0 ? Math.round(((r.actual - o.actual) / o.actual) * 100) : 0;
+                // Quando il peso sale le serie tornano a quelle base e il volume scende per scelta: se nelle ultime sessioni
+                // fai quello che il piano chiede non è un calo da recupero, e non deve far scattare consigli di scarico
+                const onPlan = r.planned > 0 && r.actual / r.planned >= 0.9;
+                return { direction: pct > 5 ? 'crescita' : pct < -5 ? (onPlan ? 'programmato' : 'calo') : 'stabile', pct };
             }
 
             /** Raccomandazione deload intelligente */
@@ -3510,6 +3640,9 @@
                 document.getElementById('toggleSound').parentElement.addEventListener('click', () => toggleSetting('sound'));
                 document.getElementById('toggleVibration').parentElement.addEventListener('click', () => toggleSetting('vibration'));
                 document.getElementById('objectiveValue').parentElement.addEventListener('click', toggleObjective);
+                // Acqua: collegato una volta sola. Prima ogni apertura della Dieta aggiungeva un ascoltatore { once }:
+                // il secondo tocco non faceva nulla, e dopo aver spuntato dei pasti un tocco aggiungeva più bicchieri
+                document.getElementById('addWaterBtn').addEventListener('click', addWater);
                 // Valutazione AI con Claude: dopo la sessione e dalla pagina Progressi
                 document.getElementById('aiSessionBtn').addEventListener('click', shareLastSession);
                 document.getElementById('aiCycleBtn').addEventListener('click', shareCycle);
