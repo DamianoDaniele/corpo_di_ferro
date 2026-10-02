@@ -372,6 +372,88 @@
         .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--font); }
         .modal-btn-primary { background: var(--accent); color: var(--black); }
         .modal-btn-secondary { background: var(--g2); color: var(--white); }
+        /* ─── Cibo: diario alimentare, giudizio a semaforo, pasti salvati, ricerca e scanner ─── */
+        .fd-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+        .fd-daynav { display: flex; align-items: center; gap: 4px; }
+        .fd-nav-btn { min-width: 44px; min-height: 44px; border: none; border-radius: 10px; background: var(--g1); color: var(--white); font-size: 22px; cursor: pointer; font-family: var(--font); touch-action: manipulation; }
+        .fd-nav-btn:disabled { opacity: 0.3; }
+        .fd-daylabel { font-size: 13px; color: var(--muted); min-width: 64px; text-align: center; }
+        .fd-banner { display: block; width: 100%; text-align: left; background: rgba(91, 200, 255, 0.1); border: 1px solid rgba(91, 200, 255, 0.35); color: var(--white); border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.5; margin-bottom: 12px; cursor: pointer; font-family: var(--font); }
+        .fd-card { background: var(--g1); border: 1px solid var(--g2); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+        .fd-card-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .fd-badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 99px; background: var(--g2); color: var(--muted); white-space: nowrap; }
+        .fd-muted { font-size: 12px; color: var(--muted); line-height: 1.5; font-weight: 400; }
+        .fd-verdict { border-width: 1px; }
+        .fd-v-ok { border-color: rgba(80, 200, 120, 0.45); }
+        .fd-v-warn { border-color: rgba(255, 179, 80, 0.45); }
+        .fd-v-bad { border-color: rgba(255, 61, 31, 0.5); }
+        .fd-mrow { margin-bottom: 12px; }
+        .fd-mline { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 6px; }
+        .fd-mlabel { flex: 1; min-width: 0; }
+        .fd-mval { font-weight: 600; white-space: nowrap; }
+        .fd-mhint { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+        .fd-track { height: 6px; background: var(--g2); border-radius: 99px; overflow: hidden; }
+        .fd-fill { height: 100%; border-radius: 99px; transition: width 0.3s; }
+        .fd-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+        .fd-ok { background: #50C878; } .fd-warn { background: #FFB350; } .fd-bad { background: var(--red); } .fd-open { background: var(--blue); }
+        .fd-tips { border-top: 1px solid var(--g2); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .fd-tip { font-size: 13px; line-height: 1.5; color: var(--white); }
+        .fd-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .fd-chip { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 44px; max-width: 100%; background: var(--g2); border: 1px solid var(--g3); border-radius: 10px; padding: 8px 12px; color: var(--white); cursor: pointer; font-family: var(--font); text-align: left; touch-action: manipulation; }
+        .fd-chip:active { border-color: var(--accent); }
+        .fd-chip-name { font-size: 13px; font-weight: 600; }
+        .fd-chip-sub { font-size: 11px; color: var(--muted); }
+        .fd-link { background: transparent; border: none; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); padding: 8px 4px; min-height: 36px; }
+        .fd-red { color: var(--red); }
+        .fd-item, .fd-result { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; background: transparent; border: none; border-top: 1px solid var(--g2); padding: 10px 0; color: var(--white); cursor: pointer; font-family: var(--font); min-height: 44px; }
+        .fd-item-name { font-size: 14px; overflow-wrap: anywhere; }
+        .fd-item-meta { font-size: 12px; color: var(--muted); }
+        .fd-slot-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+        .fd-add { background: rgba(200, 255, 0, 0.12); border: 1px solid rgba(200, 255, 0, 0.4); color: var(--accent); border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font); min-height: 44px; }
+        .fd-wrow { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 6px 0; border-top: 1px solid var(--g2); }
+        .fd-wday { flex: 1; min-width: 0; }
+        .fd-wval { color: var(--muted); white-space: nowrap; }
+        .fd-set { display: flex; justify-content: space-between; align-items: center; width: 100%; background: transparent; border: none; border-top: 1px solid var(--g2); padding: 12px 0; color: var(--white); font-size: 14px; cursor: pointer; font-family: var(--font); min-height: 44px; }
+        .fd-set b { color: var(--accent); font-weight: 600; font-size: 13px; }
+        .fd-source { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 10px; }
+        /* Pannello dal basso per aggiungere e modificare */
+        .fd-sheet { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 450; display: none; align-items: flex-end; }
+        .fd-sheet.active { display: flex; }
+        .fd-sheet-box { background: var(--bg); border-top: 1px solid var(--g3); border-radius: 18px 18px 0 0; width: 100%; max-height: 92dvh; display: flex; flex-direction: column; }
+        .fd-sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--g2); flex-shrink: 0; }
+        .fd-sheet-title { font-size: 15px; font-weight: 700; }
+        .fd-close { min-width: 44px; min-height: 44px; background: var(--g2); border: none; border-radius: 10px; color: var(--white); font-size: 18px; cursor: pointer; }
+        .fd-sheet-body { overflow-y: auto; padding: 14px 16px calc(20px + env(safe-area-inset-bottom, 0px)); overscroll-behavior: contain; }
+        .fd-input { width: 100%; padding: 12px 14px; background: var(--black); border: 1px solid var(--g3); border-radius: 10px; color: var(--white); font-size: 16px; font-family: var(--font); outline: none; margin-bottom: 10px; }
+        .fd-input:focus { border-color: var(--accent); }
+        .fd-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+        .fd-pill { display: inline-flex; flex-direction: column; align-items: center; background: var(--g1); border: 1px solid var(--g3); color: var(--white); border-radius: 99px; padding: 8px 12px; font-size: 13px; cursor: pointer; font-family: var(--font); min-height: 40px; justify-content: center; }
+        .fd-pill small { font-size: 10px; color: var(--muted); }
+        .fd-pill.on { background: rgba(200, 255, 0, 0.15); border-color: var(--accent); color: var(--accent); }
+        .fd-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+        .fd-act { background: var(--g1); border: 1px solid var(--g3); color: var(--white); border-radius: 10px; padding: 10px 6px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); min-height: 44px; }
+        .fd-wide { width: 100%; margin: 12px 0 4px; }
+        .fd-sub { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 14px 0 4px; }
+        .fd-food-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; overflow-wrap: anywhere; }
+        .fd-preview { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; font-size: 13px; color: var(--muted); margin: 4px 0 14px; }
+        .fd-preview b { font-size: 18px; color: var(--accent); }
+        .fd-danger { width: 100%; margin-top: 10px; background: transparent; border: 1px solid var(--red); color: var(--red); border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--font); }
+        .fd-field { display: block; }
+        .fd-field span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+        .fd-sv-item { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--g2); padding: 6px 0; }
+        .fd-sv-item .fd-item-name { flex: 1; min-width: 0; font-size: 13px; }
+        .fd-g-input { width: 76px; margin: 0; padding: 8px; text-align: right; flex-shrink: 0; }
+        .fd-x { min-width: 36px; min-height: 36px; background: var(--g2); border: none; border-radius: 8px; color: var(--muted); cursor: pointer; flex-shrink: 0; }
+        .fd-saved { background: var(--g1); }
+        /* Scanner a schermo intero */
+        .fd-scanner { position: fixed; inset: 0; background: #000; z-index: 460; display: none; flex-direction: column; }
+        .fd-scanner.active { display: flex; }
+        .fd-scanner video { flex: 1; width: 100%; min-height: 0; object-fit: cover; }
+        .fd-scan-frame { position: absolute; left: 10%; right: 10%; top: 35%; height: 18%; border: 2px solid var(--accent); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35); pointer-events: none; }
+        .fd-scan-bar { display: flex; gap: 10px; padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--black); }
+        .fd-scan-bar button { flex: 1; min-height: 48px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font); }
+        .fd-scan-hint { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; right: 16px; text-align: center; color: var(--white); font-size: 14px; text-shadow: 0 1px 4px #000; }
+        .fd-toast { position: fixed; left: 16px; right: 16px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); background: var(--g2); border: 1px solid var(--accent); color: var(--white); border-radius: 12px; padding: 12px 14px; font-size: 13px; text-align: center; z-index: 480; }
     </style>
 </head>
 <body>
@@ -460,6 +542,10 @@
             </div>
 
             <div id="mealsList"></div>
+        </div>
+
+        <div class="page" id="page-food">
+            <!-- ─── CIBO: diario alimentare (renderizzato da JS) ─── -->
         </div>
 
         <div class="page" id="page-progress">
@@ -580,6 +666,7 @@
         <button class="nav-btn active" data-page="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
         <button class="nav-btn" data-page="workout"><span class="nav-icon">💪</span><span class="nav-label">Workout</span></button>
         <button class="nav-btn" data-page="nutrition"><span class="nav-icon">🥗</span><span class="nav-label">Dieta</span></button>
+        <button class="nav-btn" data-page="food"><span class="nav-icon">🍽️</span><span class="nav-label">Cibo</span></button>
         <button class="nav-btn" data-page="progress"><span class="nav-icon">📈</span><span class="nav-label">Progressi</span></button>
         <button class="nav-btn" data-page="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Impo.</span></button>
     </div>
@@ -613,6 +700,28 @@
         <button class="ai-btn" id="aiSessionBtn">🤖 Chiedi a Claude una valutazione</button>
         <button class="ai-btn" id="aiCycleBtn" style="display:none">📊 Valutazione del ciclo con Claude</button>
         <button class="congrats-btn" id="congratsCloseBtn">Continua 💪</button>
+    </div>
+
+    <!-- ─── Cibo: pannello per aggiungere e modificare alimenti ─── -->
+    <div class="fd-sheet" id="fdSheet">
+        <div class="fd-sheet-box" role="dialog" aria-modal="true" aria-labelledby="fdSheetTitle">
+            <div class="fd-sheet-head">
+                <div class="fd-sheet-title" id="fdSheetTitle">Aggiungi</div>
+                <button class="fd-close" id="fdSheetClose" aria-label="Chiudi">✕</button>
+            </div>
+            <div class="fd-sheet-body" id="fdSheetBody"></div>
+        </div>
+    </div>
+
+    <!-- ─── Cibo: scanner del codice a barre ─── -->
+    <div class="fd-scanner" id="fdScanner">
+        <video id="fdVideo" playsinline muted></video>
+        <div class="fd-scan-frame"></div>
+        <div class="fd-scan-hint">Inquadra il codice a barre nel riquadro</div>
+        <div class="fd-scan-bar">
+            <button id="fdScanType" style="background:var(--g2);color:var(--white)">🔢 Scrivi il codice</button>
+            <button id="fdScanClose" style="background:var(--accent);color:var(--black)">Chiudi</button>
+        </div>
     </div>
 
     <!-- ─── Modal custom (alert/confirm/prompt) ─── -->
@@ -744,6 +853,101 @@
                 { time: '20:00', name: 'Cena', foods: '200g petto di pollo/tacchino\nOPPURE 4 uova strapazzate con friarielli\nOPPURE 200g lenticchie/ceci cotti\nVerdure grigliate + 1 cucchiaio olio EVO + 40g pane integrale', p: 40, c: 20, f: 20, kcal: 417 }
             ];
 
+            // ─── Cibo: momenti della giornata e database interno degli alimenti ───
+            // Fasce del diario alimentare (scheda Cibo). Separate dai MEALS del piano Dieta, che restano invariati.
+            const FOOD_SLOTS = [
+                { k: 'colazione', n: 'Colazione', i: '☕' },
+                { k: 'pranzo', n: 'Pranzo', i: '🥪' },
+                { k: 'spuntino', n: 'Spuntino', i: '🍎' },
+                { k: 'cena', n: 'Cena', i: '🍝' }
+            ];
+            // Alimenti base, valori per 100 g di parte edibile.
+            // Fonte: tabelle di composizione CREA (alimentinutrizione.it, ed. 2019); il codice CREA è nel campo fonte.
+            // Il Mottino viene dall'etichetta Motta (EAN 8034097877209). Le porzioni seguono gli standard LARN/SINU
+            // (pane 50 g, pasta 80 g, frutta 150 g, carne 100 g, salumi 50 g, uovo 50 g, olio 10 g) dove esistono.
+            // Formato compatto: [chiave, nome, fonte, kcal, proteine, carboidrati, grassi, porzioni [[etichetta, grammi]], sinonimi, codice a barre]
+            const FOOD_DB_RAW = [
+                ['pane', 'Pane bianco', 'CREA 000530', 268, 8.1, 59.5, 0.5, [['Fetta', 30], ['Panino', 100], ['Panino grande', 150]], 'pagnotta filone casereccio'],
+                ['pane_rosetta', 'Pane, rosetta', 'CREA 000560', 275, 9.0, 57.6, 1.9, [['Piccola', 50], ['Media', 70], ['Grande', 100]], 'panino michetta tartaruga'],
+                ['pane_integrale', 'Pane integrale', 'CREA 000550', 224, 8.5, 44.1, 1.3, [['Fetta', 30], ['Panino', 100], ['Panino grande', 150]], ''],
+                ['pasta', 'Pasta di semola (cruda)', 'CREA 000800', 341, 13.5, 72.7, 1.2, [['Piccola', 60], ['Media', 80], ['Grande', 110]], 'spaghetti penne fusilli rigatoni'],
+                ['pasta_cotta', 'Pasta di semola (cotta)', 'CREA 000805', 175, 6.9, 37.3, 0.6, [['Piatto piccolo', 120], ['Piatto medio', 160], ['Piatto grande', 220]], 'spaghetti penne fusilli rigatoni'],
+                ['riso', 'Riso (crudo)', 'CREA 000100', 334, 6.7, 80.4, 0.4, [['Piccola', 60], ['Media', 80], ['Grande', 110]], ''],
+                ['riso_cotto', 'Riso (cotto)', 'CREA 000105', 100, 2.0, 24.2, 0.1, [['Piatto piccolo', 200], ['Piatto medio', 270], ['Piatto grande', 370]], ''],
+                ['fesa_cotta', 'Fesa di tacchino (cotta, tipo affettato)', 'CREA 106856', 131, 29.6, 0, 1.4, [['Poca', 40], ['Media', 60], ['Tanta', 100]], 'affettato tacchino'],
+                ['tacchino_crudo', 'Fesa di tacchino (cruda)', 'CREA 106850', 107, 24.0, 0, 1.2, [['Piccola', 80], ['Media', 100], ['Grande', 150]], 'petto tacchino'],
+                ['pollo', 'Petto di pollo (crudo)', 'CREA 106500', 100, 23.3, 0, 0.8, [['Piccola', 80], ['Media', 100], ['Grande', 150]], 'pollo'],
+                ['manzo', 'Manzo, fesa (cruda)', 'CREA 101160', 103, 21.8, 0, 1.8, [['Piccola', 80], ['Media', 100], ['Grande', 150]], 'carne bovino vitellone fettina'],
+                ['tonno_olio', 'Tonno sott\'olio (sgocciolato)', 'CREA 123610', 192, 25.2, 0, 10.1, [['1 scatoletta da 80 g', 52], ['2 scatolette', 104]], 'scatoletta'],
+                ['tonno_nat', 'Tonno al naturale (sgocciolato)', 'CREA 123550', 103, 25.1, 0, 0.3, [['1 scatoletta da 80 g', 52], ['2 scatolette', 104]], 'scatoletta salamoia'],
+                ['merluzzo', 'Merluzzo o nasello', 'CREA 121410', 71, 17.0, 0, 0.3, [['Piccola', 100], ['Media', 150], ['Grande', 200]], 'pesce'],
+                ['salmone', 'Salmone', 'CREA 122400', 185, 18.4, 1.0, 12.0, [['Piccola', 100], ['Media', 150], ['Grande', 200]], 'pesce'],
+                ['mozzarella', 'Mozzarella di vacca', 'CREA 164820', 253, 18.7, 0.7, 19.5, [['Poca', 40], ['Mezza', 60], ['Intera', 125]], 'fiordilatte'],
+                ['ricotta', 'Ricotta di vacca', 'CREA 166820', 146, 8.8, 3.5, 10.9, [['Poca', 50], ['Media', 100], ['Tanta', 150]], ''],
+                ['parmigiano', 'Parmigiano Reggiano', 'CREA 166000', 397, 32.4, 0, 29.7, [['1 cucchiaio grattugiato', 5], ['Sulla pasta', 10], ['Scaglie', 30]], 'grana formaggio'],
+                ['uova', 'Uova di gallina', 'CREA 181100', 128, 12.4, 0, 8.7, [['1 uovo', 50], ['2 uova', 100], ['3 uova', 150]], 'uovo frittata'],
+                ['cotto', 'Prosciutto cotto', 'CREA 110400', 138, 15.7, 1.7, 7.6, [['Poco', 30], ['Medio', 50], ['Tanto', 80]], 'affettato'],
+                ['crudo', 'Prosciutto crudo', 'CREA 110510', 269, 25.9, 0.3, 18.3, [['Poco', 30], ['Medio', 50], ['Tanto', 80]], 'affettato parma'],
+                ['bresaola', 'Bresaola', 'CREA 110020', 152, 33.1, 0.4, 2.0, [['Poca', 30], ['Media', 50], ['Tanta', 80]], 'affettato'],
+                ['latte', 'Latte parzialmente scremato', 'CREA 135020', 46, 3.5, 5.0, 1.5, [['Mezzo bicchiere', 100], ['Bicchiere', 200], ['Tazza', 250]], ''],
+                ['yogurt', 'Yogurt parzialmente scremato', 'CREA 151000', 43, 3.4, 3.8, 1.7, [['1 vasetto', 125], ['2 vasetti', 250]], ''],
+                ['olio', 'Olio extravergine di oliva', 'CREA 009210', 899, 0, 0, 99.9, [['1 cucchiaino', 5], ['1 cucchiaio', 10], ['2 cucchiai', 20]], 'evo condimento'],
+                ['mela', 'Mela', 'CREA 007120', 44, 0.2, 10.0, 0, [['Piccola', 120], ['Media', 150], ['Grande', 200]], 'frutta'],
+                ['banana', 'Banana', 'CREA 007510', 76, 1.2, 17.4, 0.3, [['Piccola', 100], ['Media', 120], ['Grande', 150]], 'frutta'],
+                ['arancia', 'Arancia', 'CREA 008000', 37, 0.7, 7.8, 0.2, [['Piccola', 120], ['Media', 150], ['Grande', 200]], 'frutta'],
+                ['patate', 'Patate (crude)', 'CREA 006500', 72, 2.0, 16.0, 0.1, [['Piccola', 150], ['Media', 200], ['Grande', 300]], ''],
+                ['pomodori', 'Pomodori da insalata', 'CREA 006600', 19, 1.2, 2.8, 0.2, [['Piccola', 100], ['Media', 200], ['Grande', 300]], 'verdura insalata'],
+                ['lattuga', 'Lattuga', 'CREA 005410', 22, 1.8, 2.2, 0.4, [['Piccola', 50], ['Media', 100], ['Grande', 200]], 'insalata verdura'],
+                ['zucchine', 'Zucchine (crude)', 'CREA 005730', 16, 1.5, 1.7, 0.1, [['Piccola', 100], ['Media', 200], ['Grande', 300]], 'verdura'],
+                ['friarielli', 'Friarielli / broccoletti di rapa (crudi)', 'CREA 005090', 28, 2.9, 2.0, 0.3, [['Piccola', 100], ['Media', 200], ['Grande', 300]], 'cime di rapa verdura'],
+                ['ceci', 'Ceci (secchi)', 'CREA 004000', 343, 20.9, 46.9, 6.3, [['Piccola', 30], ['Media', 50], ['Grande', 70]], 'legumi'],
+                ['lenticchie', 'Lenticchie (secche)', 'CREA 004500', 319, 22.7, 51.1, 1.0, [['Piccola', 30], ['Media', 50], ['Grande', 70]], 'legumi'],
+                ['fagioli', 'Fagioli (secchi)', 'CREA 004100', 326, 23.6, 47.5, 2.0, [['Piccola', 30], ['Media', 50], ['Grande', 70]], 'legumi'],
+                ['pizza', 'Pizza margherita', 'CREA 000720', 255, 12.1, 35.5, 7.6, [['Una fetta', 100], ['Mezza pizza', 175], ['Pizza intera', 350]], 'pomodoro mozzarella'],
+                ['fette_biscottate', 'Fette biscottate', 'CREA 001500', 387, 11.3, 75.0, 6.0, [['1 fetta', 9], ['2 fette', 18], ['4 fette', 36]], 'colazione'],
+                ['avena', 'Fiocchi d\'avena', 'CREA 003030', 367, 8.0, 66.8, 7.5, [['Piccola', 30], ['Media', 40], ['Grande', 70]], 'colazione'],
+                ['cornetto', 'Cornetto', 'CREA 002500', 403, 7.2, 54.7, 18.3, [['1 cornetto', 50]], 'brioche colazione bar'],
+                ['biscotti', 'Biscotti frollini', 'CREA 000900', 426, 7.2, 71.7, 13.8, [['1 biscotto', 10], ['3 biscotti', 30], ['5 biscotti', 50]], 'colazione'],
+                ['gelato', 'Gelato fior di latte', 'CREA 206040', 218, 4.2, 20.7, 13.7, [['Coppetta piccola', 80], ['Coppetta media', 120], ['Coppetta grande', 180]], 'dolce'],
+                ['miele', 'Miele', 'CREA 210010', 304, 0.6, 80.3, 0, [['1 cucchiaino', 7], ['1 cucchiaio', 20]], 'dolce'],
+                ['mottino', 'Mottino Motta', 'Etichetta Motta', 387, 7.6, 52, 16, [['1 Mottino', 45], ['2 Mottini', 90]], 'merendina buondì', '8034097877209']
+            ];
+            // Converte il formato compatto in oggetti alimento con riferimento univoco 'db:chiave'
+            const FOOD_DB = FOOD_DB_RAW.map(r => ({
+                ref: 'db:' + r[0], key: r[0], name: r[1], src: r[2],
+                per: { kcal: r[3], p: r[4], c: r[5], f: r[6] },
+                u: r[7], alias: r[8] || '', code: r[9] || ''
+            }));
+            // Valori iniziali del diario alimentare (anche per migrazione e import di backup senza questo campo)
+            function foodDefaults() {
+                return {
+                    days: {},  // Diario: 'YYYY-MM-DD' → elenco alimenti mangiati
+                    saved: defaultSavedMeals(),  // Pasti salvati da aggiungere con un tocco
+                    custom: [],  // Alimenti creati a mano dall'etichetta
+                    products: {},  // Prodotti trovati su Open Food Facts, per codice a barre (funzionano anche offline)
+                    prefs: { heightCm: null, age: 43, proteinPerKg: 1.8, deficitPct: 10 }  // Dati per calcolare i target
+                };
+            }
+            function defaultSavedMeals() {  // Pranzi del lavoro (lun-gio): panino + Mottino + mela. Grammi indicativi, modificabili
+                const it = (key, g) => { const f = FOOD_DB.find(x => x.key === key); return { ref: f.ref, name: f.name, per: { ...f.per }, g }; };
+                return [
+                    { id: 'sv1', name: 'Pranzo lavoro · fesa', slot: 'pranzo', items: [it('pane', 100), it('fesa_cotta', 60), it('mottino', 45), it('mela', 150)] },
+                    { id: 'sv2', name: 'Pranzo lavoro · tonno', slot: 'pranzo', items: [it('pane', 100), it('tonno_olio', 52), it('mottino', 45), it('mela', 150)] },
+                    { id: 'sv3', name: 'Pranzo lavoro · mozzarella e tonno', slot: 'pranzo', items: [it('pane', 100), it('mozzarella', 60), it('tonno_olio', 52), it('mottino', 45), it('mela', 150)] }
+                ];
+            }
+            function normalizeFoodLog(fl) {  // Completa un diario salvato o importato con i campi mancanti
+                const d = foodDefaults();
+                if (!fl || typeof fl !== 'object') return d;
+                return {
+                    days: (fl.days && typeof fl.days === 'object') ? fl.days : {},
+                    saved: Array.isArray(fl.saved) ? fl.saved : d.saved,
+                    custom: Array.isArray(fl.custom) ? fl.custom : [],
+                    products: (fl.products && typeof fl.products === 'object') ? fl.products : {},
+                    prefs: { ...d.prefs, ...(fl.prefs || {}) }
+                };
+            }
+
             // Fasi del ciclo di 9 settimane (poi riparte). I carichi sono quelli componibili con i dischi reali:
             // la progressione passa da ripetizioni → carico (se il salto è piccolo) → serie → estensione del range
             // → carico (salto grande) → densità (recuperi più corti) → varianti.
@@ -787,6 +991,7 @@
             if (!state.settings.plates || typeof state.settings.plates !== 'object') state.settings.plates = { 5: 8, 2: 3, 1: 4 };  // Dischi reali: peso → quantità
             delete state.settings.maxWeight;  // Il vecchio tetto fisso di 10kg è sostituito dai carichi componibili con i dischi
             if (state.forceDeload === undefined) state.forceDeload = false;  // Scarico attivato a mano
+            state.foodLog = normalizeFoodLog(state.foodLog);  // Diario della scheda Cibo (campi mancanti → valori iniziali)
             // Piani salvati con motori precedenti: azzera le leve rimosse (i pesi si agganciano ai carichi reali in getPlanFor)
             Object.keys(state.plan).forEach(id => {
                 const p = state.plan[id];
@@ -956,6 +1161,7 @@
                 if (page === 'home') renderHome();
                 if (page === 'workout') renderWorkout();
                 if (page === 'nutrition') renderNutrition();
+                if (page === 'food') renderFood();
                 if (page === 'progress') renderProgress();
                 if (page === 'settings') renderSettings();
             }
@@ -1846,6 +2052,620 @@
                 state.water.count = state.water.count === n ? n - 1 : n; save(); renderWater();
             }
 
+            // ─────────── CIBO: diario alimentare, ricerca, scanner, giudizio giornaliero e settimanale ───────────
+            // Scheda separata dalla Dieta: il piano pasti esistente resta com'è. Dati in state.foodLog, inclusi nel backup.
+            let foodView = todayStr();  // Giorno mostrato nella scheda Cibo (si può tornare ai giorni passati)
+            let foodSheet = { slot: 'pranzo', food: null, editId: null, from: 'search' };  // Stato del pannello di inserimento
+            let fdStream = null, fdScanTimer = null;  // Fotocamera e ciclo di scansione del codice a barre
+            const OFF_BASE = 'https://world.openfoodfacts.org';  // Open Food Facts: lettura prodotto per codice a barre
+
+            function fdEsc(s) {  // Protegge l'HTML dai nomi presi da internet o scritti a mano
+                return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+            }
+            function fdNum(v) { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isNaN(n) ? null : n; }  // Numero da testo, null se non valido
+            function fdFmt(n) { return Math.round(n || 0).toLocaleString('it-IT'); }  // 2200 → "2.200"
+            function fdNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }  // Minuscolo e senza accenti, per la ricerca
+            function fdId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }  // Identificativo breve per voci e pasti
+            function fdDayItems(ds) { return state.foodLog.days[ds] || []; }  // Alimenti registrati in un giorno
+            function fdMacros(it) {  // Valori di una voce del diario, calcolati dai valori per 100 g e dai grammi
+                const k = (it.g || 0) / 100;
+                return { kcal: it.per.kcal * k, p: it.per.p * k, c: it.per.c * k, f: it.per.f * k };
+            }
+            function fdSum(items) {  // Somma dei valori di più voci
+                return items.reduce((t, it) => { const m = fdMacros(it); t.kcal += m.kcal; t.p += m.p; t.c += m.c; t.f += m.f; return t; }, { kcal: 0, p: 0, c: 0, f: 0 });
+            }
+            function fdWeight() {  // Peso usato per i target: ultima misura registrata, altrimenti quello delle impostazioni
+                const m = [...(state.bodyMeasurements || [])].filter(x => x.weight > 0).sort((a, b) => b.date.localeCompare(a.date))[0];
+                return m ? m.weight : (parseFloat(state.settings.weight) || 75);
+            }
+            function fdCap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }  // Prima lettera maiuscola
+            function fdShortDate(ds) {  // "ven 2 ott"
+                return parseDate(ds).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+            }
+            function fdDefaultSlot() {  // Momento della giornata proposto in base all'ora
+                const h = new Date().getHours();
+                return h < 11 ? 'colazione' : h < 15 ? 'pranzo' : h < 18 ? 'spuntino' : 'cena';
+            }
+
+            // ─── Alimenti: ricerca unificata tra tabella CREA, prodotti scansionati e alimenti creati a mano ───
+            function fdFindFood(ref) {  // Trova un alimento dal suo riferimento ('db:…', 'off:…', 'my:…')
+                if (!ref) return null;
+                if (ref.startsWith('db:')) return FOOD_DB.find(f => f.ref === ref) || null;
+                if (ref.startsWith('off:')) return state.foodLog.products[ref.slice(4)] || null;
+                if (ref.startsWith('my:')) return state.foodLog.custom.find(f => f.ref === ref) || null;
+                return null;
+            }
+            function fdFoodFromItem(it) {  // Ricostruisce l'alimento da una voce salvata (se l'originale non c'è più)
+                return fdFindFood(it.ref) || { ref: it.ref || '', name: it.name, src: 'Salvato', per: { ...it.per }, u: [] };
+            }
+            function fdAllFoods() {  // Tutti gli alimenti cercabili: prima i tuoi, poi quelli scansionati, poi la tabella
+                return [...state.foodLog.custom, ...Object.values(state.foodLog.products), ...FOOD_DB];
+            }
+            function fdSearch(q) {  // Ogni parola cercata deve comparire nel nome, nella marca o nei sinonimi
+                const words = fdNorm(q).split(/\s+/).filter(Boolean);
+                if (!words.length) return [];
+                return fdAllFoods().filter(f => {
+                    const hay = fdNorm([f.name, f.brand, f.alias].join(' '));
+                    return words.every(w => hay.includes(w));
+                }).slice(0, 40);
+            }
+            function fdRecentFoods() {  // Alimenti usati negli ultimi 21 giorni, dal più frequente
+                const cutoff = dateStr(new Date(Date.now() - 21 * 86400000));
+                const count = {};  // ref → { food, n }
+                Object.keys(state.foodLog.days).filter(ds => ds >= cutoff).forEach(ds => {
+                    fdDayItems(ds).forEach(it => {
+                        const key = it.ref || it.name;
+                        if (!count[key]) count[key] = { food: fdFoodFromItem(it), n: 0 };
+                        count[key].n++;
+                    });
+                });
+                return Object.values(count).sort((a, b) => b.n - a.n).slice(0, 12).map(x => x.food);
+            }
+
+            // ─── Target: fabbisogno stimato e macro per giorni con e senza allenamento ───
+            function fdDayType(ds) {  // Allenamento se il piano settimanale lo prevede o se quel giorno c'è una sessione registrata
+                const planned = WEEK_PLAN[parseDate(ds).getDay()].type === 'workout';
+                const done = state.sessions.some(s => s.date === ds);
+                return (planned || done) ? 'train' : 'rest';
+            }
+            function foodTargets(ds) {  // Target del giorno
+                const pr = state.foodLog.prefs;
+                const w = fdWeight();
+                const h = fdNum(pr.heightCm) || 175;  // Senza altezza si usa una stima e la pagina lo segnala
+                const age = fdNum(pr.age) || 43;
+                const bmr = 10 * w + 6.25 * h - 5 * age + 5;  // Metabolismo basale, equazione di Mifflin-St Jeor (uomo)
+                const type = fdDayType(ds);
+                const factor = type === 'train' ? 1.55 : 1.4;  // Livello di attività: allenamento con i pesi / lavoro, viaggio e camminate
+                const kcal = Math.round(bmr * factor * (1 - (fdNum(pr.deficitPct) || 0) / 100) / 10) * 10;  // Leggero deficit per la ricomposizione
+                const p = Math.round((fdNum(pr.proteinPerKg) || 1.8) * w);  // Obiettivo proteine
+                const pMin = Math.round(1.6 * w);  // Soglia minima: oltre ~1,6 g/kg non si osservano guadagni di massa magra in più
+                const f = Math.round(kcal * 0.30 / 9);  // Grassi al 30% delle calorie
+                const fMin = Math.round(kcal * 0.20 / 9), fMax = Math.round(kcal * 0.35 / 9);  // Intervallo di riferimento 20-35%
+                const c = Math.max(0, Math.round((kcal - p * 4 - f * 9) / 4));  // Carboidrati: il resto delle calorie
+                return { kcal, p, pMin, c, f, fMin, fMax, type, w, heightSet: !!fdNum(pr.heightCm) };
+            }
+
+            // ─── Giudizio: semaforo per valore, consigli pratici, media della settimana ───
+            const FD_RANK = { ok: 0, open: 1, warn: 2, bad: 3 };  // Gravità crescente
+            function fdWorst(list) { return list.reduce((a, b) => FD_RANK[b] > FD_RANK[a] ? b : a, 'ok'); }  // Stato peggiore di un elenco
+            function evaluateFoodDay(ds) {
+                const items = fdDayItems(ds);
+                const tot = fdSum(items);
+                const t = foodTargets(ds);
+                const closed = ds < todayStr() || new Date().getHours() >= 21;  // Giornata chiusa: giorno passato o dopo le 21
+                const rows = [];
+                // Calorie: sopra il target è un problema in ogni momento; sotto solo a giornata chiusa
+                const rk = tot.kcal / t.kcal; let sk, hk;
+                if (rk > 1.15) { sk = 'bad'; hk = `Sopra di ${fdFmt(tot.kcal - t.kcal)} kcal`; }
+                else if (rk > 1.05) { sk = 'warn'; hk = `Leggermente sopra (+${fdFmt(tot.kcal - t.kcal)} kcal)`; }
+                else if (!closed) { sk = rk >= 0.85 ? 'ok' : 'open'; hk = rk >= 0.95 ? 'In linea' : `Restano ${fdFmt(t.kcal - tot.kcal)} kcal`; }
+                else if (rk < 0.70) { sk = 'bad'; hk = `Troppo poco: ${fdFmt(t.kcal - tot.kcal)} kcal sotto`; }
+                else if (rk < 0.85) { sk = 'warn'; hk = `Sotto di ${fdFmt(t.kcal - tot.kcal)} kcal`; }
+                else { sk = 'ok'; hk = 'In linea'; }
+                rows.push({ key: 'kcal', label: 'Calorie', val: tot.kcal, target: t.kcal, unit: '', s: sk, hint: hk });
+                // Proteine: la priorità per la ricomposizione. Verde dalla soglia minima in su
+                let sp, hp;
+                if (tot.p >= t.p) { sp = 'ok'; hp = 'Obiettivo raggiunto'; }
+                else if (tot.p >= t.pMin) { sp = 'ok'; hp = `Minimo raggiunto, ${fdFmt(t.p - tot.p)} g all'obiettivo`; }
+                else if (!closed) { sp = 'open'; hp = `Mancano ${fdFmt(t.pMin - tot.p)} g al minimo`; }
+                else { sp = tot.p >= 0.8 * t.pMin ? 'warn' : 'bad'; hp = `Mancano ${fdFmt(t.pMin - tot.p)} g al minimo`; }
+                rows.push({ key: 'p', label: 'Proteine', val: tot.p, target: t.p, unit: ' g', s: sp, hint: hp });
+                // Carboidrati: si guardano soprattutto gli eccessi
+                const rc = t.c > 0 ? tot.c / t.c : 0; let sc, hc;
+                if (rc > 1.3) { sc = 'bad'; hc = `Sopra di ${fdFmt(tot.c - t.c)} g`; }
+                else if (rc > 1.15) { sc = 'warn'; hc = `Un po' sopra (+${fdFmt(tot.c - t.c)} g)`; }
+                else { sc = (!closed && rc < 0.85) ? 'open' : 'ok'; hc = rc < 0.85 && !closed ? `Restano ${fdFmt(t.c - tot.c)} g` : 'In linea'; }
+                rows.push({ key: 'c', label: 'Carboidrati', val: tot.c, target: t.c, unit: ' g', s: sc, hint: hc });
+                // Grassi: limite alto al 35% delle calorie, limite basso al 20% a giornata chiusa
+                let sf, hf;
+                if (tot.f > t.fMax * 1.15) { sf = 'bad'; hf = `Troppi: ${fdFmt(tot.f - t.fMax)} g oltre il limite`; }
+                else if (tot.f > t.fMax) { sf = 'warn'; hf = 'Al limite'; }
+                else if (closed && tot.f < t.fMin * 0.7) { sf = 'warn'; hf = 'Pochi grassi'; }
+                else { sf = (!closed && tot.f < t.f * 0.85) ? 'open' : 'ok'; hf = sf === 'open' ? `Restano ${fdFmt(t.f - tot.f)} g` : 'In linea'; }
+                rows.push({ key: 'f', label: 'Grassi', val: tot.f, target: t.f, unit: ' g', s: sf, hint: hf });
+
+                // Giudizio complessivo: calorie e proteine pesano di più; carboidrati e grassi contano solo se gravi
+                let overall = fdWorst([sk, sp, sc === 'bad' ? 'warn' : (sc === 'warn' ? 'ok' : sc), sf === 'bad' ? 'warn' : sf]);
+                if (!items.length) overall = 'empty';
+                const titles = { empty: 'Nessun alimento registrato', ok: 'Giornata in linea 💪', open: 'Giornata in corso', warn: 'Quasi: c\'è da sistemare qualcosa', bad: 'Da correggere' };
+                return { items, tot, t, closed, rows, overall, title: titles[overall], tips: items.length ? fdTips(items, tot, t, closed, rk, ds) : [] };
+            }
+            function fdTopBy(items, key) {  // Alimento che pesa di più su un valore, sommando le voci uguali (es. due panini)
+                const by = {};
+                items.forEach(it => { const k = it.ref || it.name; if (!by[k]) by[k] = { it, v: 0 }; by[k].v += fdMacros(it)[key]; });
+                return Object.values(by).sort((a, b) => b.v - a.v)[0];
+            }
+            const FD_SHORT = { fesa_cotta: 'fesa di tacchino', tonno_nat: 'tonno al naturale', bresaola: 'bresaola', yogurt: 'yogurt' };  // Nomi brevi nei consigli
+            function fdTips(items, tot, t, closed, rk, ds) {  // Consigli pratici con alimenti che mangi già
+                const tips = [];
+                // Proteine sotto la soglia: quanto serve di una fonte magra per coprire il buco
+                const gap = t.pMin - tot.p;
+                const late = closed || new Date().getHours() >= 15;  // Prima di pranzo il buco di proteine è normale: niente allarmi
+                if (gap > 5 && late) {
+                    const opts = [['fesa_cotta', 150], ['tonno_nat', 104], ['bresaola', 100], ['yogurt', 250]].map(([key, max]) => {
+                        const f = FOOD_DB.find(x => x.key === key);
+                        const g = Math.min(max, Math.max(30, Math.ceil(gap / (f.per.p / 100) / 10) * 10));  // Grammi arrotondati ai 10
+                        return { f, g, p: f.per.p * g / 100, kcal: f.per.kcal * g / 100 };
+                    }).sort((a, b) => {  // Prima chi copre il buco (il più leggero), altrimenti chi porta più proteine
+                        const ca = a.p >= gap * 0.9, cb = b.p >= gap * 0.9;
+                        if (ca !== cb) return cb - ca;
+                        return ca ? a.kcal - b.kcal : b.p - a.p;
+                    }).slice(0, 2);
+                    const who = !closed ? 'Mancano' : ds === todayStr() ? 'Oggi sono mancati' : 'Quel giorno sono mancati';
+                    tips.push(`${who} ~${fdFmt(gap)} g di proteine. ${closed ? 'La prossima volta basta aggiungere' : 'Puoi aggiungere'} ` + opts.map(o => `${fdFmt(o.g)} g di ${FD_SHORT[o.f.key]} (+${fdFmt(o.p)} g, ${fdFmt(o.kcal)} kcal)`).join(' oppure ') + '.');
+                }
+                // Calorie oltre il target: chi le ha portate, senza invitare a saltare pasti
+                if (rk > 1.05) {
+                    const top = fdTopBy(items, 'kcal');
+                    tips.push(`Le calorie in più vengono soprattutto da ${top.it.name.toLowerCase()} (${fdFmt(top.v)} kcal). Non serve compensare saltando pasti: conta la media della settimana.`);
+                }
+                // Grassi oltre il limite: scambio concreto quando la fonte è nota
+                if (tot.f > t.fMax) {
+                    const top = fdTopBy(items, 'f');
+                    const swaps = { 'db:tonno_olio': 'il tonno al naturale ha circa 10 g di grassi in meno ogni 100 g', 'db:mozzarella': 'mezza porzione di mozzarella, o la bresaola al suo posto, taglia gran parte dei grassi', 'db:olio': 'misura l\'olio col cucchiaio: ogni cucchiaio sono 10 g di grassi', 'db:mottino': 'il Mottino porta 7 g di grassi: una mela in più lo può sostituire' };
+                    tips.push(`I grassi vengono soprattutto da ${top.it.name.toLowerCase()} (${fdFmt(top.v)} g)` + (swaps[top.it.ref] ? `: ${swaps[top.it.ref]}.` : '.'));
+                }
+                // Giornata chiusa con poche calorie: avviso per non scendere troppo
+                if (closed && rk < 0.85) tips.push('Hai mangiato poco rispetto al fabbisogno stimato: per allenarti e recuperare ti serve energia. Se hai dimenticato di registrare qualcosa, aggiungilo.');
+                if (!tips.length) tips.push(closed ? 'Giornata in linea con l\'obiettivo. Continua così.' : late ? 'Finora sei in linea. Continua così.' : 'Registra i pasti man mano: il giudizio diventa preciso dopo pranzo.');
+                return tips.slice(0, 3);
+            }
+            function fdWeekStart(ds) {  // Lunedì della settimana di una data
+                const d = parseDate(ds); const wd = (d.getDay() + 6) % 7;  // 0 = lunedì
+                d.setDate(d.getDate() - wd); return dateStr(d);
+            }
+            function evaluateFoodWeek(ds) {  // Media dei giorni registrati della settimana (oggi conta solo a giornata chiusa)
+                const start = parseDate(fdWeekStart(ds)); const days = [];
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(start); d.setDate(start.getDate() + i); const k = dateStr(d);
+                    if (k > todayStr()) break;
+                    const items = fdDayItems(k);
+                    if (!items.length) continue;
+                    const e = evaluateFoodDay(k);
+                    days.push({ ds: k, tot: e.tot, t: e.t, closed: e.closed });
+                }
+                const closedDays = days.filter(d => d.closed);
+                if (!closedDays.length) return { days, n: 0 };
+                const n = closedDays.length;
+                const avg = closedDays.reduce((a, d) => ({ kcal: a.kcal + d.tot.kcal / n, p: a.p + d.tot.p / n, tk: a.tk + d.t.kcal / n, pMin: a.pMin + d.t.pMin / n }), { kcal: 0, p: 0, tk: 0, pMin: 0 });
+                const balance = closedDays.reduce((a, d) => a + d.tot.kcal - d.t.kcal, 0);  // Somma degli scarti dal target
+                const r = avg.kcal / avg.tk;
+                const sk = r > 1.15 ? 'bad' : r > 1.07 ? 'warn' : r < 0.80 ? 'warn' : 'ok';
+                const sp = avg.p >= avg.pMin ? 'ok' : avg.p >= avg.pMin * 0.85 ? 'warn' : 'bad';
+                return { days, n, avg, balance, sk, sp };
+            }
+
+            // ─── Rendering della pagina Cibo ───
+            function fdDot(s) { return `<span class="fd-dot fd-${s}"></span>`; }  // Pallino colorato del semaforo
+            function renderFood() {
+                const page = document.getElementById('page-food');
+                if (!page) return;
+                const isToday = foodView === todayStr();
+                const e = evaluateFoodDay(foodView);
+                const t = e.t;
+                let h = '';
+                // Intestazione con navigazione tra i giorni
+                h += `<div class="fd-head"><div class="section-title" style="margin:0">Cibo</div>
+                    <div class="fd-daynav">
+                        <button class="fd-nav-btn" data-fd="prevDay" aria-label="Giorno precedente">‹</button>
+                        <div class="fd-daylabel">${isToday ? 'Oggi' : fdEsc(fdCap(fdShortDate(foodView)))}</div>
+                        <button class="fd-nav-btn" data-fd="nextDay" aria-label="Giorno successivo" ${isToday ? 'disabled' : ''}>›</button>
+                    </div></div>`;
+                // Avviso se manca l'altezza (le calorie sono solo stimate)
+                if (!t.heightSet) h += `<button class="fd-banner" data-fd="setHeight">📏 Inserisci la tua altezza per calcolare bene le calorie (ora stimo con 175 cm)</button>`;
+                // Giudizio della giornata
+                h += `<div class="fd-card fd-verdict fd-v-${e.overall}">
+                    <div class="fd-card-title"><span>${fdEsc(e.title)}</span><span class="fd-badge">${t.type === 'train' ? '💪 Allenamento' : '💼 Senza allenamento'}</span></div>`;
+                e.rows.forEach(r => {
+                    const pct = r.target > 0 ? Math.min(100, r.val / r.target * 100) : 0;
+                    h += `<div class="fd-mrow">
+                        <div class="fd-mline">${fdDot(r.s)}<span class="fd-mlabel">${r.label}</span><span class="fd-mval">${fdFmt(r.val)} / ${fdFmt(r.target)}${r.unit}</span></div>
+                        <div class="fd-track"><div class="fd-fill fd-${r.s}" style="width:${pct}%"></div></div>
+                        <div class="fd-mhint">${fdEsc(r.hint)}</div>
+                    </div>`;
+                });
+                if (e.tips.length) h += `<div class="fd-tips">${e.tips.map(x => `<div class="fd-tip">💡 ${fdEsc(x)}</div>`).join('')}</div>`;
+                h += `</div>`;
+                // Pasti salvati: un tocco aggiunge tutto al momento della giornata previsto
+                h += `<div class="fd-card"><div class="fd-card-title"><span>⭐ Pasti salvati</span><button class="fd-link" data-fd="manageSaved">Gestisci</button></div><div class="fd-chips">`;
+                if (!state.foodLog.saved.length) h += `<div class="fd-muted">Nessun pasto salvato. Usa "Salva come preferito" sotto un pasto.</div>`;
+                state.foodLog.saved.forEach(sv => {
+                    const tot = fdSum(sv.items);
+                    h += `<button class="fd-chip" data-fd="addSaved" data-id="${fdEsc(sv.id)}"><span class="fd-chip-name">${fdEsc(sv.name)}</span><span class="fd-chip-sub">${fdFmt(tot.kcal)} kcal · ${fdFmt(tot.p)} g P</span></button>`;
+                });
+                h += `</div></div>`;
+                // Momenti della giornata con le voci registrate
+                FOOD_SLOTS.forEach(sl => {
+                    const items = e.items.filter(it => it.slot === sl.k);
+                    const tot = fdSum(items);
+                    h += `<div class="fd-card fd-slot"><div class="fd-card-title"><span>${sl.i} ${sl.n}</span><span class="fd-muted">${items.length ? `${fdFmt(tot.kcal)} kcal · ${fdFmt(tot.p)} g P` : ''}</span></div>`;
+                    items.forEach(it => {
+                        const m = fdMacros(it);
+                        h += `<button class="fd-item" data-fd="editItem" data-id="${fdEsc(it.id)}"><span class="fd-item-name">${fdEsc(it.name)}</span><span class="fd-item-meta">${fdFmt(it.g)} g · ${fdFmt(m.kcal)} kcal · ${fdFmt(m.p)} g P</span></button>`;
+                    });
+                    h += `<div class="fd-slot-actions"><button class="fd-add" data-fd="openAdd" data-slot="${sl.k}">+ Aggiungi</button>`;
+                    if (items.length) h += `<button class="fd-link" data-fd="saveSlot" data-slot="${sl.k}">⭐ Salva come preferito</button>`;
+                    h += `</div></div>`;
+                });
+                // Media della settimana
+                const wk = evaluateFoodWeek(foodView);
+                h += `<div class="fd-card"><div class="fd-card-title"><span>📅 Settimana</span><span class="fd-muted">da lunedì</span></div>`;
+                if (!wk.n) h += `<div class="fd-muted">La media compare quando c'è almeno una giornata chiusa (i giorni passati, oppure oggi dopo le 21).</div>`;
+                else {
+                    h += `<div class="fd-mline">${fdDot(wk.sk)}<span class="fd-mlabel">Calorie medie</span><span class="fd-mval">${fdFmt(wk.avg.kcal)} / ${fdFmt(wk.avg.tk)}</span></div>
+                        <div class="fd-mline">${fdDot(wk.sp)}<span class="fd-mlabel">Proteine medie</span><span class="fd-mval">${fdFmt(wk.avg.p)} g (min ${fdFmt(wk.avg.pMin)})</span></div>
+                        <div class="fd-mhint" style="margin:6px 0 10px">Bilancio della settimana: ${wk.balance >= 0 ? '+' : '−'}${fdFmt(Math.abs(wk.balance))} kcal rispetto ai target, su ${wk.n} ${wk.n === 1 ? 'giorno' : 'giorni'}. ${wk.balance > 0 ? 'Un giorno sopra si recupera con la media, non con il digiuno.' : wk.avg.kcal < wk.avg.tk * 0.8 ? 'Stai mangiando poco: per allenarti e recuperare ti serve energia (o manca qualcosa nel diario).' : 'Sei in leggero deficit, in linea con la ricomposizione.'}</div>`;
+                }
+                wk.days.forEach(d => {
+                    const sp = d.tot.p >= d.t.pMin ? 'ok' : d.closed ? (d.tot.p >= d.t.pMin * 0.8 ? 'warn' : 'bad') : 'open';
+                    h += `<div class="fd-wrow">${fdDot(sp)}<span class="fd-wday">${fdEsc(fdCap(fdShortDate(d.ds)))}${d.closed ? '' : ' (in corso)'}</span><span class="fd-wval">${fdFmt(d.tot.kcal)} kcal · ${fdFmt(d.tot.p)} g P</span></div>`;
+                });
+                h += `</div>`;
+                // Target e dati personali, modificabili
+                const pr = state.foodLog.prefs;
+                h += `<div class="fd-card"><div class="fd-card-title"><span>🎯 I tuoi target</span></div>
+                    <div class="fd-muted" style="margin-bottom:8px">Senza allenamento ${fdFmt(foodTargets(fdFindDayOfType('rest')).kcal)} kcal · con allenamento ${fdFmt(foodTargets(fdFindDayOfType('train')).kcal)} kcal. Proteine ${fdFmt(t.p)} g (minimo ${fdFmt(t.pMin)} g), grassi ${fdFmt(t.fMin)}–${fdFmt(t.fMax)} g, carboidrati il resto.</div>
+                    <button class="fd-set" data-fd="setHeight"><span>Altezza</span><b>${pr.heightCm ? fdFmt(pr.heightCm) + ' cm' : 'da inserire'}</b></button>
+                    <button class="fd-set" data-fd="setAge"><span>Età</span><b>${fdFmt(pr.age)} anni</b></button>
+                    <button class="fd-set" data-fd="goWeight"><span>Peso usato</span><b>${String(Math.round(t.w * 10) / 10).replace('.', ',')} kg</b></button>
+                    <button class="fd-set" data-fd="setProtein"><span>Proteine per kg</span><b>${String(pr.proteinPerKg).replace('.', ',')} g</b></button>
+                    <button class="fd-set" data-fd="setDeficit"><span>Deficit calorico</span><b>${fdFmt(pr.deficitPct)}%</b></button>
+                    <div class="fd-source">Valori nutrizionali: tabelle CREA 2019, Open Food Facts e etichette. Fabbisogno: equazione di Mifflin-St Jeor. Proteine: minimo 1,6 g/kg (meta-analisi Morton 2018), intervallo 1,4–2,0 g/kg (ISSN 2017). Sono stime: il dato vero è come cambiano peso e misure.</div>
+                </div>`;
+                page.innerHTML = h;
+            }
+            function fdFindDayOfType(type) {  // Un giorno della settimana corrente del tipo richiesto, per mostrare entrambi i target
+                const start = parseDate(fdWeekStart(todayStr()));
+                for (let i = 0; i < 7; i++) { const d = new Date(start); d.setDate(start.getDate() + i); if (WEEK_PLAN[d.getDay()].type === 'workout' ? type === 'train' : type === 'rest') return dateStr(d); }
+                return todayStr();
+            }
+
+            // ─── Pannello di inserimento: ricerca, quantità, scanner, nuovo alimento ───
+            const fdSheetEl = document.getElementById('fdSheet');  // Pannello dal basso
+            const fdSheetBody = document.getElementById('fdSheetBody');  // Contenuto del pannello
+            const fdSheetTitle = document.getElementById('fdSheetTitle');  // Titolo del pannello
+            function fdOpenSheet(title) { fdSheetTitle.textContent = title; fdSheetEl.classList.add('active'); }
+            function fdCloseSheet() { fdSheetEl.classList.remove('active'); fdSheetBody.innerHTML = ''; foodSheet.food = null; foodSheet.editId = null; }
+            function fdSlotPills(sel) {  // Selettore del momento della giornata
+                return `<div class="fd-pills">${FOOD_SLOTS.map(s => `<button class="fd-pill ${s.k === sel ? 'on' : ''}" data-fd="pickSlot" data-slot="${s.k}">${s.i} ${s.n}</button>`).join('')}</div>`;
+            }
+            function fdResultRow(f) {  // Riga di un risultato di ricerca
+                return `<button class="fd-result" data-fd="pickFood" data-ref="${fdEsc(f.ref)}"><span class="fd-item-name">${fdEsc(f.name)}${f.brand ? ` <span class="fd-muted">· ${fdEsc(f.brand)}</span>` : ''}</span><span class="fd-item-meta">${fdFmt(f.per.kcal)} kcal · ${String(Math.round(f.per.p * 10) / 10).replace('.', ',')} g P per 100 g · ${fdEsc(f.src)}</span></button>`;
+            }
+            function fdOpenAdd(slot) {  // Apre la ricerca per aggiungere un alimento
+                foodSheet = { slot: slot || fdDefaultSlot(), food: null, editId: null, from: 'search' };
+                fdOpenSheet(`Aggiungi · ${fdShortDate(foodView)}`);
+                fdSheetBody.innerHTML = `${fdSlotPills(foodSheet.slot)}
+                    <input id="fdSearchInput" class="fd-input" type="search" placeholder="Cerca: pane, tonno, pasta…" autocomplete="off">
+                    <div class="fd-actions">
+                        <button class="fd-act" data-fd="scan">📷 Scansiona</button>
+                        <button class="fd-act" data-fd="typeCode">🔢 Codice</button>
+                        <button class="fd-act" data-fd="newFood">✍️ Nuovo</button>
+                    </div>
+                    <div id="fdResults"></div>`;
+                fdRenderResults('');
+            }
+            function fdRenderResults(q) {  // Risultati: recenti e tabella se la ricerca è vuota, altrimenti gli alimenti trovati
+                const box = document.getElementById('fdResults'); if (!box) return;
+                let h = '';
+                if (!q.trim()) {
+                    const rec = fdRecentFoods();
+                    if (rec.length) h += `<div class="fd-sub">Usati di recente</div>` + rec.map(fdResultRow).join('');
+                    h += `<div class="fd-sub">Tabella alimenti</div>` + [...FOOD_DB].sort((a, b) => a.name.localeCompare(b.name, 'it')).map(fdResultRow).join('');
+                } else {
+                    const res = fdSearch(q);
+                    h += res.length ? res.map(fdResultRow).join('') : `<div class="fd-muted" style="padding:10px 0">Nessun risultato nella tabella interna.</div>`;
+                    if (q.trim().length >= 3) h += `<button class="fd-act fd-wide" data-fd="searchOnline">🌐 Cerca "${fdEsc(q.trim())}" su Open Food Facts</button><div id="fdOnline"></div>`;
+                }
+                box.innerHTML = h;
+            }
+            function fdOpenQty(food, grams) {  // Passo quantità: porzioni rapide, grammi esatti e anteprima dei valori
+                foodSheet.food = food;
+                fdOpenSheet(foodSheet.editId ? 'Modifica' : 'Quantità');
+                const g0 = grams || (food.u && food.u.length ? food.u[food.u.length >= 3 ? 1 : 0][1] : 100);  // Porzione media se ce ne sono tre, altrimenti la prima
+                fdSheetBody.innerHTML = `<div class="fd-food-title">${fdEsc(food.name)}${food.brand ? ` <span class="fd-muted">· ${fdEsc(food.brand)}</span>` : ''}</div>
+                    <div class="fd-muted" style="margin-bottom:12px">${fdEsc(food.src || '')} · per 100 g: ${fdFmt(food.per.kcal)} kcal, P ${fdFmt(food.per.p)} g, C ${fdFmt(food.per.c)} g, G ${fdFmt(food.per.f)} g</div>
+                    ${fdSlotPills(foodSheet.slot)}
+                    <div class="fd-sub">Porzione</div>
+                    <div class="fd-pills">${(food.u || []).map(u => `<button class="fd-pill" data-fd="pickPortion" data-g="${u[1]}">${fdEsc(u[0])}<small>${fdFmt(u[1])} g</small></button>`).join('')}<button class="fd-pill" data-fd="pickPortion" data-g="100">100 g</button></div>
+                    <div class="fd-sub">Grammi esatti</div>
+                    <input id="fdGrams" class="fd-input" type="number" inputmode="decimal" min="0" step="1" value="${g0}">
+                    <div id="fdPreview" class="fd-preview"></div>
+                    <button class="start-btn" data-fd="confirmQty">${foodSheet.editId ? 'Salva' : 'Aggiungi'}</button>
+                    ${foodSheet.editId ? '<button class="fd-danger" data-fd="deleteItem">Rimuovi</button>' : ''}`;
+                fdUpdatePreview();
+            }
+            function fdUpdatePreview() {  // Anteprima dei valori per i grammi scritti
+                const g = fdNum((document.getElementById('fdGrams') || {}).value) || 0;
+                const f = foodSheet.food; const box = document.getElementById('fdPreview');
+                if (!f || !box) return;
+                const m = fdMacros({ per: f.per, g });
+                box.innerHTML = `<b>${fdFmt(m.kcal)} kcal</b><span>P ${fdFmt(m.p)} g</span><span>C ${fdFmt(m.c)} g</span><span>G ${fdFmt(m.f)} g</span>`;
+            }
+            function fdConfirmQty() {  // Aggiunge o aggiorna la voce del diario
+                const g = fdNum(document.getElementById('fdGrams').value);
+                if (!g || g <= 0) { showAlert('Scrivi quanti grammi hai mangiato.'); return; }
+                const f = foodSheet.food;
+                const list = state.foodLog.days[foodView] = fdDayItems(foodView).slice();
+                if (foodSheet.editId) {
+                    const it = list.find(x => x.id === foodSheet.editId);
+                    if (it) { it.g = g; it.slot = foodSheet.slot; }
+                } else list.push({ id: fdId(), slot: foodSheet.slot, ref: f.ref, name: f.name + (f.brand ? ' · ' + f.brand : ''), per: { ...f.per }, g });
+                save(); fdCloseSheet(); renderFood();
+            }
+            function fdDeleteItem() {  // Toglie la voce in modifica
+                state.foodLog.days[foodView] = fdDayItems(foodView).filter(x => x.id !== foodSheet.editId);
+                if (!state.foodLog.days[foodView].length) delete state.foodLog.days[foodView];
+                save(); fdCloseSheet(); renderFood();
+            }
+            function fdEditItem(id) {  // Apre una voce già registrata per cambiare grammi o momento
+                const it = fdDayItems(foodView).find(x => x.id === id); if (!it) return;
+                foodSheet = { slot: it.slot, food: null, editId: id, from: 'edit' };
+                const f = fdFoodFromItem(it);
+                fdOpenQty({ ...f, name: it.name, brand: '', per: { ...it.per } }, it.g);
+            }
+
+            // ─── Open Food Facts: prodotto per codice a barre e ricerca per nome ───
+            async function fdFetchJson(url, ms) {  // Richiesta con limite di tempo
+                const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), ms);
+                try { const r = await fetch(url, { signal: ctl.signal }); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
+                finally { clearTimeout(timer); }
+            }
+            function fdOffToFood(code, p) {  // Converte un prodotto Open Food Facts nel formato alimento; null se mancano i valori
+                const n = (p && p.nutriments) || {};
+                let kcal = fdNum(n['energy-kcal_100g']);
+                if (kcal == null && fdNum(n['energy_100g']) != null) kcal = fdNum(n['energy_100g']) / 4.184;  // Solo kJ: conversione in kcal
+                const pr = fdNum(n.proteins_100g), c = fdNum(n.carbohydrates_100g), f = fdNum(n.fat_100g);
+                if (kcal == null || pr == null) return null;
+                const serving = fdNum(p.serving_quantity);
+                return {
+                    ref: 'off:' + code, code, name: (p.product_name_it || p.product_name || 'Prodotto ' + code).trim(),
+                    brand: String(p.brands || '').split(',')[0].trim(), src: 'Open Food Facts',
+                    per: { kcal: Math.round(kcal), p: pr, c: c || 0, f: f || 0 },
+                    u: serving > 0 ? [['1 porzione', serving], ['2 porzioni', serving * 2]] : [], alias: ''
+                };
+            }
+            async function fdLookupBarcode(code) {  // Cerca un codice a barre: prima in locale, poi su Open Food Facts
+                code = String(code || '').replace(/\D/g, '');
+                if (code.length < 8) { await showAlert('Codice non valido: servono da 8 a 13 cifre.'); return; }
+                const local = FOOD_DB.find(f => f.code === code) || state.foodLog.products[code] || state.foodLog.custom.find(f => f.code === code);
+                if (local) { fdOpenQty(local); return; }
+                fdOpenSheet('Ricerca prodotto');
+                fdSheetBody.innerHTML = `<div class="fd-muted" style="padding:20px 0;text-align:center">Cerco il codice ${fdEsc(code)} su Open Food Facts…</div>`;
+                try {
+                    const data = await fdFetchJson(`${OFF_BASE}/api/v2/product/${code}.json?fields=product_name,product_name_it,brands,nutriments,serving_quantity`, 12000);
+                    const food = data && data.status === 1 ? fdOffToFood(code, data.product) : null;
+                    if (food) { state.foodLog.products[code] = food; save(); fdOpenQty(food); return; }
+                    const name = data && data.product ? (data.product.product_name_it || data.product.product_name || '') : '';
+                    await showAlert(data && data.status === 1 ? 'Il prodotto c\'è ma senza valori nutrizionali completi. Copiali dall\'etichetta.' : 'Prodotto non presente su Open Food Facts. Copia i valori dall\'etichetta: lo salvo e la prossima volta lo trovi subito.');
+                    fdOpenNewFood({ code, name });
+                } catch (err) {
+                    await showAlert('Open Food Facts non risponde (' + (err.name === 'AbortError' ? 'tempo scaduto' : 'nessuna connessione') + '). Puoi copiare i valori dall\'etichetta.');
+                    fdOpenNewFood({ code, name: '' });
+                }
+            }
+            async function fdSearchOnline(q) {  // Ricerca per nome: il servizio è spesso giù, quindi l'errore è previsto e spiegato
+                const box = document.getElementById('fdOnline'); if (!box) return;
+                box.innerHTML = `<div class="fd-muted" style="padding:10px 0">Cerco su Open Food Facts…</div>`;
+                const url = `${OFF_BASE}/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=20&fields=code,product_name,product_name_it,brands,nutriments,serving_quantity`;
+                for (let attempt = 0; attempt < 2; attempt++) {  // Un secondo tentativo: il servizio va a intermittenza
+                    try {
+                        const data = await fdFetchJson(url, 12000);
+                        const foods = (data.products || []).map(p => fdOffToFood(p.code, p)).filter(Boolean);
+                        foods.forEach(f => { fdOnlineCache[f.ref] = f; });
+                        box.innerHTML = foods.length ? `<div class="fd-sub">Da Open Food Facts</div>` + foods.map(fdResultRow).join('') : `<div class="fd-muted" style="padding:10px 0">Nessun prodotto con valori completi. Prova lo scanner o "Nuovo".</div>`;
+                        return;
+                    } catch (e) { /* riprova */ }
+                }
+                box.innerHTML = `<div class="fd-muted" style="padding:10px 0">La ricerca per nome di Open Food Facts non risponde: è un servizio gratuito che va spesso giù. Lo scanner del codice a barre funziona in modo più affidabile.</div>`;
+            }
+            const fdOnlineCache = {};  // Risultati della ricerca online, salvati nel diario solo se scelti
+
+            // ─── Scanner del codice a barre (fotocamera + BarcodeDetector di Chrome) ───
+            async function fdOpenScanner() {
+                if (!('BarcodeDetector' in window) || !navigator.mediaDevices) { await showAlert('Questo browser non supporta la scansione. Scrivi il codice a mano.'); fdAskCode(); return; }
+                let detector;
+                try {
+                    const supported = await BarcodeDetector.getSupportedFormats();
+                    const wanted = ['ean_13', 'ean_8', 'upc_a', 'upc_e'].filter(f => supported.includes(f));
+                    detector = new BarcodeDetector({ formats: wanted.length ? wanted : ['ean_13'] });
+                } catch (e) { await showAlert('Scanner non disponibile su questo telefono. Scrivi il codice a mano.'); fdAskCode(); return; }
+                const ov = document.getElementById('fdScanner'); const video = document.getElementById('fdVideo');
+                ov.classList.add('active');
+                try {
+                    fdStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+                    video.srcObject = fdStream; await video.play();
+                } catch (e) { fdCloseScanner(); await showAlert('Non riesco ad aprire la fotocamera. Controlla il permesso di Chrome per la fotocamera, oppure scrivi il codice a mano.'); fdAskCode(); return; }
+                let busy = false;
+                fdScanTimer = setInterval(async () => {  // Prova a leggere un codice ogni 300 ms
+                    if (busy || video.readyState < 2) return; busy = true;
+                    try {
+                        const found = await detector.detect(video);
+                        if (found && found.length) {
+                            const code = found[0].rawValue;
+                            fdCloseScanner();
+                            if (state.settings.vibration && navigator.vibrate) navigator.vibrate(80);
+                            fdLookupBarcode(code);
+                        }
+                    } catch (e) { /* frame non leggibile: si riprova */ }
+                    busy = false;
+                }, 300);
+            }
+            function fdCloseScanner() {  // Spegne fotocamera e scansione
+                clearInterval(fdScanTimer); fdScanTimer = null;
+                if (fdStream) { fdStream.getTracks().forEach(tr => tr.stop()); fdStream = null; }
+                const video = document.getElementById('fdVideo'); if (video) video.srcObject = null;
+                document.getElementById('fdScanner').classList.remove('active');
+            }
+            async function fdAskCode() {  // Inserimento manuale del codice a barre
+                const v = await showPrompt('Codice a barre (le cifre sotto le barre):', '');
+                if (v) fdLookupBarcode(v);
+            }
+
+            // ─── Nuovo alimento dall'etichetta ───
+            function fdOpenNewFood(pre) {
+                pre = pre || {};
+                fdOpenSheet('Nuovo alimento');
+                const fld = (id, label, val, mode) => `<label class="fd-field"><span>${label}</span><input id="${id}" class="fd-input" type="text" ${mode ? 'inputmode="decimal" autocomplete="off"' : ''} value="${fdEsc(val == null ? '' : val)}"></label>`;
+                fdSheetBody.innerHTML = `<div class="fd-muted" style="margin-bottom:10px">Copia i valori "per 100 g" dall'etichetta.${pre.code ? ` Codice ${fdEsc(pre.code)}.` : ''}</div>
+                    ${fld('fdNfName', 'Nome', pre.name || '', false)}
+                    ${fld('fdNfKcal', 'Calorie (kcal per 100 g)', '', true)}
+                    ${fld('fdNfP', 'Proteine (g per 100 g)', '', true)}
+                    ${fld('fdNfC', 'Carboidrati (g per 100 g)', '', true)}
+                    ${fld('fdNfF', 'Grassi (g per 100 g)', '', true)}
+                    ${fld('fdNfServ', 'Peso di un pezzo o porzione in g (facoltativo)', '', true)}
+                    <button class="start-btn" data-fd="saveNewFood" data-code="${fdEsc(pre.code || '')}">Salva e continua</button>`;
+            }
+            async function fdSaveNewFood(code) {
+                const name = document.getElementById('fdNfName').value.trim();
+                const kcal = fdNum(document.getElementById('fdNfKcal').value), p = fdNum(document.getElementById('fdNfP').value);
+                const c = fdNum(document.getElementById('fdNfC').value) || 0, f = fdNum(document.getElementById('fdNfF').value) || 0;
+                const serv = fdNum(document.getElementById('fdNfServ').value);
+                if (!name || kcal == null || p == null) { await showAlert('Servono almeno nome, calorie e proteine.'); return; }
+                const food = { ref: 'my:' + fdId(), code: code || '', name, brand: '', src: 'Etichetta', per: { kcal, p, c, f }, u: serv > 0 ? [['1 pezzo', serv], ['2 pezzi', serv * 2]] : [], alias: '' };
+                state.foodLog.custom.push(food); save();
+                fdOpenQty(food);
+            }
+
+            // ─── Pasti salvati ───
+            function fdAddSaved(id) {  // Aggiunge un pasto salvato al giorno mostrato
+                const sv = state.foodLog.saved.find(x => x.id === id); if (!sv) return;
+                const list = state.foodLog.days[foodView] = fdDayItems(foodView).slice();
+                sv.items.forEach(it => list.push({ id: fdId(), slot: sv.slot, ref: it.ref, name: it.name, per: { ...it.per }, g: it.g }));
+                save(); renderFood(); fdToast(`Aggiunto: ${sv.name}`);
+            }
+            async function fdSaveSlot(slot) {  // Salva il pasto di un momento della giornata come preferito
+                const items = fdDayItems(foodView).filter(it => it.slot === slot); if (!items.length) return;
+                const sl = FOOD_SLOTS.find(s => s.k === slot);
+                const name = await showPrompt('Nome del pasto salvato:', `${sl.n} ${fdShortDate(foodView)}`);
+                if (!name) return;
+                state.foodLog.saved.push({ id: fdId(), name: name.trim(), slot, items: items.map(it => ({ ref: it.ref, name: it.name, per: { ...it.per }, g: it.g })) });
+                save(); renderFood(); fdToast('Pasto salvato');
+            }
+            function fdOpenManage() {  // Elenco dei pasti salvati con grammi modificabili
+                fdOpenSheet('Pasti salvati');
+                if (!state.foodLog.saved.length) { fdSheetBody.innerHTML = `<div class="fd-muted">Nessun pasto salvato.</div>`; return; }
+                fdSheetBody.innerHTML = state.foodLog.saved.map(sv => {
+                    const tot = fdSum(sv.items); const sl = FOOD_SLOTS.find(s => s.k === sv.slot) || FOOD_SLOTS[1];
+                    return `<div class="fd-card fd-saved">
+                        <div class="fd-card-title"><span>${fdEsc(sv.name)}</span><span class="fd-muted">${fdFmt(tot.kcal)} kcal · ${fdFmt(tot.p)} g P</span></div>
+                        ${sv.items.map((it, i) => `<div class="fd-sv-item"><span class="fd-item-name">${fdEsc(it.name)}</span><input class="fd-input fd-g-input" type="number" inputmode="decimal" min="0" value="${it.g}" data-fd-sv="${fdEsc(sv.id)}" data-i="${i}"><span class="fd-muted">g</span><button class="fd-x" data-fd="svDelItem" data-id="${fdEsc(sv.id)}" data-i="${i}" aria-label="Togli">✕</button></div>`).join('')}
+                        <div class="fd-slot-actions">
+                            <button class="fd-link" data-fd="svSlot" data-id="${fdEsc(sv.id)}">Momento: ${sl.i} ${sl.n}</button>
+                            <button class="fd-link" data-fd="svRename" data-id="${fdEsc(sv.id)}">Rinomina</button>
+                            <button class="fd-link fd-red" data-fd="svDelete" data-id="${fdEsc(sv.id)}">Elimina</button>
+                        </div></div>`;
+                }).join('');
+            }
+            function fdToast(msg) {  // Messaggio breve in basso
+                const el = document.createElement('div'); el.className = 'fd-toast'; el.textContent = msg;
+                document.body.appendChild(el); setTimeout(() => el.remove(), 2200);
+            }
+
+            // ─── Impostazioni dei target ───
+            async function fdPromptPref(key, msg, min, max) {  // Chiede un valore numerico e lo salva nelle preferenze del diario
+                const v = await showPrompt(msg, state.foodLog.prefs[key] == null ? '' : String(state.foodLog.prefs[key]).replace('.', ','));
+                if (v === null) return;
+                const n = fdNum(v);
+                if (n == null || n < min || n > max) { await showAlert(`Valore non valido (da ${min} a ${max}).`); return; }
+                state.foodLog.prefs[key] = n; save(); renderFood();
+            }
+
+            // ─── Eventi: un solo ascoltatore per pagina e pannelli (il contenuto viene ridisegnato) ───
+            function fdHandle(act, el) {
+                const days = (n) => { const d = parseDate(foodView); d.setDate(d.getDate() + n); const k = dateStr(d); if (k <= todayStr()) { foodView = k; renderFood(); } };
+                switch (act) {
+                    case 'prevDay': days(-1); break;
+                    case 'nextDay': days(1); break;
+                    case 'openAdd': fdOpenAdd(el.dataset.slot); break;
+                    case 'editItem': fdEditItem(el.dataset.id); break;
+                    case 'addSaved': fdAddSaved(el.dataset.id); break;
+                    case 'saveSlot': fdSaveSlot(el.dataset.slot); break;
+                    case 'manageSaved': fdOpenManage(); break;
+                    case 'setHeight': fdPromptPref('heightCm', 'La tua altezza in cm:', 120, 230); break;
+                    case 'setAge': fdPromptPref('age', 'La tua età:', 14, 100); break;
+                    case 'setProtein': fdPromptPref('proteinPerKg', 'Proteine per kg di peso (consigliato 1,6–2,0):', 1.2, 2.5); break;
+                    case 'setDeficit': fdPromptPref('deficitPct', 'Deficit calorico in % (0 = mantenimento, consigliato 0–15):', 0, 25); break;
+                    case 'goWeight': (async () => {  // Il peso viene dall'ultima misura in Progressi, altrimenti dalle impostazioni
+                        if ((state.bodyMeasurements || []).some(m => m.weight > 0)) { await showAlert('Uso il peso dell\'ultima misura registrata in Progressi. Per aggiornarlo aggiungi una nuova misura lì.'); goPage('progress'); }
+                        else goPage('settings');
+                    })(); break;
+                    case 'pickSlot':
+                        foodSheet.slot = el.dataset.slot;
+                        el.parentElement.querySelectorAll('.fd-pill').forEach(p => p.classList.toggle('on', p === el)); break;
+                    case 'pickFood': {
+                        const f = fdFindFood(el.dataset.ref) || fdOnlineCache[el.dataset.ref]; if (!f) break;
+                        if (f.ref.startsWith('off:') && !state.foodLog.products[f.code]) { state.foodLog.products[f.code] = f; save(); }  // Prodotto online scelto: resta disponibile offline
+                        fdOpenQty(f); break;
+                    }
+                    case 'pickPortion': { const inp = document.getElementById('fdGrams'); inp.value = el.dataset.g; fdUpdatePreview(); break; }
+                    case 'confirmQty': fdConfirmQty(); break;
+                    case 'deleteItem': fdDeleteItem(); break;
+                    case 'scan': fdOpenScanner(); break;
+                    case 'typeCode': fdAskCode(); break;
+                    case 'newFood': fdOpenNewFood({ name: (document.getElementById('fdSearchInput') || {}).value || '' }); break;
+                    case 'saveNewFood': fdSaveNewFood(el.dataset.code); break;
+                    case 'searchOnline': fdSearchOnline((document.getElementById('fdSearchInput') || {}).value || ''); break;
+                    case 'svDelItem': {
+                        const sv = state.foodLog.saved.find(x => x.id === el.dataset.id); if (!sv) break;
+                        sv.items.splice(parseInt(el.dataset.i, 10), 1); save(); fdOpenManage(); renderFood(); break;
+                    }
+                    case 'svSlot': {
+                        const sv = state.foodLog.saved.find(x => x.id === el.dataset.id); if (!sv) break;
+                        const i = FOOD_SLOTS.findIndex(s => s.k === sv.slot); sv.slot = FOOD_SLOTS[(i + 1) % FOOD_SLOTS.length].k;  // Passa al momento successivo
+                        save(); fdOpenManage(); break;
+                    }
+                    case 'svRename': (async () => {
+                        const sv = state.foodLog.saved.find(x => x.id === el.dataset.id); if (!sv) return;
+                        const n = await showPrompt('Nuovo nome:', sv.name); if (!n) return;
+                        sv.name = n.trim(); save(); fdOpenManage(); renderFood();
+                    })(); break;
+                    case 'svDelete': (async () => {
+                        const sv = state.foodLog.saved.find(x => x.id === el.dataset.id); if (!sv) return;
+                        if (!(await showConfirm(`Eliminare "${sv.name}"?`))) return;
+                        state.foodLog.saved = state.foodLog.saved.filter(x => x !== sv); save(); fdOpenManage(); renderFood();
+                    })(); break;
+                }
+            }
+            function bindFood() {  // Collega gli eventi della scheda Cibo (chiamata da init)
+                const onClick = e => { const el = e.target.closest('[data-fd]'); if (el && !el.disabled) fdHandle(el.dataset.fd, el); };
+                document.getElementById('page-food').addEventListener('click', onClick);
+                fdSheetBody.addEventListener('click', onClick);
+                fdSheetBody.addEventListener('input', e => {
+                    if (e.target.id === 'fdSearchInput') fdRenderResults(e.target.value);
+                    if (e.target.id === 'fdGrams') fdUpdatePreview();
+                });
+                fdSheetBody.addEventListener('change', e => {  // Grammi dei pasti salvati
+                    const id = e.target.dataset.fdSv; if (!id) return;
+                    const sv = state.foodLog.saved.find(x => x.id === id); const g = fdNum(e.target.value);
+                    if (sv && g > 0) { sv.items[parseInt(e.target.dataset.i, 10)].g = g; save(); fdOpenManage(); renderFood(); }
+                });
+                document.getElementById('fdSheetClose').addEventListener('click', fdCloseSheet);
+                fdSheetEl.addEventListener('click', e => { if (e.target === fdSheetEl) fdCloseSheet(); });  // Tocco fuori dal pannello: chiude
+                document.getElementById('fdScanClose').addEventListener('click', fdCloseScanner);
+                document.getElementById('fdScanType').addEventListener('click', () => { fdCloseScanner(); fdAskCode(); });
+            }
+
             // ─────────── PROGRESSI: calendario, body measurements, volume chart ───────────
             function renderProgress() {  // Renderizza la pagina progressi con volume, calendario, misure, consistenza
                 document.getElementById('pStatTotal').textContent = state.sessions.length;  // Sessioni totali
@@ -2326,7 +3146,8 @@
                     bodyMeasurements: Array.isArray(loaded.bodyMeasurements) ? loaded.bodyMeasurements : [],
                     lastSessionType: loaded.lastSessionType || null,
                     plan: (loaded.plan && typeof loaded.plan === 'object') ? loaded.plan : {},
-                    forceDeload: !!loaded.forceDeload
+                    forceDeload: !!loaded.forceDeload,
+                    foodLog: normalizeFoodLog(loaded.foodLog)  // Diario alimentare della scheda Cibo
                 };
             }
 
@@ -2354,6 +3175,7 @@
                     renderHome();
                     renderWorkout();
                     renderNutrition();
+                    renderFood();
                     renderProgress();
                     renderSettings();
                     await showAlert('Import completato. I dati sono stati ripristinati.');
@@ -2600,6 +3422,7 @@
             function init() {  // Inizializza l'app: renderizza home, collega listener, osserva resize
                 renderHome();
                 bindTimerButtons();
+                bindFood();  // Scheda Cibo: eventi di pagina, pannello e scanner
                 document.querySelectorAll('[data-action]').forEach(el => {
                     const action = el.dataset.action;
                     if (window[action]) el.addEventListener('click', window[action]);
