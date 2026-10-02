@@ -657,8 +657,8 @@
             <div class="card" style="margin-top:4px">
                 <div class="card-body">
                     <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.8">
-                        <b style="color:var(--white)">Corpo di Ferro — Push / Pull / Isometria</b><br>
-                        Programma 3gg · Venerdì (Spinta) + Sabato (Trazione) + Domenica (Isometria)<br>
+                        <b style="color:var(--white)">Corpo di Ferro — Full body 2 volte a settimana</b><br>
+                        Venerdì (Full body A) + Domenica (Full body B) · camminata negli altri giorni<br>
                         Doppia progressione · Fatigue Tracking incluse
                     </div>
                 </div>
@@ -746,12 +746,12 @@
         (function() {
             // ─────────── DATI ALLENAMENTI: definizione sessioni A/B, esercizi, progressione ───────────
             const CYCLE_WEEKS = 9;  // Ciclo: 8 settimane di lavoro + 1 di scarico, poi riparte con varianti più dure
-            const ISO_SESSIONS = ['C'];  // Sessioni interamente isometriche a corpo libero: nessun carico, nessun volume in kg
-            const SESSION_ORDER = ['A', 'B', 'C'];  // Ordine della settimana: Spinta → Trazione → Isometria
+            const ISO_SESSIONS = ['C'];  // Vecchia domenica isometrica (eliminata): resta solo nello storico, fuori da ciclo e volume
+            const SESSION_ORDER = ['A', 'B'];  // Ordine della settimana: Full body A (venerdì) → Full body B (domenica)
             function isIsoSession(key) { return ISO_SESSIONS.indexOf(key) >= 0; }  // Vero per le sessioni a sola isometria
             function unitOf(ex) { return (ex && ex.unit === 'sec') ? 'sec' : 'rip'; }  // Unità della serie: secondi di tenuta o ripetizioni
             function getCycleInfo() {  // Posizione nel ciclo: unica fonte per fase, scarico, picco e varianti
-                // Il ciclo resta agganciato alle sole sessioni di forza: la domenica isometrica è lavoro aggiuntivo
+                // Il ciclo resta agganciato alle sole sessioni di forza: le vecchie domeniche isometriche nello storico
                 // a corpo libero e non deve far avanzare le settimane né anticipare lo scarico.
                 const strengthDone = state.sessions.filter(s => !isIsoSession(s.session)).length;
                 // Settimana della PROSSIMA sessione di forza (2 sessioni = 1 settimana): con 2 fatte si è nella 2ª.
@@ -767,50 +767,41 @@
             function isDeloadNow() { return getCycleInfo().deload || !!state.forceDeload; }  // Scarico programmato o attivato a mano
 
             function getCurrentSessions() {
-                // Definisce la struttura delle sessioni A (Push) e B (Pull) con esercizi, serie, ripetizioni, pesi.
+                // Due sessioni full body a settimana, venerdì (A) e domenica (B): ogni gruppo muscolare lavora 2 volte
+                // in giorni non consecutivi, come chiedono le Linee di indirizzo del Ministero della Salute (2021).
+                // Il primo esercizio di ogni sessione è di forza (6–8 rip ≈ 80-85% del massimale, ACSM 2026: carichi
+                // ≥80% a inizio sessione), gli altri da 8–15 rip per il muscolo. ~40 minuti a sessione.
                 // Il campo weight è un riferimento di partenza: getPlanFor() lo aggancia al carico realmente componibile
-                // con i dischi (load: 'single' = un manubrio solo, tutti i dischi disponibili; default = coppia).
+                // con i dischi (load: 'single' = un manubrio solo; default = coppia). perArm = un braccio alla volta.
                 const baseSessions = {
                     A: {
-                        name: 'Spinta (Push)', sub: 'Venerdì · Petto, spalle, tricipiti, quadricipiti', day: 5,
+                        name: 'Full body A', sub: 'Venerdì · Petto, dorso, cosce, braccia', day: 5,
                         exercises: [
-                            { id: 'cp', name: 'Distensioni sdraiate con manubri', meta: 'Manubri · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 12, restSec: 90, variant: 'base', tip: 'Sdraiati a terra, gomiti a 45°. Spingi i manubri verso l\'alto, stringi il petto.' },
-                            { id: 'af', name: 'Affondi con manubri', meta: 'Manubri · 3 serie × 10–12 per gamba', sets: 3, reps: '10–12/gamba', repMin: 10, repMid: 11, repMax: 12, weight: 12, restSec: 90, variant: 'base', tip: 'Passo lungo, ginocchio anteriore a 90°. Tronco dritto. Spingi col tallone per risalire.' },
-                            { id: 'hc', name: 'Curl a martello (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 6, load: 'single', restSec: 60, variant: 'base', tip: 'Un braccio alla volta con un manubrio solo: così i carichi salgono di 2 kg alla volta invece di saltare da 6 a 12 kg. Palmo rivolto verso l\'interno, gomito fisso.' },
-                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 90, variant: 'base', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
+                            { id: 'cp', name: 'Distensioni a terra con manubri', meta: 'Forza · 3 serie × 6–8 rip', sets: 3, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 12, restSec: 120, variant: 'fb', tip: 'Prima 1-2 serie leggere di riscaldamento. Sdraiato a terra, gomiti a 45°: scendi in 2-3 secondi finché i gomiti toccano terra, poi spingi deciso.' },
+                            { id: 'rw', name: 'Rematore con un manubrio', meta: 'Forza · 3 serie × 6–8 rip per braccio', sets: 3, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 12, load: 'single', perArm: true, restSec: 120, variant: 'fb', tip: 'Una mano e un ginocchio in appoggio, schiena piatta. Porta il gomito verso il soffitto stringendo la schiena, scendi lento. Tutte le rip con un braccio, poi l\'altro.' },
+                            { id: 'gs', name: 'Squat goblet', meta: 'Manubrio · 3 serie × 8–12 rip', sets: 3, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 14, load: 'single', restSec: 90, variant: 'fb', tip: 'Un manubrio tenuto in verticale al petto con due mani. Piedi poco oltre le spalle, scendi tra le ginocchia con il busto dritto, spingi coi talloni.' },
+                            { id: 'hc', name: 'Curl a martello (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 6, load: 'single', perArm: true, restSec: 60, variant: 'fb', tip: 'Palmo rivolto verso l\'interno, gomito fermo al fianco. Con un manubrio solo i carichi salgono di 2 kg alla volta.' },
+                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 90, variant: 'fb', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     },
                     B: {
-                        name: 'Trazione (Pull)', sub: 'Sabato · Schiena, bicipiti, glutei, femorali', day: 6,
+                        name: 'Full body B', sub: 'Domenica · Femorali, petto, dorso, spalle, braccia', day: 0,
                         exercises: [
-                            { id: 'rw', name: 'Rowing manubrio', meta: 'Manubrio · 3 serie × 8–10 rip', sets: 3, reps: '8–10', repMin: 8, repMid: 9, repMax: 10, weight: 14, load: 'single', restSec: 120, variant: 'base', tip: 'Pensa a portare il gomito verso il soffitto. Stringi la schiena, non il bicipite.' },
-                            { id: 'rd', name: 'Stacco Rumeno', meta: 'Manubri · 3 serie × 10–12 rip', sets: 3, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 14, restSec: 90, variant: 'base', tip: 'Schiena piatta. Fianchi indietro. Senti lo stiramento nei femorali. Sguardo in avanti.' },
-                            { id: 'cu', name: 'Curl con manubrio (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 8, load: 'single', restSec: 60, variant: 'base', tip: 'Tutte le rip con un braccio, poi l\'altro: con un manubrio solo i carichi salgono di 2 kg alla volta. Gomito incollato al fianco, abbassa lentamente — qui crescono i bicipiti.' },
-                            { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 90, variant: 'base', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
-                        ]
-                    },
-                    C: {
-                        // Domenica: tutto statico, zero attrezzi. Chiude il blocco Ven-Sab senza aggiungere danno
-                        // muscolare eccentrico (l'isometria ne produce molto poco), quindi non intacca le prestazioni
-                        // del venerdì successivo: restano 4 giorni pieni di recupero.
-                        name: 'Isometria (Ferro)', sub: 'Domenica · Full body statico, zero attrezzi', day: 0, iso: true,
-                        exercises: [
-                            { id: 'ws', name: 'Wall sit (squat isometrico al muro)', meta: 'Corpo · 4 tenute × 45–120 sec', sets: 4, reps: '45–120 sec', repMin: 45, repMid: 60, repMax: 120, weight: 0, restSec: 120, unit: 'sec', holdCeiling: 120, maxExtraSets: 0, variant: 'base', tip: 'Schiena piatta al muro, ginocchia a 90°, peso sui talloni. Respira sempre: mai in apnea. Il traguardo sono 4 tenute da 2 minuti, il protocollo studiato sulla pressione.' },
-                            { id: 'ih', name: 'Push-up isometrico (tenuta bassa)', meta: 'Corpo · 3 tenute × 20–45 sec', sets: 3, reps: '20–45 sec', repMin: 20, repMid: 30, repMax: 45, weight: 0, restSec: 90, unit: 'sec', holdCeiling: 60, variant: 'base', tip: 'Fermati a 5 cm da terra, gomiti a 45°, corpo come un\'asse. È la posizione di massimo allungamento del petto: sull\'isometria è quella che costruisce di più.' },
-                            { id: 'cy', name: 'Cobra Y-hold (isometria dorsale)', meta: 'Corpo · 3 tenute × 20–45 sec', sets: 3, reps: '20–45 sec', repMin: 20, repMid: 30, repMax: 45, weight: 0, restSec: 75, unit: 'sec', holdCeiling: 60, variant: 'base', tip: 'A pancia in giù, petto staccato da terra, braccia a Y con i pollici in alto. Scapole in basso e indietro: bilancia le spinte e apre le spalle.' },
-                            { id: 'gh', name: 'Ponte glutei isometrico su una gamba', meta: 'Corpo · 3 tenute × 25–50 sec per gamba', sets: 3, reps: '25–50 sec/gamba', repMin: 25, repMid: 35, repMax: 50, weight: 0, restSec: 75, unit: 'sec', holdCeiling: 60, perSide: true, variant: 'base', tip: 'Bacino alto e in linea con le spalle, una gamba tesa. Spingi col tallone e stringi il gluteo, non inarcare la schiena. Registra i secondi per gamba.' },
-                            { id: 'hb', name: 'Hollow body hold', meta: 'Corpo · 3 tenute × 20–45 sec', sets: 3, reps: '20–45 sec', repMin: 20, repMid: 30, repMax: 45, weight: 0, restSec: 60, unit: 'sec', holdCeiling: 60, variant: 'base', tip: 'Lombare schiacciata a terra, spalle e piedi sollevati. Se la schiena si stacca avvicina le ginocchia: prima la posizione, poi i secondi.' },
-                            { id: 'sp', name: 'Plank laterale', meta: 'Corpo · 2 tenute × 25–50 sec per lato', sets: 2, reps: '25–50 sec/lato', repMin: 25, repMid: 35, repMax: 50, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 60, perSide: true, variant: 'base', tip: 'Corpo su una sola linea, fianco alto, spalla sopra il gomito. Registra i secondi per lato.' }
+                            { id: 'rd', name: 'Stacco rumeno con manubri', meta: 'Forza · 3 serie × 6–8 rip', sets: 3, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 14, restSec: 120, variant: 'fb', tip: 'Prima 1-2 serie leggere di riscaldamento. Gambe quasi tese, fianchi indietro, manubri lungo le cosce, schiena piatta. Scendi finché senti tirare i femorali, risali stringendo i glutei.' },
+                            { id: 'pu', name: 'Push-up (piegamenti)', meta: 'Corpo · 3 serie × 8–15 rip', sets: 3, reps: '8–15', repMin: 8, repMid: 11.5, repMax: 15, weight: 0, restSec: 90, variant: 'fb', tip: 'Mani poco oltre le spalle, corpo dritto dalla testa ai talloni. Scendi in 2-3 secondi fino a sfiorare terra col petto.' },
+                            { id: 'br', name: 'Rematore con due manubri', meta: 'Manubri · 3 serie × 8–12 rip', sets: 3, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 12, restSec: 90, variant: 'fb', tip: 'Busto inclinato a 45°, ginocchia morbide, schiena piatta. Tira i manubri verso l\'ombelico avvicinando le scapole.' },
+                            { id: 'mp', name: 'Lento avanti con un manubrio', meta: 'Manubrio · 3 serie × 8–12 rip per braccio', sets: 3, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 8, load: 'single', perArm: true, restSec: 75, variant: 'fb', tip: 'In piedi o seduto, addome contratto. Spingi il manubrio sopra la testa senza inarcare la schiena. Un braccio alla volta: con la coppia si salterebbe da 6 a 12 kg.' },
+                            { id: 'cu', name: 'Curl con manubrio (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 8, load: 'single', perArm: true, restSec: 60, variant: 'fb', tip: 'Gomito incollato al fianco, abbassa lentamente: è la discesa che fa crescere il bicipite.' }
                         ]
                     }
                 };
                 const cyc = getCycleInfo();
-                // Settimane 7-8 (Peak): 5 serie sui compound — a carico fisso il volume è la leva principale
+                // Settimane 7-8 (Peak): +1 serie sugli esercizi di forza (3 → 4): picco di volume del ciclo
                 if (cyc.peak) {
                     ['cp','rw','rd'].forEach(id => {
                         Object.values(baseSessions).forEach(session => {
                             const ex = session.exercises.find(e => e.id === id);
-                            if (ex) ex.sets = 5;
+                            if (ex) ex.sets = 4;
                         });
                     });
                 }
@@ -823,32 +814,35 @@
                 // Dal blocco 2 in poi: varianti più difficili. Restano FUORI dalla settimana di scarico,
                 // così i movimenti nuovi non si sommano alla fatica proprio quando va smaltita.
                 if (cyc.blockNum >= 2) {
-                    Object.values(baseSessions).forEach(session => {
-                        const cp = session.exercises.find(e => e.id === 'cp');
-                        if (cp) { cp.name = 'Distensioni sdraiate (Variante: Un braccio alla volta)'; cp.meta = 'Manubrio · 3 serie × 10–12 rip per braccio'; cp.variant = 'b2'; cp.load = 'single'; }
-                        const af = session.exercises.find(e => e.id === 'af');
-                        if (af) { af.name = 'Affondi (Variante: Pausa in basso 2 sec)'; af.meta = 'Manubri · 3 serie × 10–12 per gamba'; af.variant = 'b2'; }
-                        const rd = session.exercises.find(e => e.id === 'rd');
-                        if (rd) { rd.name = 'Stacco Rumeno (Variante: Singola gamba)'; rd.meta = 'Manubri · 3 serie × 10–12 rip per gamba'; rd.variant = 'b2'; }
-                    });
-                    // Dal secondo blocco si aggiunge un esercizio a corpo libero alla sessione A
-                    baseSessions.A.exercises.push({
-                        id: 'pu', name: 'Push-up (Variante: Diamond)', meta: 'Corpo · 3 serie × 10–15 rip', sets: 3, reps: '10–15', repMin: 10, repMid: 12.5, repMax: 15, weight: 0, restSec: 60, variant: 'base', tip: 'Mani a diamante sotto il petto. Corpo dritto. Ottimo per tricipiti e petto interno.'
-                    });
-                    // Anche l'isometria cambia leva a ogni blocco: stessa durata, posizione più svantaggiosa
-                    const isoVariants = {
-                        ws: { name: 'Wall sit (Variante: braccia distese in alto)', tip: 'Braccia tese sopra la testa: sposta il carico sul core e sui quadricipiti senza cambiare i secondi.' },
-                        ih: { name: 'Push-up isometrico (Variante: mani strette)', tip: 'Mani sotto il petto, gomiti stretti al corpo: stesso tempo, molto più tricipite.' },
-                        hb: { name: 'Hollow body hold (Variante: braccia sopra la testa)', tip: 'Braccia distese oltre la testa: leva più lunga, addome sotto tensione molto più alta.' },
-                        sp: { name: 'Plank laterale (Variante: gamba superiore sollevata)', tip: 'Solleva la gamba di sopra: obliqui e medio gluteo lavorano insieme, equilibrio incluso.' }
+                    const b2 = {
+                        cp: { name: 'Distensioni a terra (Variante: un braccio alla volta)', meta: 'Forza · 3 serie × 6–8 rip per braccio', load: 'single', perArm: true },
+                        gs: { name: 'Squat goblet (Variante: pausa in basso 2 sec)', meta: 'Manubrio · 3 serie × 8–12 rip' },
+                        rd: { name: 'Stacco rumeno (Variante: una gamba)', meta: 'Forza · 3 serie × 6–8 rip per gamba' },
+                        pu: { name: 'Push-up (Variante: piedi rialzati)', meta: 'Corpo · 3 serie × 8–15 rip', tip: 'Piedi su una sedia o sul divano: più peso sulle braccia e sulla parte alta del petto.' }
                     };
-                    Object.keys(isoVariants).forEach(id => {
-                        const ex = baseSessions.C.exercises.find(e => e.id === id);
-                        if (ex) { ex.name = isoVariants[id].name; ex.tip = isoVariants[id].tip; ex.variant = 'b2'; }
-                    });
+                    Object.values(baseSessions).forEach(session => session.exercises.forEach(ex => {
+                        if (b2[ex.id]) Object.assign(ex, b2[ex.id], { variant: 'fb2' });
+                    }));
                 }
                 // Restituisce le sessioni con le modifiche di progressione applicate
                 return baseSessions;
+            }
+            // Esercizi usciti dal programma: servono solo per leggere lo storico (nomi e valori di riserva)
+            const LEGACY_EXERCISES = {
+                af: { id: 'af', name: 'Affondi con manubri', sets: 3, repMin: 10, repMid: 11, repMax: 12, weight: 12 },
+                ws: { id: 'ws', name: 'Wall sit', sets: 4, repMid: 60, weight: 0, unit: 'sec' },
+                ih: { id: 'ih', name: 'Push-up isometrico', sets: 3, repMid: 30, weight: 0, unit: 'sec' },
+                cy: { id: 'cy', name: 'Cobra Y-hold', sets: 3, repMid: 30, weight: 0, unit: 'sec' },
+                gh: { id: 'gh', name: 'Ponte glutei isometrico', sets: 3, repMid: 35, weight: 0, unit: 'sec', perSide: true },
+                hb: { id: 'hb', name: 'Hollow body hold', sets: 3, repMid: 30, weight: 0, unit: 'sec' },
+                sp: { id: 'sp', name: 'Plank laterale', sets: 2, repMid: 35, weight: 0, unit: 'sec', perSide: true }
+            };
+            function exDefById(id) {  // Definizione di un esercizio per id: programma attuale, poi esercizi usciti dal programma
+                for (const sess of Object.values(getCurrentSessions())) {
+                    const ex = sess.exercises.find(e => e.id === id);
+                    if (ex) return ex;
+                }
+                return LEGACY_EXERCISES[id] || { id, name: id, sets: 3, repMid: 10, weight: 0 };
             }
 
             // Dieta corretta: no uova al mattino, spostate a cena con friarielli
@@ -960,12 +954,12 @@
             // → serie → densità (recuperi più corti) → varianti. Ogni volta che il carico sale, serie e recuperi tornano quelli base.
             // Sforzo: 2-3 ripetizioni in riserva bastano (ACSM 2026), arrivare al cedimento non dà più muscolo.
             const PROGRESSION = [
-                { weeks: '1–2', label: 'Adattamento', desc: '3 serie per esercizio · Recupero pieno 90-120 sec · Impara i movimenti con controllo. Ferma le serie con 2-3 ripetizioni in riserva.' },
-                { weeks: '3–4', label: 'Volume', desc: '3-4 serie · Discesa lenta 3 secondi: la fase di discesa è quella che fa crescere di più. Ferma le serie a 2-3 ripetizioni dal cedimento: basta così, andare oltre non dà più muscolo. Quando chiudi il range l\'app ti fa fare qualche ripetizione in più, poi sale di dischi e riporta le serie a quelle base.' },
-                { weeks: '5–6', label: 'Intensità', desc: '3-4 serie sui compound (la 4ª solo finché il peso non può salire) · Ultima serie a 1-2 ripetizioni dalla fine, le altre a 2-3. Più peso sui manubri costruisce forza; per il volume del muscolo contano le serie della settimana.' },
-                { weeks: '7–8', label: 'Peak', desc: '5 serie sui compound · Massimo volume del ciclo · Recuperi pieni: a 43 anni il recupero fa parte dell\'allenamento, non è tempo perso.' },
+                { weeks: '1–2', label: 'Adattamento', desc: 'Impara i movimenti nuovi con controllo · Recuperi pieni (2 minuti sugli esercizi di forza) · Prima del primo esercizio 1-2 serie leggere di riscaldamento. Ferma le serie a 2-3 ripetizioni dal cedimento.' },
+                { weeks: '3–4', label: 'Volume', desc: 'Discesa lenta 3 secondi: la fase di discesa è quella che fa crescere di più. Ferma le serie a 2-3 ripetizioni dal cedimento: basta così, andare oltre non dà più muscolo. Quando chiudi il range l\'app ti fa fare qualche ripetizione in più, poi sale di dischi e riporta le serie a quelle base.' },
+                { weeks: '5–6', label: 'Intensità', desc: 'Esercizi di forza (il primo di ogni sessione): ultima serie a 1-2 ripetizioni dalla fine, le altre a 2-3. Più peso sui manubri costruisce forza; per il volume del muscolo contano le serie della settimana.' },
+                { weeks: '7–8', label: 'Peak', desc: '4 serie su distensioni, rematore e stacco · Massimo volume del ciclo · Recuperi pieni: a 43 anni il recupero fa parte dell\'allenamento, non è tempo perso.' },
                 { weeks: '9', label: 'Deload', desc: '2 serie · Carichi ridotti del 35% · Recupero +30 sec · Smaltisci la fatica accumulata prima di ripartire con il blocco successivo.' },
-                { weeks: 'Blocco 2+', label: 'Blocco', desc: 'Il ciclo riparte con varianti più difficili (unilaterale, pause, discesa lenta) e le serie extra guadagnate. Riparti dai carichi dove li hai lasciati: stimolo più alto.' }
+                { weeks: 'Blocco 2+', label: 'Blocco', desc: 'Il ciclo riparte con varianti più difficili (distensioni a un braccio, squat con pausa, stacco a una gamba, push-up coi piedi rialzati). Riparti dai carichi dove li hai lasciati: stimolo più alto.' }
             ];
 
             // Piano settimanale di riferimento (indice = giorno, 0=Dom … 6=Sab).
@@ -974,13 +968,13 @@
             // Allineato ai campi `day` delle sessioni: A → Venerdì (5), B → Sabato (6), C → Domenica (0).
             // Il campo `session` lega ogni giorno alla sua scheda: è la fonte che decide cosa proporre oggi.
             const WEEK_PLAN = [
-                { type: 'workout', icon: '🗿', label: 'Isometria',    session: 'C' },  // Dom — Sessione C (Isometria)
+                { type: 'workout', icon: '💪', label: 'Allenamento', session: 'B' },   // Dom — Full body B (48 ore dopo il venerdì)
                 { type: 'walk',    icon: '🚶', label: 'Camminata' },                   // Lun — scarico attivo dopo il blocco
                 { type: 'walk',    icon: '🚶', label: 'Camminata' },                   // Mar
                 { type: 'walk',    icon: '🚶', label: 'Camminata' },                   // Mer
                 { type: 'rest',    icon: '😴', label: 'Riposo' },                      // Gio — riposo pieno prima del blocco Ven-Dom
-                { type: 'workout', icon: '💪', label: 'Allenamento', session: 'A' },   // Ven — Sessione A (Spinta)
-                { type: 'workout', icon: '💪', label: 'Allenamento', session: 'B' }    // Sab — Sessione B (Trazione)
+                { type: 'workout', icon: '💪', label: 'Allenamento', session: 'A' },   // Ven — Full body A
+                { type: 'walk',    icon: '🚶', label: 'Camminata' }                    // Sab — camminata tra le due sessioni
             ];
 
             // ─────────── STATO APP: salvataggio localStorage, helper date/modal ───────────
@@ -1009,6 +1003,8 @@
             if (!state.settings.plates || typeof state.settings.plates !== 'object') state.settings.plates = { 5: 8, 2: 3, 1: 4 };  // Dischi reali: peso → quantità
             delete state.settings.maxWeight;  // Il vecchio tetto fisso di 10kg è sostituito dai carichi componibili con i dischi
             if (state.forceDeload === undefined) state.forceDeload = false;  // Scarico attivato a mano
+            // La domenica isometrica non esiste più: una sessione C lasciata a metà non si potrebbe riprendere
+            if (state.todaySession && SESSION_ORDER.indexOf(state.todaySession.session) < 0) state.todaySession = null;
             state.foodLog = normalizeFoodLog(state.foodLog);  // Diario della scheda Cibo (campi mancanti → valori iniziali)
             // Piani salvati con motori precedenti: azzera le leve rimosse (i pesi si agganciano ai carichi reali in getPlanFor)
             Object.keys(state.plan).forEach(id => {
@@ -1431,9 +1427,13 @@
                 const p = state.plan[exId] || {};
                 if (p.variant !== undefined && ex && p.variant !== ex.variant) {
                     // Nuovo blocco = movimento diverso: ricominciare dal fondo del range evita che il calo
-                    // di ripetizioni (fisiologico) venga letto dal motore come affaticamento e faccia scendere il piano
+                    // di ripetizioni (fisiologico) venga letto dal motore come affaticamento e faccia scendere il piano.
+                    // Variante 'base' = piano scritto col vecchio programma Spinta/Trazione: stesso trattamento, testo diverso
+                    const oldProgram = p.variant === 'base';
                     return { weight: p.weight, targetReps: ex.repMin, extraSets: 0, restCut: 0, holds: 0, variant: ex.variant,
-                             lastOutcome: 'variant_reset', reason: 'Nuova variante: si riparte dal fondo del range, il movimento è più difficile a parità di carico' };
+                             lastOutcome: 'variant_reset', reason: oldProgram
+                                 ? `Nuovo programma full body: ${p.weight > 0 ? 'stesso peso, ' : ''}range ${ex.repMin}–${ex.repMax}. Se ne fai di più, scrivile: il motore decide da lì quando salire`
+                                 : 'Nuova variante: si riparte dal fondo del range, il movimento è più difficile a parità di carico' };
                 }
                 return p;
             }
@@ -1526,7 +1526,7 @@
                     const unit = unitOf(ex);  // Le isometriche si misurano in secondi di tenuta, non in ripetizioni
                     const isDone = exS.completedSets.length >= exS.plannedSets;  // Esercizio completato?
                     const planInfo = state.plan[ex.id];  // Piano adattivo (per mostrare il perché dei valori di oggi)
-                    const adaptedMeta = `${exS.weight > 0 ? loadShort(exS.weight, ex) + ' · ' : 'Corpo · '}${exS.plannedSets} ${unit === 'sec' ? 'tenute' : 'serie'} × ${exS.targetReps} ${unit}${ex.perSide ? '/lato' : ''} (range ${ex.reps})`;
+                    const adaptedMeta = `${exS.weight > 0 ? loadShort(exS.weight, ex) + ' · ' : 'Corpo · '}${exS.plannedSets} ${unit === 'sec' ? 'tenute' : 'serie'} × ${exS.targetReps} ${unit}${ex.perSide ? '/lato' : ex.perArm ? '/braccio' : ''} (range ${ex.reps})`;
                     // Intestazione esercizio con valori adattati, PB, stato
                     html += `<div class="ex-card ${isDone ? 'done' : ''}" data-exid="${ex.id}">
                         <div class="ex-head">
@@ -2872,23 +2872,6 @@
                         + '<div class="volume-legend-item"><div class="volume-legend-swatch" style="background:#FFB350"></div>Parziale</div>';
                     volumeChart.appendChild(legend);
                 }
-                // Riepilogo isometria: a corpo libero il volume in kg è sempre zero, la misura giusta è il tempo sotto tensione
-                const isoDone = [...state.sessions].filter(s => isIsoSession(s.session)).sort((a, b) => a.date.localeCompare(b.date));
-                if (isoDone.length) {
-                    const lastTut = sessionTUT(isoDone[isoDone.length - 1]);
-                    const prevTut = isoDone.length > 1 ? sessionTUT(isoDone[isoDone.length - 2]) : 0;
-                    const avgTut = isoDone.slice(-4).reduce((a, x) => a + sessionTUT(x), 0) / Math.min(isoDone.length, 4);
-                    const deltaTut = prevTut > 0 ? Math.round(((lastTut - prevTut) / prevTut) * 100) : 0;
-                    const deltaColor = deltaTut > 0 ? 'var(--accent)' : (deltaTut < 0 ? 'var(--red)' : 'var(--muted)');
-                    volumeChart.insertAdjacentHTML('beforeend',
-                        '<div style="font-size:11px;color:var(--muted);margin-top:16px;padding-top:12px;border-top:1px solid var(--g2);line-height:1.6">🗿 <b style="color:var(--white)">Isometria della domenica</b> — si misura in tempo sotto tensione, non in kg</div>'
-                        + '<div class="volume-summary" style="margin-top:8px">'
-                        + '<div class="volume-stat"><div class="volume-stat-val" style="font-size:16px">' + formatTUT(lastTut) + '</div><div class="volume-stat-lbl">Ultima sessione</div></div>'
-                        + '<div class="volume-stat"><div class="volume-stat-val" style="font-size:16px">' + formatTUT(avgTut) + '</div><div class="volume-stat-lbl">Media ultime 4</div></div>'
-                        + '<div class="volume-stat"><div class="volume-stat-val" style="color:' + deltaColor + '">' + (deltaTut > 0 ? '+' : '') + deltaTut + '%</div><div class="volume-stat-lbl">vs precedente</div></div>'
-                        + '<div class="volume-stat"><div class="volume-stat-val">' + isoDone.length + '</div><div class="volume-stat-lbl">Sessioni iso</div></div>'
-                        + '</div>');
-                }
                 // Calendario mensile con giorni di allenamento evidenziati
                 const cal = document.getElementById('calDays');
                 const now = new Date(); const y = now.getFullYear(), m = now.getMonth();
@@ -2971,15 +2954,13 @@
                         <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">${p.label}${isNow ? ' <span style="font-size:11px;color:var(--accent)">· sei qui</span>' : ''}</div><div style="font-size:12px;color:var(--muted);line-height:1.6">${p.desc}</div></div>
                     </div></div>`;
                 });
-                // La domenica isometrica non è una fase del ciclo: è un blocco a sé, con regole sue. Va spiegata qui,
-                // altrimenti l'unico posto in cui compare è la scheda del giorno.
+                // Settimana tipo: spiega la struttura, prima la spiegava la card della domenica isometrica
                 pp.innerHTML += `<div class="card" style="margin-bottom:8px;border-color:rgba(200,255,0,0.25)"><div class="card-body" style="display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:start">
-                    <div style="font-size:13px;font-weight:700;color:var(--accent)">🗿 Dom</div>
-                    <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">Isometria</div><div style="font-size:12px;color:var(--muted);line-height:1.6">
-                    Tutto statico, zero attrezzi, in coda al blocco Ven-Sab: l'isometria produce pochissimo danno muscolare, quindi non intacca la spinta del venerdì successivo — restano 4 giorni pieni di recupero.
-                    Progredisce in secondi, non in kg: +5 sec a tenuta fino al fondo del range, poi una tenuta in più, poi recuperi più corti.
-                    Il wall sit punta alle 4 tenute da 2 minuti del protocollo studiato sulla pressione arteriosa.
-                    <b style="color:var(--white)">Mai in apnea</b>: si respira per tutta la tenuta, trattenere il fiato fa salire la pressione.</div></div>
+                    <div style="font-size:13px;font-weight:700;color:var(--accent)">📅 Sett.</div>
+                    <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">Full body 2 volte a settimana</div><div style="font-size:12px;color:var(--muted);line-height:1.6">
+                    Venerdì A, domenica B: ogni muscolo lavora 2 volte in giorni non consecutivi, come indicano le linee del Ministero della Salute, con 48 ore per recuperare.
+                    Il primo esercizio di ogni sessione è di forza (6–8 rip, il peso più alto), gli altri costruiscono il muscolo (8–15 rip).
+                    Negli altri giorni camminata: insieme ai pesi completa i 150-300 minuti di attività a settimana consigliati.</div></div>
                 </div></div>`;
                 // Fase corrente di progressione: il ciclo di 9 settimane si ripete, quindi mostra blocco + settimana del ciclo
                 var cyc = getCycleInfo();
@@ -3005,9 +2986,10 @@
                 var exMap = {};  // Mappa esercizio → array dati consistenza
                 var totalSets = 0, completedSets = 0;
                 recentSessions.forEach(function(s) {
-                    var sessionDef = getCurrentSessions()[s.session];
-                    if (!sessionDef) return;
-                    sessionDef.exercises.forEach(function(ex) {
+                    // Esercizi davvero registrati in quella sessione: col cambio di programma le sessioni vecchie
+                    // non devono risultare "saltate" sugli esercizi nuovi
+                    Object.keys(s.exercises || {}).forEach(function(id) {
+                        var ex = exDefById(id);
                         if (!exMap[ex.id]) exMap[ex.id] = { name: ex.name, sets: [] };
                         var exData = s.exercises[ex.id];
                         var done = exData ? exData.completedSets.length : 0;  // Serie completate realmente
@@ -3079,12 +3061,11 @@
                 if (level === 'red') cs.innerHTML += '<div style="color:var(--red);font-size:12px;margin-bottom:8px;text-align:center">⚠️ Rilevata possibile sovrallenamento — considera deload</div>';
                 if (deload.needed) cs.innerHTML += '<div style="background:rgba(255,61,31,0.1);border:1px solid var(--red);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--white);line-height:1.6">⚠️ ' + deload.reason + '</div>';
                 // Dettaglio per esercizio dell'ultima sessione, con volume calcolato
-                var lastSess = state.sessions[state.sessions.length - 1];
+                var lastSess = [...state.sessions].reverse().find(function(s) { return !isIsoSession(s.session); });  // Ultima sessione con i pesi
                 if (lastSess && lastSess.exercises) {
-                    var lastSessDef = getCurrentSessions()[lastSess.session];
-                    if (lastSessDef) {
+                    {
                         var detHtml = '<div class="card" style="padding:16px"><div style="font-size:14px;font-weight:600;margin-bottom:10px">Dettaglio ultima sessione (' + lastSess.date + ')</div>';
-                        lastSessDef.exercises.forEach(function(ex) {
+                        Object.keys(lastSess.exercises).map(exDefById).forEach(function(ex) {
                             var exData = lastSess.exercises[ex.id];
                             if (!exData) return;
                             var setsDone = exData.completedSets.length;
@@ -3121,9 +3102,7 @@
                             detHtml += '<span style="color:var(--muted)">' + (exUnit === 'sec' ? exTut + 's' : Math.round(volActual)) + '</span>';  // Volume in kg · secondi di tensione sulle isometriche
                             detHtml += '</div></div>';
                         });
-                        detHtml += isIsoSession(lastSess.session)
-                            ? '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Isometria: si misura in secondi, non in kg — tensione totale ' + formatTUT(sessionTUT(lastSess)) + '</div>'
-                            : '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Serie · peso per manubrio · rip per serie · volume (peso × rip)</div>';
+                        detHtml += '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">Serie · peso per manubrio · rip per serie · volume (peso × rip)</div>';
                         detHtml += '</div>';
                         cs.innerHTML += detHtml;
                     }
@@ -3174,7 +3153,7 @@
                                 <div style="font-size:13px;font-weight:600;min-width:0">${ex.name}</div>
                                 <div style="font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap">${kgText(p.weight)}</div>
                             </div>
-                            <div style="font-size:12px;color:var(--muted);margin-top:2px">${loadShort(p.weight, ex)} · ${p.plannedSets} serie × ${p.targetReps} ${unit}${ex.load === 'single' ? ' per braccio' : ''}</div>
+                            <div style="font-size:12px;color:var(--muted);margin-top:2px">${loadShort(p.weight, ex)} · ${p.plannedSets} serie × ${p.targetReps} ${unit}${ex.perArm ? ' per braccio' : ''}</div>
                             <div style="font-size:12px;line-height:1.5;margin-top:8px;padding:6px 8px;background:rgba(200,255,0,0.06);border-radius:6px">🎯 ${nextStepFor(ex)}</div>`;
                         if (done.length) {
                             h += `<div style="display:grid;grid-template-columns:auto auto 1fr;gap:3px 12px;font-size:11px;color:var(--muted);margin-top:8px">`;
@@ -3438,9 +3417,9 @@
                 return { names: m, defs };
             }
             function describeExercise(exId, d, names, defs) {
-                const def = defs[exId] || {}; const u = unitOf(def);
+                const def = defs[exId] || exDefById(exId); const u = unitOf(def);  // Anche gli esercizi usciti dal programma hanno un nome
                 const reps = Object.keys(d.repsPerSet || {}).sort((a, b) => a - b).map(k => d.repsPerSet[k]);
-                let line = `- ${names[exId] || exId}: ${reps.length ? reps.join(' / ') + ' ' + u : 'nessuna serie registrata'}`;
+                let line = `- ${names[exId] || def.name || exId}: ${reps.length ? reps.join(' / ') + ' ' + u : 'nessuna serie registrata'}`;
                 if (d.plannedSets) line += ` (serie pianificate ${d.plannedSets}${d.repPlanned ? ', target ' + d.repPlanned + ' ' + u : ''})`;
                 if (u !== 'sec' && d.weight) line += `, carico ${loadShort(d.weight, def)}${d.weightPlanned && d.weightPlanned !== d.weight ? ' (pianificato ' + kgText(d.weightPlanned) + ')' : ''}`;
                 if (d.restSkips) line += `, riposi saltati ${d.restSkips}`;
@@ -3455,7 +3434,7 @@
                     + `PROFILO: 43 anni, allenamento a casa con manubri componibili (manubrio vuoto ${state.settings.handleWeight} kg, dischi ${platesText()}; carichi per manubrio con la coppia: ${loadsFor({}).join(', ')} kg; con un manubrio solo: ${loadsFor({ load: 'single' }).join(', ')} kg) + corpo libero. `
                     + `Obiettivo: ${state.settings.objective === 'cut' ? 'definizione (cut)' : 'massa (bulk)'}. Peso corporeo: ${state.settings.weight} kg`
                     + (lastBm ? ` (ultima misura ${lastBm.date}${lastBm.waist ? ', vita ' + lastBm.waist + ' cm' : ''}${lastBm.chest ? ', petto ' + lastBm.chest + ' cm' : ''})` : '') + '.\n'
-                    + `PROGRAMMA: ciclo di 9 settimane (8 lavoro + 1 scarico), sessioni A Spinta (ven), B Trazione (sab), C Isometria (dom). Quando il carico sale, le serie tornano a quelle base. `
+                    + `PROGRAMMA: ciclo di 9 settimane (8 lavoro + 1 scarico), due sessioni full body: A il venerdì e B la domenica, ogni muscolo 2 volte a settimana. Primo esercizio di ogni sessione di forza (6–8 rip), gli altri 8–15 rip; serie a 2-3 rip dal cedimento. Quando il carico sale, le serie tornano a quelle base. Obiettivo: forza e muscoli duri e un po' più pieni. `
                     + `Ora: blocco ${cyc.blockNum}, settimana ${cyc.cycleWeek}/9, fase "${PROGRESSION[cyc.phaseIdx].label}". `
                     + `Stato fatica ultimi 14 giorni: ${({ green: 'basso', yellow: 'medio', red: 'alto' })[getFatigueLevel()]}.\n\n`;
             }
@@ -3546,10 +3525,10 @@
                     const p = getPlanFor(ex);  // Serie, secondi e recuperi di oggi, già adattati
                     // Su una tenuta il lavoro della serie sono i secondi stessi (doppi se si tiene per lato),
                     // non i 20 sec forfettari di una serie dinamica: altrimenti la domenica risulterebbe metà del vero.
-                    const work = unitOf(ex) === 'sec' ? p.targetReps * (ex.perSide ? 2 : 1) : 20;
+                    const work = unitOf(ex) === 'sec' ? p.targetReps * (ex.perSide ? 2 : 1) : p.targetReps * 3 * (ex.perArm ? 2 : 1);  // ~3 s a rip
                     total += p.plannedSets * (p.restSec + work);
                 });
-                return Math.round(total / 60);
+                return Math.round(total / 60) + 5;  // + ~5 minuti di riscaldamento (1-2 serie leggere sul primo esercizio)
             }
 
             /** Volume reale di un esercizio in una sessione salvata: peso × somma rip per serie (fallback dati legacy) */
@@ -3564,32 +3543,13 @@
                 return w * exData.completedSets.length * (exData.actualReps || exDef.repMid);
             }
 
-            /** Tempo sotto tensione di una sessione isometrica, in secondi: le tenute per lato contano doppio */
-            function sessionTUT(sess) {
-                const def = getCurrentSessions()[sess.session];
-                if (!def) return 0;
-                let tot = 0;
-                def.exercises.forEach(ex => {
-                    const d = sess.exercises && sess.exercises[ex.id];
-                    if (!d || !d.completedSets) return;
-                    d.completedSets.forEach(sn => {
-                        const sec = (d.repsPerSet && d.repsPerSet[sn] !== undefined) ? d.repsPerSet[sn] : (d.actualReps || ex.repMid);
-                        tot += sec * (ex.perSide ? 2 : 1);
-                    });
-                });
-                return tot;
-            }
-            /** Secondi → m:ss, per leggere il tempo sotto tensione a colpo d'occhio */
-            function formatTUT(sec) { return Math.floor(sec / 60) + ':' + String(Math.round(sec % 60)).padStart(2, '0'); }
 
             /** Volume reale e pianificato di una sessione salvata (peso per manubrio × rip). Contano solo gli
              *  esercizi presenti nella sessione: quelli aggiunti dopo non gonfiano il pianificato delle sessioni vecchie. */
             function sessionVolume(s) {
-                const sd = getCurrentSessions()[s.session];
-                if (!sd) return { actual: 0, planned: 0 };
                 let actual = 0, planned = 0;
-                sd.exercises.forEach(ex => {
-                    const d = s.exercises && s.exercises[ex.id];
+                Object.keys(s.exercises || {}).forEach(id => {  // Esercizi registrati: anche quelli usciti dal programma contano nello storico
+                    const ex = exDefById(id), d = s.exercises[id];
                     if (!d) return;
                     actual += exActualVolume(d, ex);  // Peso × somma delle rip fatte
                     planned += (d.weightPlanned || ex.weight) * (d.plannedSets || ex.sets) * (d.repPlanned || ex.repMid);  // Peso × serie × target
