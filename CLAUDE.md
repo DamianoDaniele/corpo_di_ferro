@@ -20,7 +20,13 @@ Serve the folder statically, e.g. `npx -y http-server -p 8765 -c-1 .`, then open
 
 ## Architecture (index.html)
 
-The script is split into sections marked with `// ─────────── NAME ───────────` headers: DATI ALLENAMENTI, STATO APP, NAVIGAZIONE, HOME, SESSIONE, TIMER, NUTRIZIONE, PROGRESSI, IMPOSTAZIONI, FEATURE SMART, VALUTAZIONE AI and INIT. The event listeners are bound in INIT; for buttons in settings, functions are exposed on `window.*` and called through `onclick`.
+The script is split into sections marked with `// ─────────── NAME ───────────` headers: DATI ALLENAMENTI, STATO APP, NAVIGAZIONE, HOME, SESSIONE, TIMER, NUTRIZIONE, CIBO, PROGRESSI, IMPOSTAZIONI, FEATURE SMART, VALUTAZIONE AI and INIT. The event listeners are bound in INIT; for buttons in settings, functions are exposed on `window.*` and called through `onclick`.
+
+- **Cibo tab (`page-food`, nav "Cibo"):** a food diary separate from the fixed meal plan of the Dieta tab (`MEALS`, `mealsChecked`), which it never touches.
+  - Data lives in `state.foodLog` (`days`, `saved`, `custom`, `products`, `prefs`), normalized by `normalizeFoodLog()` both in STATO APP and in `normalizeImportedState()`.
+  - `FOOD_DB` (in DATI ALLENAMENTI) holds base foods per 100 g from the CREA tables, with the CREA code in the source field and LARN portions. Diary entries store a snapshot of the per-100 g values, so later edits to a food don't rewrite history.
+  - Barcodes: `BarcodeDetector` + camera, then Open Food Facts `/api/v2/product/{code}.json` (CORS works). OFF name search (`/cgi/search.pl`) is often down or blocked by CORS, so it is optional and its failure is expected. Chosen products are cached in `foodLog.products` for offline use.
+  - `foodTargets()` uses Mifflin-St Jeor with activity 1.4 (no training) / 1.55 (training days from `WEEK_PLAN` or a logged session), protein minimum 1.6 g/kg. `evaluateFoodDay()` / `evaluateFoodWeek()` produce the traffic-light verdict and tips. All events go through `data-fd` attributes and `fdHandle()`, bound once by `bindFood()`.
 
 - **State:** there is a single global `state`, persisted as JSON under the `localStorage` key `cdf_state` by `save()`. Its main fields are `sessions` (completed-session history), `todaySession` (the session in progress), `plan` (the adaptive plan for each exercise), `fatigue` (event log), `bodyMeasurements`, `settings`, `lastSessionType` and `forceDeload`.
   - Migrations run inline right after load, in the STATO APP section. Any new field needs a default there **and** in `normalizeImportedState()`, which handles JSON backup import.
