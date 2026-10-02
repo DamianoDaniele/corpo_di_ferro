@@ -988,6 +988,8 @@
                 lastSessionType: null, plan: {}, forceDeload: false
                 };
             }
+            // Dati salvati incompleti o rovinati (es. "{}"): si completano con i valori iniziali invece di bloccare l'app
+            if (!Array.isArray(state.sessions) || !state.settings || typeof state.settings !== 'object') state = normalizeImportedState(state);
             // Migrazione per stati salvati prima del motore adattivo
             if (!state.plan || typeof state.plan !== 'object') state.plan = {};  // Piano adattivo per esercizio
             if (state.settings.handleWeight === undefined) state.settings.handleWeight = 2;  // Manubrio vuoto (impugnatura piena + ghiere)
@@ -1271,7 +1273,7 @@
                 document.getElementById('headerDate').textContent = days[dow] + ' ' + new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });  // Data header
                 const card = document.getElementById('todayWorkoutCard');  // Card workout oggi
                 let sessionToday = getNextSessionType();  // Prossima sessione A/B
-                const todayDone = state.sessions.find(s => s.date === todayStr());  // Sessione già completata oggi?
+                const todayDone = [...state.sessions].reverse().find(s => s.date === todayStr());  // Ultima sessione completata oggi (con due nello stesso giorno vale l'ultima)
 
                 const todayPlan = WEEK_PLAN[dow];  // Tipo di giornata previsto dal piano: allenamento / camminata / riposo
                 // Riga "ultimo allenamento": unico punto in Home che dice quando ti sei allenato l'ultima volta
@@ -1289,7 +1291,7 @@
                 if (todayDone) {  // Se già allenato oggi, mostra riepilogo
                     card.innerHTML = `<div class="today-card" style="border-color:rgba(200, 255, 0, 0.5)">
                         <div class="today-label">✅ Completata oggi</div>
-                        <div class="today-title">Sessione ${todayDone.session}</div>
+                        <div class="today-title">${(getCurrentSessions()[todayDone.session] || {}).name || 'Sessione ' + todayDone.session}</div>
                         <div class="today-sub">Ottimo lavoro! Riposa e recupera 💪</div>
                     </div>` + lastLine;
                     document.getElementById('homeGreetingSub').textContent = 'Sessione completata! Ben fatto 🏆';
