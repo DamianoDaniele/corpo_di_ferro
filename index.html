@@ -988,24 +988,15 @@
                 lastSessionType: null, plan: {}, forceDeload: false
                 };
             }
-            // Dati salvati incompleti o rovinati (es. "{}"): si completano con i valori iniziali invece di bloccare l'app
-            if (!Array.isArray(state.sessions) || !state.settings || typeof state.settings !== 'object') state = normalizeImportedState(state);
-            // Migrazione per stati salvati prima del motore adattivo
-            if (!state.plan || typeof state.plan !== 'object') state.plan = {};  // Piano adattivo per esercizio
-            if (state.settings.handleWeight === undefined) state.settings.handleWeight = 2;  // Manubrio vuoto (impugnatura piena + ghiere)
-            if (!state.settings.handleWeighed) {  // I 2.5 kg erano una stima prima di pesarlo: il manubrio vuoto pesa 2 kg
-                if (state.settings.handleWeight === 2.5) {
-                    state.settings.handleWeight = 2;
-                    // Sessioni registrate con i carichi a dischi (dal 27/09) sulla stima da 2.5 kg: stessi dischi, 0.5 kg in meno
-                    (state.sessions || []).filter(s => s.date >= '2026-09-27').forEach(s => Object.values(s.exercises || {}).forEach(e => {
-                        ['weight', 'weightPlanned'].forEach(k => { if (e[k] > 0 && Math.abs(e[k] % 1 - 0.5) < 1e-6) e[k] -= 0.5; });
-                    }));
-                }
-                state.settings.handleWeighed = true;  // Da qui in poi vale solo il valore scelto in Impostazioni
-            }
+            // Ogni avvio passa dalla stessa normalizzazione dell'import: prima si controllavano solo sessions e settings,
+            // e uno stato parziale (es. senza fatigue o mealsChecked) faceva crollare Home e Dieta.
+            // Comprende la migrazione del manubrio da 2.5 a 2 kg (migrateHandleWeight).
+            state = normalizeImportedState(state);
             if (!state.settings.plates || typeof state.settings.plates !== 'object') state.settings.plates = { 5: 8, 2: 3, 1: 4 };  // Dischi reali: peso → quantità
             delete state.settings.maxWeight;  // Il vecchio tetto fisso di 10kg è sostituito dai carichi componibili con i dischi
-            if (state.forceDeload === undefined) state.forceDeload = false;  // Scarico attivato a mano
+            // Sessione già registrata ma rimasta in memoria (app chiusa con l'overlay "Sessione completata" aperto):
+            // senza questa pulizia il Workout la riapriva e un secondo "Termina" la salvava di nuovo
+            if (state.todaySession && state.todaySession.done) state.todaySession = null;
             // La domenica isometrica non esiste più: una sessione C lasciata a metà non si potrebbe riprendere
             if (state.todaySession && SESSION_ORDER.indexOf(state.todaySession.session) < 0) state.todaySession = null;
             state.foodLog = normalizeFoodLog(state.foodLog);  // Diario della scheda Cibo (campi mancanti → valori iniziali)
@@ -1177,9 +1168,19 @@
                 }
                 return changed;
             }
+            let saveWarned = false;  // Avviso di salvataggio fallito già mostrato (uno solo finché i salvataggi non tornano a riuscire)
             if (syncPlanToLoads()) save();  // All'avvio: riallinea i dati salvati con manubrio e dischi attuali
-            // Salva lo stato corrente in localStorage (ignora errori silenziosamente)
-            function save() { try { localStorage.setItem('cdf_state', JSON.stringify(state)); } catch (e) {} }
+            // Salva lo stato corrente in localStorage. Prima gli errori erano ignorati: con la memoria piena
+            // le modifiche sparivano al riavvio senza alcun avviso
+            function save() {
+                try { localStorage.setItem('cdf_state', JSON.stringify(state)); saveWarned = false; }
+                catch (e) {
+                    if (saveWarned) return;
+                    saveWarned = true;
+                    // Rimandato: all'avvio il modale non è ancora pronto
+                    setTimeout(() => showAlert('⚠️ Salvataggio non riuscito (memoria del browser piena o bloccata): le ultime modifiche andranno perse alla chiusura dell\'app. Esporta un backup da Impostazioni → Esporta dati.'), 0);
+                }
+            }
 
             // ─── Modal custom (alert/confirm/prompt) ───
             const modalEl = document.getElementById('customModal');  // Overlay modale
@@ -1230,6 +1231,9 @@
                 if (!state.sessions.length) return null;
                 return [...state.sessions].sort((a, b) => a.date.localeCompare(b.date))[state.sessions.length - 1];
             }
+            function todayDoneSession() {  // Ultima sessione completata oggi (con due nello stesso giorno vale l'ultima), o undefined
+                return [...state.sessions].reverse().find(s => s.date === todayStr());
+            }
             function getNextSessionType() {  // Sessione da proporre: quella prevista oggi dal piano, altrimenti la prima della settimana non ancora fatta
                 const doneThisWeek = state.sessions.filter(s => s.date >= getWeekStart()).map(s => s.session);
                 const todayKey = WEEK_PLAN[getDayOfWeek()].session;
@@ -1273,7 +1277,8 @@
                 document.getElementById('headerDate').textContent = days[dow] + ' ' + new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });  // Data header
                 const card = document.getElementById('todayWorkoutCard');  // Card workout oggi
                 let sessionToday = getNextSessionType();  // Prossima sessione A/B
-                const todayDone = [...state.sessions].reverse().find(s => s.date === todayStr());  // Ultima sessione completata oggi (con due nello stesso giorno vale l'ultima)
+                const todayDone = todayDoneSession();  // Sessione già completata oggi
+                const running = state.todaySession && !state.todaySession.done ? state.todaySession : null;  // Sessione avviata e non finita
 
                 const todayPlan = WEEK_PLAN[dow];  // Tipo di giornata previsto dal piano: allenamento / camminata / riposo
                 // Riga "ultimo allenamento": unico punto in Home che dice quando ti sei allenato l'ultima volta
@@ -1288,7 +1293,27 @@
                     lastLine = `<div class="last-workout">📍 Ultimo allenamento: <strong>Sessione ${lastSession.session}</strong> · ${nice} <strong>(${when})</strong></div>`;
                 }
 
-                if (todayDone) {  // Se già allenato oggi, mostra riepilogo
+                if (running) {  // Sessione in corso: si riprende, mai una nuova sopra (cancellerebbe le serie fatte)
+                    const name = (getCurrentSessions()[running.session] || {}).name || 'Sessione ' + running.session;
+                    const setsDone = Object.values(running.exercises || {}).reduce((a, e) => a + ((e && e.completedSets) || []).length, 0);
+                    // Sessione lasciata a metà in un giorno precedente: si dice quando è iniziata
+                    const gap = running.date ? daysSince(running.date) : 0;
+                    const startedNote = gap >= 1 ? ` · iniziata ${gap === 1 ? 'ieri' : parseDate(running.date).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'short' })}` : '';
+                    card.innerHTML = `<div class="today-card" style="border-color:rgba(255, 179, 80, 0.5)">
+                        <div class="today-label">⏳ Sessione in corso</div>
+                        <div class="today-title">${name}</div>
+                        <div class="today-sub">${setsDone} ${setsDone === 1 ? 'serie registrata' : 'serie registrate'}${startedNote}</div>
+                        <button class="start-btn" id="resumeSessionBtn">Riprendi sessione →</button>
+                        <button class="modal-btn modal-btn-secondary" id="discardSessionBtn" style="width:100%;margin-top:8px">Annulla sessione</button>
+                    </div>` + lastLine;
+                    document.getElementById('resumeSessionBtn').addEventListener('click', () => goPage('workout'), { once: true });
+                    document.getElementById('discardSessionBtn').addEventListener('click', async () => {
+                        const msg = setsDone > 0 ? `Annullare la sessione in corso? ${setsDone === 1 ? 'La serie registrata andrà persa' : `Le ${setsDone} serie registrate andranno perse`}.` : 'Annullare la sessione in corso?';
+                        if (!(await showConfirm(msg))) return;
+                        state.todaySession = null; save(); renderHome();
+                    });
+                    document.getElementById('homeGreetingSub').textContent = 'Hai una sessione da finire 💪';
+                } else if (todayDone) {  // Se già allenato oggi, mostra riepilogo
                     card.innerHTML = `<div class="today-card" style="border-color:rgba(200, 255, 0, 0.5)">
                         <div class="today-label">✅ Completata oggi</div>
                         <div class="today-title">${(getCurrentSessions()[todayDone.session] || {}).name || 'Sessione ' + todayDone.session}</div>
@@ -1487,8 +1512,11 @@
             }
 
             function startSession(sessionKey) {  // Avvia una nuova sessione partendo dai valori adattati sull'ultimo workout
+                // Una sessione in corso non si sovrascrive mai: prima un tocco su "Inizia sessione" in Home cancellava le serie fatte
+                if (state.todaySession && !state.todaySession.done) { goPage('workout'); return; }
                 const cyc = getCycleInfo();
-                state.todaySession = { session: sessionKey, exercises: {}, done: false, restLog: {}, weekNum: cyc.weekNum, deload: isDeloadNow() };
+                // date: giorno di inizio, così una sessione ripresa il giorno dopo resta registrata nel suo giorno
+                state.todaySession = { session: sessionKey, date: todayStr(), exercises: {}, done: false, restLog: {}, weekNum: cyc.weekNum, deload: isDeloadNow() };
                 getCurrentSessions()[sessionKey].exercises.forEach(ex => {
                     const p = getPlanFor(ex);  // Piano adattivo: rip/serie/recuperi modellati sull'ultima sessione
                     state.todaySession.exercises[ex.id] = {
@@ -1513,8 +1541,18 @@
 
             function renderWorkout() {  // Renderizza la schermata di allenamento attivo
                 const wc = document.getElementById('page-workout');
-                if (!state.todaySession) {  // Nessuna sessione attiva: mostra schermata iniziale
+                if (!state.todaySession || state.todaySession.done) {  // Nessuna sessione attiva: mostra schermata iniziale
                     let sessionKey = getNextSessionType();
+                    const doneToday = todayDoneSession();
+                    if (doneToday) {  // Allenamento di oggi già fatto: come in Home, niente seconda sessione nello stesso giorno
+                        const doneName = (getCurrentSessions()[doneToday.session] || {}).name || 'Sessione ' + doneToday.session;
+                        wc.innerHTML = `<div style="text-align:center;padding:40px 20px">
+                            <div style="font-size:48px;margin-bottom:16px">✅</div>
+                            <div style="font-size:18px;font-weight:700;margin-bottom:8px">${doneName} completata oggi</div>
+                            <div style="font-size:13px;color:var(--muted)">Prossimo allenamento: ${getCurrentSessions()[sessionKey].name}.<br>I muscoli crescono mentre recuperano: ci vediamo al prossimo giorno di allenamento 💪</div>
+                        </div>`;
+                        return;
+                    }
                     wc.innerHTML = `<div style="text-align:center;padding:40px 20px">
                         <div style="font-size:48px;margin-bottom:16px">💪</div>
                         <div style="font-size:18px;font-weight:700;margin-bottom:8px">Inizia la sessione di oggi</div>
@@ -1909,6 +1947,8 @@
             }
 
             function finishSession() {  // Termina la sessione: salva i dati reali e modella il piano del prossimo workout
+                // Una sessione già registrata non si registra due volte (doppio tocco, o sessione riaperta dopo un riavvio)
+                if (!state.todaySession || state.todaySession.done) return;
                 const sessionDef = getCurrentSessions()[state.todaySession.session];
                 const globalFatigue = getFatigueLevel();  // Stato fatica PRIMA di registrare i nuovi eventi
                 const isDeload = !!state.todaySession.deload;
@@ -1942,7 +1982,8 @@
                     sessionData[exId].outcome = result.outcome;
                     if (result.outcome !== 'ok') adaptedCount++;
                 });
-                state.sessions.push({ date: todayStr(), session: state.todaySession.session, exercises: sessionData,
+                // Data di inizio della sessione (oggi per le sessioni avviate prima che venisse salvata)
+                state.sessions.push({ date: state.todaySession.date || todayStr(), session: state.todaySession.session, exercises: sessionData,
                     restStats: { total: restTotal, skipped: restSkipped, extended: restExtended }, compressed });  // Salva sessione completata
                 state.lastSessionType = state.todaySession.session;  // Aggiorna ultimo tipo sessione
                 if (isDeload) state.forceDeload = false;  // Lo scarico attivato a mano vale per una sola sessione
@@ -3341,12 +3382,39 @@
                 setTimeout(() => URL.revokeObjectURL(url), 10000);
             }
 
-            function normalizeImportedState(loaded) {  // Normalizza i dati importati con valori di default per campi mancanti
-                return {
-                    sessions: Array.isArray(loaded.sessions) ? loaded.sessions : [],
-                    todaySession: loaded.todaySession || null,
-                    water: loaded.water || { date: '', count: 0 },
-                    mealsChecked: loaded.mealsChecked || { date: '', checked: [] },
+            // I 2.5 kg erano una stima prima di pesarlo: il manubrio vuoto pesa 2 kg.
+            // Unica migrazione per avvio e import: prima l'import cambiava il manubrio ma lasciava lo storico 0.5 kg più alto.
+            function migrateHandleWeight(st) {
+                if (st.settings.handleWeighed) return st;  // Già migrato: da qui in poi vale solo il valore scelto in Impostazioni
+                if (st.settings.handleWeight === 2.5) {
+                    st.settings.handleWeight = 2;
+                    // Sessioni registrate con i carichi a dischi (dal 27/09) sulla stima da 2.5 kg: stessi dischi, 0.5 kg in meno
+                    st.sessions.filter(s => s.date >= '2026-09-27').forEach(s => Object.values(s.exercises || {}).forEach(e => {
+                        if (!e || typeof e !== 'object') return;
+                        ['weight', 'weightPlanned'].forEach(k => { if (e[k] > 0 && Math.abs(e[k] % 1 - 0.5) < 1e-6) e[k] -= 0.5; });
+                    }));
+                }
+                st.settings.handleWeighed = true;
+                return st;
+            }
+
+            function isObj(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }  // Oggetto vero (non null, non array)
+            function hasDate(v) { return isObj(v) && typeof v.date === 'string'; }  // Voce con data YYYY-MM-DD: serve a ordinamenti e filtri
+
+            // Normalizza lo stato salvato o importato: valori di default per i campi mancanti e scarto delle voci
+            // di tipo sbagliato, che altrimenti facevano lanciare le pagine (Dieta, Home, Progressi) a ogni apertura
+            function normalizeImportedState(loaded) {
+                if (!isObj(loaded)) loaded = {};
+                const ts = loaded.todaySession;
+                const water = loaded.water, meals = loaded.mealsChecked;
+                return migrateHandleWeight({
+                    sessions: Array.isArray(loaded.sessions) ? loaded.sessions.filter(hasDate) : [],
+                    todaySession: isObj(ts) && isObj(ts.exercises) ? ts : null,  // Sessione in corso solo se leggibile
+                    water: hasDate(water) ? { date: water.date, count: Math.max(0, parseInt(water.count, 10) || 0) } : { date: '', count: 0 },
+                    mealsChecked: hasDate(meals) && Array.isArray(meals.checked)
+                        // Solo indici di pasti esistenti, senza doppioni: un indice fuori da MEALS faceva lanciare la Dieta
+                        ? { date: meals.date, checked: meals.checked.filter((i, k, a) => Number.isInteger(i) && i >= 0 && i < MEALS.length && a.indexOf(i) === k) }
+                        : { date: '', checked: [] },
                     settings: {
                         sound: true,
                         vibration: true,
@@ -3354,18 +3422,19 @@
                         objective: 'cut',
                         handleWeight: 2,
                         plates: { 5: 8, 2: 3, 1: 4 },
-                        ...(loaded.settings || {}),
-                        // Backup fatti prima della pesata: i 2.5 kg di stima diventano i 2 kg reali
-                        ...(loaded.settings && !loaded.settings.handleWeighed && loaded.settings.handleWeight === 2.5 ? { handleWeight: 2 } : {}),
-                        handleWeighed: true
+                        ...(isObj(loaded.settings) ? loaded.settings : {})
                     },
-                    fatigue: Array.isArray(loaded.fatigue) ? loaded.fatigue : [],
-                    bodyMeasurements: Array.isArray(loaded.bodyMeasurements) ? loaded.bodyMeasurements : [],
+                    fatigue: Array.isArray(loaded.fatigue) ? loaded.fatigue.filter(hasDate) : [],
+                    bodyMeasurements: Array.isArray(loaded.bodyMeasurements) ? loaded.bodyMeasurements.filter(hasDate) : [],
                     lastSessionType: loaded.lastSessionType || null,
-                    plan: (loaded.plan && typeof loaded.plan === 'object') ? loaded.plan : {},
+                    plan: isObj(loaded.plan) ? loaded.plan : {},
                     forceDeload: !!loaded.forceDeload,
                     foodLog: normalizeFoodLog(loaded.foodLog)  // Diario alimentare della scheda Cibo
-                };
+                });
+            }
+
+            function renderAll() {  // Ridisegna tutte le pagine (dopo un import)
+                renderHome(); renderWorkout(); renderNutrition(); renderFood(); renderProgress(); renderSettings();
             }
 
             window.importAppData = async function() {  // Importa dati da file JSON (ripristino backup)
@@ -3384,20 +3453,23 @@
                 });
                 document.body.removeChild(input);
                 if (!raw) return;
+                const prev = state;  // Dati attuali: si tengono finché il backup non si è dimostrato leggibile
                 try {
                     const loaded = JSON.parse(raw);
                     if (!loaded || typeof loaded !== 'object') throw new Error('Formato JSON non valido');
                     state = normalizeImportedState(loaded);
                     syncPlanToLoads();  // Backup vecchi: pesi riagganciati a manubrio e dischi reali
+                    // Si salva solo dopo che tutte le pagine si sono disegnate: prima un backup con campi rovinati
+                    // veniva salvato subito e l'app restava rotta a ogni avvio
+                    try { renderAll(); } catch (e) {
+                        throw new Error('il backup contiene dati che l\'app non riesce a leggere (' + (e.message || e) + '). I tuoi dati attuali non sono stati toccati.');
+                    }
                     save();
-                    renderHome();
-                    renderWorkout();
-                    renderNutrition();
-                    renderFood();
-                    renderProgress();
-                    renderSettings();
                     await showAlert('Import completato. I dati sono stati ripristinati.');
                 } catch (error) {
+                    // Si torna ai dati di prima, intatti. Si risalvano perché alcune pagine salvano mentre si disegnano
+                    // (es. la Dieta azzera le spunte del giorno nuovo) e potrebbero aver già scritto il backup rotto
+                    if (state !== prev) { state = prev; save(); try { renderAll(); } catch (e) {} }
                     await showAlert('Import fallito: ' + (error.message || error));
                 }
             }
@@ -3627,8 +3699,7 @@
             }
 
             // ─────────── INIT: mount app ───────────
-            function init() {  // Inizializza l'app: renderizza home, collega listener, osserva resize
-                renderHome();
+            function init() {  // Inizializza l'app: collega listener, osserva resize, poi renderizza home
                 bindTimerButtons();
                 bindFood();  // Scheda Cibo: eventi di pagina, pannello e scanner
                 document.querySelectorAll('[data-action]').forEach(el => {
@@ -3658,6 +3729,9 @@
                     const target = document.getElementById('bodyMeasurements');
                     if (target) ro.observe(target);
                 }
+                // Home per ultima: se i dati salvati la facessero lanciare, i pulsanti sono già collegati
+                // e da Impostazioni si possono ancora esportare o ripristinare i dati
+                renderHome();
             }
 
             init();
