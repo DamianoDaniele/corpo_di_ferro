@@ -1828,9 +1828,11 @@
              *  Doppia progressione sui dischi reali: prima le rip fino al tetto del range, poi rip oltre il range finché
              *  al carico componibile successivo ne restano almeno repMin − 3 (stima NSCA/Epley), poi il salto; se il salto
              *  è irraggiungibile, serie in più, densità e varianti. Mancare il target di 1 rip non è una sessione difficile.
-             *  Regola riposi (fonti: Project inVictus, Miletto, Body Comp Academy): il recupero incompleto
-             *  riduce fisiologicamente le rip successive → un calo dopo un riposo saltato non è fatica reale,
-             *  ma blocca la progressione; un riposo allungato rimanda solo l'aumento di peso. */
+             *  Regola riposi: saltare un riposo tra le serie vuol dire "ero già recuperato" → se tutte le serie restano
+             *  al target il peso è leggero e la progressione accelera: +2 rip invece di +1, anche oltre il tetto del range,
+             *  fino alle rip che fanno scattare il salto di dischi (il salto resta quello normale, con la stima).
+             *  Se invece dopo il salto le rip calano, il peso non era leggero: carico fermo, senza penalità di fatica.
+             *  Un riposo allungato rimanda solo l'aumento di peso. */
             function computeNextPlan(exDef, exS, rest, globalFatigue) {
                 const prevPlan = planFor(exDef.id, exDef);
                 const unit = unitOf(exDef);
@@ -1866,8 +1868,17 @@
                 if (weightDelta > 0) events.push(missed > 0 ? 'overreach' : 'weight_progressed');  // Alzato e completato = progresso (non fatica)
                 for (let i = 0; i < missed && i < 2; i++) events.push('set_missed');  // Serie saltate (max 2 conteggiate)
                 if (rest.extendedCount > 0) events.push('rest_extended');  // Riposi allungati = sforzo vicino al limite
-                if (restConfounded) events.push('rest_rushed');  // Calo dopo riposo saltato = fretta, penalità lieve
+                // Un calo dopo un riposo saltato non registra fatica: il riposo saltato è una scelta, non un cedimento
                 if (genuineShortfall) events.push('reps_below_target');  // Calo con riposo pieno = fatica genuina
+                // Riposo saltato tra le serie e rip al target su tutte: ero già recuperato, quindi il peso è leggero
+                const lightBySkip = !bodyweight && rest.skips > 0 && missed === 0 && weightDelta >= 0 && worst >= target
+                    && rest.extendedCount === 0 && globalFatigue !== 'red';  // Riposi allungati o fatica alta: il peso non è leggero
+                const repStep = lightBySkip ? 2 : (unit === 'sec' ? 5 : 1);  // Peso leggero: le rip salgono di 2 alla volta
+                // Peso leggero: le rip possono andare oltre il range, fino a quelle che servono per il salto (mai oltre il tetto)
+                const skipUp = lightBySkip ? nextLoad(next.weight, exDef) : null;
+                const skipCap = !lightBySkip ? exDef.repMax
+                    : Math.min(repCeilingFor(exDef), skipUp ? Math.max(exDef.repMax, repsNeededFor(next.weight, skipUp, exDef)) : Infinity);
+                const skipNote = lightBySkip ? 'Riposi saltati con le rip piene, il peso è leggero: ' : '';
 
                 if (missed > 0 || genuineShortfall || weightDelta < 0) {
                     // Sessione in difficoltà: si mantiene il carico; dopo 2 di fila si riduce per consolidare
@@ -1884,9 +1895,9 @@
                                : `${unit === 'sec' ? 'Secondi' : 'Rip'} sotto target con riposo pieno: si ripete per consolidare`;
                     }
                 } else if (restConfounded && worst < target - tol) {
-                    // Calo dovuto solo ai riposi saltati: niente penalità piena, ma niente progressione
+                    // Calo dovuto solo ai riposi saltati: il peso non era leggero, carico fermo senza penalità
                     outcome = 'hold_rest'; next.holds = 0;
-                    reason = `${unit === 'sec' ? 'Secondi' : 'Rip'} calate dopo riposi saltati: carico invariato — rispetta i recuperi, il calo è fisiologico`;
+                    reason = `${unit === 'sec' ? 'Secondi' : 'Rip'} calate dopo riposi saltati: il peso non era leggero, carico invariato`;
                 } else if (worst >= target && worst >= exDef.repMax) {
                     // Tetto del range su tutte le serie → gradino successivo, anche se il target era più basso.
                     // Leve in ordine: carico (se al peso nuovo restano abbastanza rip) → rip oltre il range, verso il salto
@@ -1912,10 +1923,10 @@
                     } else if (target < ceiling) {
                         // Rip oltre il range: è la strada verso il salto. A peso fisso, tra ~6 e ~25 rip vicino al cedimento
                         // il muscolo cresce allo stesso modo (ACSM 2026: carichi dal 30% al 100% del massimale)
-                        next.targetReps = Math.min(Math.max(worst, target) + (unit === 'sec' ? 5 : 1), ceiling); outcome = 'advance';
-                        reason = up && repsNeededFor(next.weight, up, exDef) <= ceiling
+                        next.targetReps = Math.min(Math.max(worst, target) + repStep, ceiling); outcome = 'advance';
+                        reason = skipNote + (up && repsNeededFor(next.weight, up, exDef) <= ceiling
                             ? `Target ${target} → ${next.targetReps} ${unit}: a ${repsNeededFor(next.weight, up, exDef)} ${unit} su tutte le serie si sale a ${kgText(up)} (+${Math.round(jump * 100)}%)`
-                            : `Si allunga il range — target ${target} → ${next.targetReps} ${unit} (tetto ${ceiling})`;
+                            : `Si allunga il range — target ${target} → ${next.targetReps} ${unit} (tetto ${ceiling})`);
                     } else if (next.extraSets < maxExtraSetsFor(exDef)) {
                         next.extraSets++; next.targetReps = exDef.repMin; outcome = 'add_set';
                         reason = `Range esteso al tetto e salto di dischi ancora troppo grande: +1 serie (più volume a parità di carico), ${unit} da ${exDef.repMin}`;
@@ -1929,9 +1940,11 @@
                             : 'Dischi finiti e tutte le altre leve esaurite: passa a una variante più dura (discesa 3-4 sec, pausa in basso, unilaterale)';
                     }
                 } else if (worst >= target && target < exDef.repMax) {
-                    // Doppia progressione, fase rip: target verso il tetto del range (serie peggiore; i secondi avanzano di 5)
-                    next.targetReps = Math.min(Math.max(worst, target) + (unit === 'sec' ? 5 : 1), exDef.repMax); next.holds = 0; outcome = 'advance';
-                    reason = `Target ${unit}: ${target} → ${next.targetReps} (range ${exDef.repMin}–${exDef.repMax})`;
+                    // Doppia progressione, fase rip: target verso il tetto del range (serie peggiore; i secondi avanzano di 5).
+                    // Col peso leggero (riposi saltati) +2 e oltre il range, verso le rip che fanno scattare il salto
+                    next.targetReps = Math.min(Math.max(worst, target) + repStep, skipCap); next.holds = 0; outcome = 'advance';
+                    reason = skipNote + `Target ${unit}: ${target} → ${next.targetReps} (range ${exDef.repMin}–${exDef.repMax}`
+                        + (lightBySkip && skipUp && next.targetReps > exDef.repMax ? `, a ${repsNeededFor(next.weight, skipUp, exDef)} ${unit} si sale a ${kgText(skipUp)}` : '') + ')';
                 } else {
                     // Arrivi qui con il target sfiorato (−1 rip su qualche serie): si ripete lo stesso target, senza penalità
                     outcome = 'ok'; next.holds = 0;
@@ -1995,7 +2008,7 @@
                 if (isDeload) sub += 'Settimana di scarico registrata: il piano riprende dal prossimo ciclo. 💤';
                 else if (adaptedCount > 0) sub += `Piano aggiornato per ${adaptedCount} eserciz${adaptedCount === 1 ? 'io' : 'i'} in base ai tuoi risultati — dettagli in Home. 📋`;
                 else sub += 'Continua così — stai costruendo il corpo di ferro. 💪';
-                if (compressed) sub += `<br><span style="color:#FFB350">⏱ Hai saltato gran parte dei riposi: il recupero incompleto riduce le rip successive e il volume totale, il motore della crescita.</span>`;
+                // Niente avviso sui riposi saltati: saltare un riposo vuol dire che il peso è leggero, non è un errore
                 document.getElementById('congratsSub').innerHTML = sub;
                 // Fine della settimana di scarico = fine ciclo: propone anche la valutazione del ciclo
                 document.getElementById('aiCycleBtn').style.display = isDeload ? 'block' : 'none';
@@ -3106,16 +3119,15 @@
                     + '<div style="font-size:10px;color:var(--muted);margin-top:2px">Salti, incompleti, cambi peso</div>'
                     + '</div>';
                 cs.innerHTML += '</div>';
-                // Card riposi: quanti recuperi rispettati nelle ultime 5 sessioni
+                // Card riposi: solo il dato delle ultime 5 sessioni, senza giudizio (un riposo saltato = peso leggero, non un errore)
                 var rTot = 0, rSkip = 0, rExt = 0;
                 recentSessions.forEach(function(s) { if (s.restStats) { rTot += s.restStats.total; rSkip += s.restStats.skipped; rExt += s.restStats.extended; } });
                 if (rTot > 0) {
                     var rPct = Math.round(((rTot - rSkip) / rTot) * 100);
-                    var rColor = rPct >= 80 ? 'var(--accent)' : (rPct >= 50 ? '#FFB350' : 'var(--red)');
                     cs.innerHTML += '<div class="card" style="padding:12px;margin-bottom:12px">'
-                        + '<div style="font-size:12px;font-weight:600;margin-bottom:4px">Riposi rispettati</div>'
-                        + '<div style="font-size:20px;font-weight:700;color:' + rColor + '">⏱ ' + rPct + '%</div>'
-                        + '<div style="font-size:10px;color:var(--muted);margin-top:2px">' + rSkip + ' saltati · ' + rExt + ' allungati su ' + rTot + ' — recupero pieno = più rip e più volume</div>'
+                        + '<div style="font-size:12px;font-weight:600;margin-bottom:4px">Riposi completi</div>'
+                        + '<div style="font-size:20px;font-weight:700;color:var(--white)">⏱ ' + rPct + '%</div>'
+                        + '<div style="font-size:10px;color:var(--muted);margin-top:2px">' + rSkip + ' saltati · ' + rExt + ' allungati su ' + rTot + ' — saltato con le rip piene = peso leggero, rip +2</div>'
                         + '</div>';
                 }
                 // Warning deload
@@ -3179,9 +3191,11 @@
                 const up = w > 0 ? nextLoad(w, ex) : null;  // Prossimo carico montabile
                 const all = p.plannedSets === 2 ? 'su entrambe le serie' : `su tutte e ${p.plannedSets} le serie`;
                 const need = up ? Math.max(ex.repMax, repsNeededFor(w, up, ex)) : null;  // Rip che fanno scattare il salto
+                // Come in computeNextPlan: riposo saltato con le rip al target su tutte le serie = peso leggero, rip +2 alla volta
+                const skipNote = up && need > target ? ' · se salti i riposi e fai comunque il target, le rip salgono di 2 alla volta' : '';
                 if (up && need <= ceiling) {  // Il salto è raggiungibile allungando le rip
                     const restart = Math.min(ex.repMin, estRepsAt(w, need, up));
-                    return `${need} ${unit} ${all} → si sale a ${kgText(up)} (+${Math.round((up - w) / w * 100)}%) e si riparte da ${ex.sets} serie × ${restart} ${unit}`;
+                    return `${need} ${unit} ${all} → si sale a ${kgText(up)} (+${Math.round((up - w) / w * 100)}%) e si riparte da ${ex.sets} serie × ${restart} ${unit}${skipNote}`;
                 }
                 const why = up ? `il salto a ${kgText(up)} è troppo grande per i tuoi dischi` : 'dischi finiti';
                 if (target < ceiling) return `${ceiling} ${unit} ${all} → poi +1 serie (${why})`;
@@ -3526,7 +3540,7 @@
                     + `PROFILO: 43 anni, allenamento a casa con manubri componibili (manubrio vuoto ${state.settings.handleWeight} kg, dischi ${platesText()}; carichi per manubrio con la coppia: ${loadsFor({}).join(', ')} kg; con un manubrio solo: ${loadsFor({ load: 'single' }).join(', ')} kg) + corpo libero. `
                     + `Obiettivo: ${state.settings.objective === 'cut' ? 'definizione (cut)' : 'massa (bulk)'}. Peso corporeo: ${state.settings.weight} kg`
                     + (lastBm ? ` (ultima misura ${lastBm.date}${lastBm.waist ? ', vita ' + lastBm.waist + ' cm' : ''}${lastBm.chest ? ', petto ' + lastBm.chest + ' cm' : ''})` : '') + '.\n'
-                    + `PROGRAMMA: ciclo di 9 settimane (8 lavoro + 1 scarico), due sessioni full body: A il venerdì e B la domenica, ogni muscolo 2 volte a settimana. Primo esercizio di ogni sessione di forza (6–8 rip), gli altri 8–15 rip; serie a 2-3 rip dal cedimento. Quando il carico sale, le serie tornano a quelle base. Obiettivo: forza e muscoli duri e un po' più pieni. `
+                    + `PROGRAMMA: ciclo di 9 settimane (8 lavoro + 1 scarico), due sessioni full body: A il venerdì e B la domenica, ogni muscolo 2 volte a settimana. Primo esercizio di ogni sessione di forza (6–8 rip), gli altri 8–15 rip; serie a 2-3 rip dal cedimento. Quando il carico sale, le serie tornano a quelle base. Se salto un riposo tra le serie è perché sono già recuperato: con le rip piene vuol dire che il peso è leggero e l'app accelera la progressione (+2 rip invece di +1, verso il salto di dischi). Obiettivo: forza e muscoli duri e un po' più pieni. `
                     + `Ora: blocco ${cyc.blockNum}, settimana ${cyc.cycleWeek}/9, fase "${PROGRESSION[cyc.phaseIdx].label}". `
                     + `Stato fatica ultimi 14 giorni: ${({ green: 'basso', yellow: 'medio', red: 'alto' })[getFatigueLevel()]}.\n\n`;
             }
