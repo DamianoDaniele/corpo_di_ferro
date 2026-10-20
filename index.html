@@ -768,27 +768,35 @@
 
             function getCurrentSessions() {
                 // Due sessioni full body a settimana, venerdì (A) e domenica (B): ogni gruppo muscolare lavora 2 volte
-                // in giorni non consecutivi, come chiedono le Linee di indirizzo del Ministero della Salute (2021).
+                // in giorni non consecutivi, come chiedono le Linee di indirizzo del Ministero della Salute (2021, pag. 26).
                 // Il primo esercizio di ogni sessione è di forza (6–8 rip ≈ 80-85% del massimale, ACSM 2026: carichi
-                // ≥80% a inizio sessione), gli altri da 8–15 rip per il muscolo. 4 serie sui principali: petto e dorso
-                // arrivano a ~10 serie a settimana, la soglia ACSM 2026 per l'ipertrofia. ~45 minuti a sessione.
+                // ≥80% a inizio sessione), gli altri da 8–15 rip per il muscolo. ACSM 2026: ipertrofia con ≥10 serie a
+                // settimana per gruppo muscolare. Serie a settimana per le 4 regioni dell'ACSM: spinta alta 11 (cp, pu, mp),
+                // trazione alta 12 (rw, br, curl), gambe-spinta 7 (gs, bg), gambe-trazione 7 (rd, ht). Petto e dorso 8 a testa.
+                // Prima le gambe avevano 3 + 4 serie: hip thrust e affondo bulgaro le portano al doppio. ~45 minuti a sessione.
                 // Il campo weight è un riferimento di partenza: getPlanFor() lo aggancia al carico realmente componibile
-                // con i dischi (load: 'single' = un manubrio solo; default = coppia). perArm = un braccio alla volta.
+                // con i dischi (load: 'single' = un manubrio solo; default = coppia). perArm = un lato alla volta
+                // (side: 'gamba' sugli esercizi per le gambe, altrimenti si scrive "per braccio").
                 const baseSessions = {
                     A: {
-                        name: 'Full body A', sub: 'Venerdì · Petto, dorso, cosce, braccia', day: 5,
+                        name: 'Full body A', sub: 'Venerdì · Petto, dorso, cosce, glutei, braccia', day: 5,
                         exercises: [
                             { id: 'cp', name: 'Distensioni a terra con manubri', meta: 'Forza · 4 serie × 6–8 rip', sets: 4, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 12, restSec: 120, variant: 'fb', tip: 'Prima 1-2 serie leggere di riscaldamento. Sdraiato a terra, gomiti a 45°: scendi in 2-3 secondi finché i gomiti toccano terra, poi spingi deciso.' },
                             { id: 'rw', name: 'Rematore con un manubrio', meta: 'Forza · 4 serie × 6–8 rip per braccio', sets: 4, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 12, load: 'single', perArm: true, restSec: 120, variant: 'fb', tip: 'Una mano e un ginocchio in appoggio, schiena piatta. Porta il gomito verso il soffitto stringendo la schiena, scendi lento. Tutte le rip con un braccio, poi l\'altro.' },
-                            { id: 'gs', name: 'Squat goblet', meta: 'Manubrio · 3 serie × 8–12 rip', sets: 3, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 14, load: 'single', restSec: 90, variant: 'fb', tip: 'Un manubrio tenuto in verticale al petto con due mani. Piedi poco oltre le spalle, scendi tra le ginocchia con il busto dritto, spingi coi talloni.' },
+                            { id: 'gs', name: 'Squat goblet', meta: 'Manubrio · 4 serie × 8–12 rip', sets: 4, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 14, load: 'single', restSec: 90, variant: 'fb', tip: 'Un manubrio tenuto in verticale al petto con due mani. Piedi poco oltre le spalle, scendi tra le ginocchia con il busto dritto, spingi coi talloni.' },
+                            // Hip thrust: gambe-trazione anche il venerdì (prima i glutei lavoravano solo con lo squat). Un manubrio solo = gradini da 2 kg
+                            { id: 'ht', name: 'Hip thrust con un manubrio', meta: 'Manubrio · 3 serie × 10–15 rip', sets: 3, reps: '10–15', repMin: 10, repMid: 12.5, repMax: 15, weight: 14, load: 'single', restSec: 75, variant: 'fb', tip: 'Scapole appoggiate al bordo del divano, piedi a terra larghi come le anche, manubrio sul bacino con un asciugamano sotto. Spingi coi talloni finché il busto è in linea con le cosce, stringi i glutei 1 secondo in alto, scendi lento.' },
                             { id: 'hc', name: 'Curl a martello (un braccio alla volta)', meta: 'Manubrio · 2 serie × 10–12 rip per braccio', sets: 2, reps: '10–12', repMin: 10, repMid: 11, repMax: 12, weight: 6, load: 'single', perArm: true, restSec: 60, variant: 'fb', tip: 'Palmo rivolto verso l\'interno, gomito fermo al fianco. Con un manubrio solo i carichi salgono di 2 kg alla volta.' },
                             { id: 'pl', name: 'Plank', meta: '2 serie × 30–45 sec · 45 sec riposo', sets: 2, reps: '30–45 sec', repMin: 30, repMid: 37.5, repMax: 45, weight: 0, restSec: 45, unit: 'sec', holdCeiling: 90, variant: 'fb', tip: 'Glutei stretti. Corpo dritto come un\'asse. Respira normalmente.' }
                         ]
                     },
                     B: {
-                        name: 'Full body B', sub: 'Domenica · Femorali, petto, dorso, spalle, braccia', day: 0,
+                        name: 'Full body B', sub: 'Domenica · Femorali, cosce, petto, dorso, spalle, braccia', day: 0,
                         exercises: [
                             { id: 'rd', name: 'Stacco rumeno con manubri', meta: 'Forza · 4 serie × 6–8 rip', sets: 4, reps: '6–8', repMin: 6, repMid: 7, repMax: 8, weight: 14, restSec: 120, variant: 'fb', tip: 'Prima 1-2 serie leggere di riscaldamento. Gambe quasi tese, fianchi indietro, manubri lungo le cosce, schiena piatta. Scendi finché senti tirare i femorali, risali stringendo i glutei.' },
+                            // Affondo bulgaro: gambe-spinta anche la domenica (prima i quadricipiti lavoravano solo il venerdì).
+                            // Una gamba alla volta con un manubrio solo: carichi bassi bastano e salgono di 2 kg alla volta
+                            { id: 'bg', name: 'Affondo bulgaro con un manubrio', meta: 'Manubrio · 3 serie × 8–12 rip per gamba', sets: 3, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 8, load: 'single', perArm: true, side: 'gamba', restSec: 75, variant: 'fb', tip: 'Collo del piede dietro appoggiato su una sedia, manubrio tenuto al petto. Scendi dritto finché il ginocchio dietro sfiora terra, spingi col tallone davanti. Tutte le rip con una gamba, poi l\'altra. Se all\'inizio perdi l\'equilibrio, tieniti con una mano al muro.' },
                             { id: 'pu', name: 'Push-up (piegamenti)', meta: 'Corpo · 4 serie × 8–15 rip', sets: 4, reps: '8–15', repMin: 8, repMid: 11.5, repMax: 15, weight: 0, restSec: 90, variant: 'fb', tip: 'Mani poco oltre le spalle, corpo dritto dalla testa ai talloni. Scendi in 2-3 secondi fino a sfiorare terra col petto.' },
                             { id: 'br', name: 'Rematore con due manubri', meta: 'Manubri · 4 serie × 8–12 rip', sets: 4, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 12, restSec: 90, variant: 'fb', tip: 'Busto inclinato a 45°, ginocchia morbide, schiena piatta. Tira i manubri verso l\'ombelico avvicinando le scapole.' },
                             { id: 'mp', name: 'Lento avanti con un manubrio', meta: 'Manubrio · 3 serie × 8–12 rip per braccio', sets: 3, reps: '8–12', repMin: 8, repMid: 10, repMax: 12, weight: 8, load: 'single', perArm: true, restSec: 75, variant: 'fb', tip: 'In piedi o seduto, addome contratto. Spingi il manubrio sopra la testa senza inarcare la schiena. Un braccio alla volta: con la coppia si salterebbe da 6 a 12 kg.' },
@@ -818,7 +826,8 @@
                     const b2 = {
                         cp: { name: 'Distensioni a terra (Variante: un braccio alla volta)', meta: 'Forza · 4 serie × 6–8 rip per braccio', load: 'single', perArm: true },
                         gs: { name: 'Squat goblet (Variante: pausa in basso 2 sec)', meta: 'Manubrio · 3 serie × 8–12 rip' },
-                        rd: { name: 'Stacco rumeno (Variante: una gamba)', meta: 'Forza · 4 serie × 6–8 rip per gamba' },
+                        rd: { name: 'Stacco rumeno (Variante: una gamba)', meta: 'Forza · 4 serie × 6–8 rip per gamba', perArm: true, side: 'gamba' },
+                        ht: { name: 'Hip thrust (Variante: una gamba)', meta: 'Manubrio · 3 serie × 10–15 rip per gamba', perArm: true, side: 'gamba' },
                         pu: { name: 'Push-up (Variante: piedi rialzati)', meta: 'Corpo · 4 serie × 8–15 rip', tip: 'Piedi su una sedia o sul divano: più peso sulle braccia e sulla parte alta del petto.' }
                     };
                     Object.values(baseSessions).forEach(session => session.exercises.forEach(ex => {
@@ -960,7 +969,7 @@
                 { weeks: '5–6', label: 'Intensità', desc: 'Esercizi di forza (il primo di ogni sessione): ultima serie a 1-2 ripetizioni dalla fine, le altre a 2-3. Più peso sui manubri costruisce forza; per il volume del muscolo contano le serie della settimana.' },
                 { weeks: '7–8', label: 'Peak', desc: '5 serie su distensioni, rematore e stacco · Massimo volume del ciclo · Recuperi pieni: a 43 anni il recupero fa parte dell\'allenamento, non è tempo perso.' },
                 { weeks: '9', label: 'Deload', desc: '2 serie · Carichi ridotti del 35% · Recupero +30 sec · Smaltisci la fatica accumulata prima di ripartire con il blocco successivo.' },
-                { weeks: 'Blocco 2+', label: 'Blocco', desc: 'Il ciclo riparte con varianti più difficili (distensioni a un braccio, squat con pausa, stacco a una gamba, push-up coi piedi rialzati). Riparti dai carichi dove li hai lasciati: stimolo più alto.' }
+                { weeks: 'Blocco 2+', label: 'Blocco', desc: 'Il ciclo riparte con varianti più difficili (distensioni a un braccio, squat con pausa, stacco e hip thrust a una gamba, push-up coi piedi rialzati). Riparti dai carichi dove li hai lasciati: stimolo più alto.' }
             ];
 
             // Piano settimanale di riferimento (indice = giorno, 0=Dom … 6=Sab).
@@ -1584,7 +1593,7 @@
                     const unit = unitOf(ex);  // Le isometriche si misurano in secondi di tenuta, non in ripetizioni
                     const isDone = exS.completedSets.length >= exS.plannedSets;  // Esercizio completato?
                     const planInfo = planFor(ex.id, ex);  // Piano adattivo (per mostrare il perché dei valori di oggi; col programma o la variante nuovi spiega il cambio)
-                    const adaptedMeta = `${exS.weight > 0 ? loadShort(exS.weight, ex) + ' · ' : 'Corpo · '}${exS.plannedSets} ${unit === 'sec' ? 'tenute' : 'serie'} × ${exS.targetReps} ${unit}${ex.perSide ? '/lato' : ex.perArm ? '/braccio' : ''} (range ${ex.reps})`;
+                    const adaptedMeta = `${exS.weight > 0 ? loadShort(exS.weight, ex) + ' · ' : 'Corpo · '}${exS.plannedSets} ${unit === 'sec' ? 'tenute' : 'serie'} × ${exS.targetReps} ${unit}${ex.perSide ? '/lato' : ex.perArm ? '/' + (ex.side || 'braccio') : ''} (range ${ex.reps})`;
                     // Intestazione esercizio con valori adattati, PB, stato
                     html += `<div class="ex-card ${isDone ? 'done' : ''}" data-exid="${ex.id}">
                         <div class="ex-head">
@@ -3034,7 +3043,8 @@
                     <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">Full body 2 volte a settimana</div><div style="font-size:12px;color:var(--muted);line-height:1.6">
                     Venerdì A, domenica B: ogni muscolo lavora 2 volte in giorni non consecutivi, come indicano le linee del Ministero della Salute, con 48 ore per recuperare.
                     Il primo esercizio di ogni sessione è di forza (6–8 rip, il peso più alto), gli altri costruiscono il muscolo (8–15 rip).
-                    Negli altri giorni camminata: insieme ai pesi completa i 150-300 minuti di attività a settimana consigliati.</div></div>
+                    Gambe in tutte e due le sessioni: squat e hip thrust il venerdì, stacco e affondo bulgaro la domenica.
+                    Negli altri giorni camminata a passo svelto: insieme ai pesi completa i 150-300 minuti di attività a settimana consigliati.</div></div>
                 </div></div>`;
                 // Fase corrente di progressione: il ciclo di 9 settimane si ripete, quindi mostra blocco + settimana del ciclo
                 var cyc = getCycleInfo();
@@ -3228,7 +3238,7 @@
                                 <div style="font-size:13px;font-weight:600;min-width:0">${ex.name}</div>
                                 <div style="font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap">${kgText(p.weight)}</div>
                             </div>
-                            <div style="font-size:12px;color:var(--muted);margin-top:2px">${loadShort(p.weight, ex)} · ${p.plannedSets} serie × ${p.targetReps} ${unit}${ex.perArm ? ' per braccio' : ''}</div>
+                            <div style="font-size:12px;color:var(--muted);margin-top:2px">${loadShort(p.weight, ex)} · ${p.plannedSets} serie × ${p.targetReps} ${unit}${ex.perArm ? ' per ' + (ex.side || 'braccio') : ''}</div>
                             <div style="font-size:12px;line-height:1.5;margin-top:8px;padding:6px 8px;background:rgba(200,255,0,0.06);border-radius:6px">🎯 ${nextStepFor(ex)}</div>`;
                         if (done.length) {
                             h += `<div style="display:grid;grid-template-columns:auto auto 1fr;gap:3px 12px;font-size:11px;color:var(--muted);margin-top:8px">`;
