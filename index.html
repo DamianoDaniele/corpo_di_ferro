@@ -1254,8 +1254,12 @@
 
             function getMacroTargets() {  // Restituisce target macro in base all'obiettivo (cut/bulk)
                 const obj = state.settings.objective || 'cut';
-                if (obj === 'bulk') return { p: 160, c: 220, f: 70, kcal: 2400 };  // Target per massa
-                else return { p: 120, c: 170, f: 65, kcal: 1900 };  // Target per definizione
+                const t = obj === 'bulk' ? { p: 160, c: 220, f: 70, kcal: 2400 }  // Target per massa
+                    : { p: 120, c: 170, f: 65, kcal: 1900 };  // Target per definizione
+                // Proteine mai sotto 1,6 g/kg (Morton 2018), la stessa soglia della scheda Cibo:
+                // i 120 g fissi a 85 kg erano solo 1,4 g/kg. fdWeight() usa l'ultima pesata registrata
+                t.p = Math.max(t.p, Math.round(1.6 * fdWeight()));
+                return t;
             }
 
             // ─────────── NAVIGAZIONE: cambio pagina, eventi nav ───────────
@@ -2481,6 +2485,77 @@
                 return { days, n, avg, balance, sk, sp };
             }
 
+            // ─── Andamento del peso: il dato vero che dice se il deficit sta funzionando ───
+            // In definizione la perdita consigliata è 0,5-1% del peso a settimana: nell'RCT di Garthe 2011 su atleti
+            // (doi 10.1123/ijsnem.21.2.97) a 0,7%/sett la massa magra è stata conservata e anzi è salita, a 1,4%/sett no.
+            // Sotto 0,25%/sett per 3 settimane il deficit non lavora; sopra l'1% si rischia il muscolo.
+            // Solo consigli: deficitPct lo cambia l'utente dal pulsante "Deficit calorico", mai l'app da sola.
+            const WT_DAYS = 28;  // Finestra del trend: pesate delle ultime 4 settimane
+            function fdSigned(v) {  // −0,42 / +0,10 / 0,00 con la virgola italiana
+                const r = Math.round(v * 100) / 100;  // Arrotonda prima di scegliere il segno (niente "−0,00")
+                return (r > 0 ? '+' : r < 0 ? '−' : '') + Math.abs(r).toFixed(2).replace('.', ',');
+            }
+            function evaluateWeightTrend() {
+                const today = todayStr();
+                const start = parseDate(today); start.setDate(start.getDate() - WT_DAYS); const from = dateStr(start);  // Primo giorno della finestra (setDate: niente sfasamenti con l'ora legale)
+                const all = (state.bodyMeasurements || []).map(m => ({ date: m.date, w: parseFloat(m.weight) })).filter(m => m.w > 0 && m.date <= today);  // Pesate valide, anche da backup con numeri in testo
+                const lastDays = all.length ? daysSince(all.reduce((a, m) => m.date > a ? m.date : a, '')) : null;  // Giorni dall'ultima pesata
+                const pts = all.filter(m => m.date >= from).map(m => ({ x: -daysSince(m.date), y: m.w }));  // x = giorni rispetto a oggi (negativi)
+                const span = pts.length ? Math.max(...pts.map(p => p.x)) - Math.min(...pts.map(p => p.x)) : 0;  // Giorni coperti dalle pesate
+                const base = { n: pts.length, span, lastDays, bulk: state.settings.objective === 'bulk', tips: [], act: null };
+                const stale = lastDays !== null && lastDays >= 10;  // Più di una settimana abbondante senza pesarsi
+                if (pts.length < 2 || span < 7) {  // Servono almeno 2 pesate a una settimana di distanza: con meno è solo rumore
+                    base.tips.push('Pesati una volta a settimana, sempre alla stessa ora: al mattino, dopo il bagno e prima di colazione. '
+                        + (stale ? `L'ultima pesata è di ${lastDays} giorni fa.` : 'Dopo 2 pesate a 7 giorni di distanza qui compare il ritmo.'));
+                    return { ...base, enough: false, s: 'open', kind: 'few', title: 'Servono 2 pesate a distanza di almeno 7 giorni', act: 'measure' };
+                }
+                // Retta dei minimi quadrati: una pesata storta (acqua, sale, pasto tardi) pesa meno che nel confronto primo-ultimo
+                const mx = pts.reduce((a, p) => a + p.x, 0) / pts.length, my = pts.reduce((a, p) => a + p.y, 0) / pts.length;  // Medie di giorni e peso
+                const sxy = pts.reduce((a, p) => a + (p.x - mx) * (p.y - my), 0), sxx = pts.reduce((a, p) => a + (p.x - mx) ** 2, 0);
+                const kgWeek = sxy / sxx * 7;  // Variazione media in kg a settimana (sxx > 0: le pesate coprono almeno 7 giorni)
+                const pctWeek = kgWeek / my * 100;  // La stessa in % del peso medio del periodo
+                const loss = -pctWeek;  // Perdita positiva = il peso scende
+                const r = { ...base, enough: true, kgWeek, pctWeek, loss };
+                // Diario degli stessi giorni (solo giornate chiuse): se non si rispetta il target, cambiare il deficit non serve
+                let eat = 0, tgt = 0, nd = 0;
+                Object.keys(state.foodLog.days).forEach(k => { if (k >= from && k < today && fdDayItems(k).length) { eat += fdSum(fdDayItems(k)).kcal; tgt += foodTargets(k).kcal; nd++; } });
+                const diary = nd >= 7 && tgt > 0 ? eat / tgt : null;  // Mangiato / target, solo con almeno una settimana di diario
+                const cur = Math.min(50, Math.max(0, fdNum(state.foodLog.prefs.deficitPct) || 0));  // Deficit attuale in %
+                const kcalPt = foodTargets(today).kcal / (100 - cur);  // kcal di un punto di deficit (fabbisogno di oggi / 100)
+                const kcalDiff = pct => fdFmt(Math.round(Math.abs(pct - cur) * kcalPt / 10) * 10);  // kcal al giorno di differenza, arrotondate ai 10
+                if (r.bulk) {  // In massa il semaforo non giudica: le soglie di Garthe valgono per la perdita di peso
+                    r.s = 'open'; r.kind = 'bulk'; r.title = 'Obiettivo massa: il giudizio sul ritmo vale per la definizione';
+                } else if (loss > 1) {  // Troppo veloce: oltre l'1% a settimana si perde anche muscolo
+                    r.kind = 'fast'; r.s = span >= 14 ? 'bad' : 'warn';  // Con meno di 2 settimane può essere acqua: giallo, non rosso
+                    r.title = 'Troppo veloce: a questo ritmo perdi anche muscolo';
+                    const down = Math.max(0, cur - 5);  // Suggerimento: 5 punti di deficit in meno
+                    const how = `il deficit dal ${fdFmt(cur)}% al ${fdFmt(down)}%: circa ${kcalDiff(down)} kcal in più al giorno. Lo cambi tu da "Deficit calorico".`;
+                    if (diary !== null && diary < 0.9) r.tips.push(`Nel diario mangi in media il ${fdFmt((1 - diary) * 100)}% sotto il target: prima arriva al target che hai già, poi guarda di nuovo il ritmo.`);
+                    else if (down < cur) {  // Con meno di 2 settimane di pesate il consiglio aspetta la conferma della pesata dopo
+                        r.tips.push(span < 14 ? `Nelle prime settimane di dieta si perdono anche acqua e glicogeno: se alla prossima pesata il ritmo resta sopra l'1%, abbassa ${how}` : `Abbassa ${how}`);
+                        r.act = 'deficit';
+                    }
+                    else r.tips.push('Il target è già a mantenimento: se il diario è completo, aggiungi uno spuntino con proteine e carboidrati.');
+                } else if (loss >= 0.25) {  // Nel range: da 0,25% (ricomposizione lenta) all'1%
+                    r.s = 'ok'; r.kind = 'range';
+                    r.title = loss >= 0.5 ? 'Ritmo giusto 💪' : 'Nel range, ritmo prudente';
+                    r.tips.push(loss >= 0.5 ? 'Stai perdendo grasso al ritmo che conserva il muscolo: non cambiare niente.' : 'Ritmo lento ma valido: il muscolo non è a rischio. Il range consigliato arriva fino all\'1% a settimana, se vuoi accelerare.');
+                } else if (span >= 21) {  // Troppo lento da almeno 3 settimane: il deficit non sta lavorando
+                    r.s = 'warn'; r.kind = 'slow';
+                    r.title = pctWeek > 0 ? 'Il peso sta salendo' : 'Troppo lento: il peso è quasi fermo';
+                    const up = Math.min(25, cur + 5);  // Suggerimento: 5 punti di deficit in più (25% è il massimo impostabile)
+                    if (diary !== null && diary > 1.05) r.tips.push(`Nel diario mangi in media il ${fdFmt((diary - 1) * 100)}% sopra il target: prima prova a stare nel target che hai già, poi se il peso resta fermo alza il deficit.`);
+                    else if (up > cur) { r.tips.push(`${pctWeek > 0 ? 'Da 3 settimane il peso sale invece di scendere' : 'Da 3 settimane perdi meno dello 0,25% a settimana'}: alza il deficit dal ${fdFmt(cur)}% al ${fdFmt(up)}%, circa ${kcalDiff(up)} kcal in meno al giorno. Lo cambi tu da "Deficit calorico".`); r.act = 'deficit'; }
+                    else r.tips.push('Il deficit è già al massimo: invece di mangiare ancora meno, controlla che il diario sia completo (olio, condimenti, assaggi) e allunga le camminate.');
+                } else {  // Lento ma con meno di 3 settimane di pesate: si aspetta prima di cambiare
+                    r.s = 'open'; r.kind = 'early';
+                    r.title = pctWeek > 0 ? 'Il peso sale, ma è presto per dirlo' : 'Ritmo lento, ma è presto per dirlo';
+                    r.tips.push(`Le pesate coprono ${span} giorni: per decidere se alzare il deficit servono almeno 3 settimane. Continua a pesarti una volta a settimana.`);
+                }
+                if (stale) { r.tips.push(`Ultima pesata ${lastDays} giorni fa: pesati per tenere il ritmo aggiornato.`); if (!r.act) r.act = 'measure'; }
+                return r;
+            }
+
             // ─── Rendering della pagina Cibo ───
             function fdDot(s) { return `<span class="fd-dot fd-${s}"></span>`; }  // Pallino colorato del semaforo
             function renderFood() {
@@ -2547,6 +2622,15 @@
                     h += `<div class="fd-wrow">${fdDot(sp)}<span class="fd-wday">${fdEsc(fdCap(fdShortDate(d.ds)))}${d.closed ? '' : ' (in corso)'}</span><span class="fd-wval">${fdFmt(d.tot.kcal)} kcal · ${fdFmt(d.tot.p)} g P</span></div>`;
                 });
                 h += `</div>`;
+                // Andamento del peso: ritmo reale delle pesate confrontato con quello consigliato
+                const wt = evaluateWeightTrend();
+                h += `<div class="fd-card fd-verdict fd-v-${wt.s}"><div class="fd-card-title"><span>⚖️ Andamento del peso</span><span class="fd-muted">ultime 4 settimane</span></div>
+                    <div class="fd-mline">${fdDot(wt.s)}<span class="fd-mlabel">Ritmo medio</span><span class="fd-mval">${wt.enough ? `${fdSigned(wt.kgWeek)} kg · ${fdSigned(wt.pctWeek)}% a sett.` : '—'}</span></div>
+                    <div class="fd-mhint" style="margin-bottom:10px">${fdEsc(wt.title)}${wt.enough ? ` · ${wt.n} pesate in ${wt.span} giorni` : ''}</div>`;
+                if (wt.tips.length) h += `<div class="fd-tips">${wt.tips.map(x => `<div class="fd-tip">💡 ${fdEsc(x)}</div>`).join('')}</div>`;  // In massa non ci sono consigli
+                if (wt.act === 'deficit') h += `<button class="fd-link" data-fd="setDeficit">Cambia deficit (ora ${fdFmt(state.foodLog.prefs.deficitPct)}%)</button>`;  // Apre la stessa richiesta del pulsante dei target
+                if (wt.act === 'measure') h += `<button class="fd-link" data-fd="goMeasure">+ Aggiungi pesata in Progressi</button>`;
+                h += `<div class="fd-source">In definizione il ritmo consigliato è 0,5–1% del peso a settimana (Garthe 2011, studio controllato su atleti: a 0,7% la massa magra è stata conservata, a 1,4% no). Il ritmo è la retta che passa meglio tra le pesate delle ultime 4 settimane.</div></div>`;
                 // Target e dati personali, modificabili
                 const pr = state.foodLog.prefs;
                 h += `<div class="fd-card"><div class="fd-card-title"><span>🎯 I tuoi target</span></div>
@@ -2832,6 +2916,7 @@
                     case 'setAge': fdPromptPref('age', 'La tua età:', 14, 100); break;
                     case 'setProtein': fdPromptPref('proteinPerKg', 'Proteine per kg di peso (consigliato 1,6–2,0):', 1.2, 2.5); break;
                     case 'setDeficit': fdPromptPref('deficitPct', 'Deficit calorico in % (0 = mantenimento, consigliato 0–15):', 0, 25); break;
+                    case 'goMeasure': goPage('progress'); break;  // Le pesate si aggiungono in Progressi (vita e petto si possono lasciare vuoti)
                     case 'goWeight': (async () => {  // Il peso viene dall'ultima misura in Progressi, altrimenti dalle impostazioni
                         if ((state.bodyMeasurements || []).some(m => m.weight > 0)) { await showAlert('Uso il peso dell\'ultima misura registrata in Progressi. Per aggiornarlo aggiungi una nuova misura lì.'); goPage('progress'); }
                         else goPage('settings');
