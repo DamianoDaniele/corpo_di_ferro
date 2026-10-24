@@ -766,7 +766,12 @@
             }
             function isDeloadNow() { return getCycleInfo().deload || !!state.forceDeload; }  // Scarico programmato o attivato a mano
 
-            function getCurrentSessions() {
+            const SOLO_MAN_MAKER = true;  // Temporaneo: A e B fatte solo di man maker. false = torna il programma completo
+            // Man maker con la coppia di manubri: push-up sui manubri, rematore destro e sinistro, salto in piedi,
+            // girata e squat con spinta sopra la testa = 1 rip. Coppia componibile: 2 → 4 → 6 → 12 kg, si parte da 6.
+            const MAN_MAKER = { id: 'mm', name: 'Man maker con manubri', meta: 'Manubri · 5 serie × 6–10 rip', sets: 5, reps: '6–10', repMin: 6, repMid: 8, repMax: 10, weight: 6, restSec: 90, variant: 'fb', tip: 'Manubri a terra larghi come le spalle. Un push-up con le mani sui manubri, poi un rematore a destra e uno a sinistra tenendo il bacino fermo. Salta coi piedi verso le mani, porta i manubri alle spalle, scendi in squat e risalendo spingili sopra la testa. Schiena piatta in ogni passaggio: quando la forma cede la serie è finita.' };
+
+            function getCurrentSessions(full) {  // full = programma completo anche col solo man maker attivo (nomi dello storico, piani salvati)
                 // Due sessioni full body a settimana, venerdì (A) e domenica (B): ogni gruppo muscolare lavora 2 volte
                 // in giorni non consecutivi, come chiedono le Linee di indirizzo del Ministero della Salute (2021, pag. 26).
                 // Il primo esercizio di ogni sessione è di forza (6–8 rip ≈ 80-85% del massimale, ACSM 2026: carichi
@@ -804,6 +809,15 @@
                         ]
                     }
                 };
+                // Per adesso A e B sono fatte solo di man maker (dalla valutazione della Full body B).
+                // Gli esercizi qui sopra restano scritti: con SOLO_MAN_MAKER = false torna il programma completo, coi piani salvati.
+                // Stesso id 'mm' nelle due sessioni: un solo piano, il carico progredisce sia il venerdì sia la domenica.
+                if (SOLO_MAN_MAKER && !full) {
+                    Object.values(baseSessions).forEach(session => {
+                        session.sub = session.sub.split(' · ')[0] + ' · Solo man maker: tutto il corpo';  // Giorno invariato, gruppi muscolari aggiornati
+                        session.exercises = [Object.assign({}, MAN_MAKER)];  // Copia: le modifiche di ciclo non toccano l'originale
+                    });
+                }
                 const cyc = getCycleInfo();
                 // Settimane 7-8 (Peak): +1 serie sugli esercizi di forza (4 → 5): picco di volume del ciclo
                 if (cyc.peak) {
@@ -848,7 +862,8 @@
                 sp: { id: 'sp', name: 'Plank laterale', sets: 2, repMid: 35, weight: 0, unit: 'sec', perSide: true }
             };
             function exDefById(id) {  // Definizione di un esercizio per id: programma attuale, poi esercizi usciti dal programma
-                for (const sess of Object.values(getCurrentSessions())) {
+                // Prima il programma di oggi, poi quello completo: col solo man maker le vecchie sedute tengono i loro nomi
+                for (const sess of Object.values(getCurrentSessions()).concat(Object.values(getCurrentSessions(true)))) {
                     const ex = sess.exercises.find(e => e.id === id);
                     if (ex) return ex;
                 }
@@ -1151,7 +1166,8 @@
             // e per i piani scritti dal vecchio motore (tetto fisso 10 kg, pesi liberi). Restituisce true se ha cambiato qualcosa.
             function syncPlanToLoads() {
                 const defs = {};  // Definizione di ogni esercizio per id: serve la modalità coppia o manubrio singolo
-                Object.values(getCurrentSessions()).forEach(s => s.exercises.forEach(ex => { defs[ex.id] = ex; }));
+                // Anche il programma completo: i piani degli esercizi messi da parte restano montabili per quando tornano
+                Object.values(getCurrentSessions(true)).concat(Object.values(getCurrentSessions())).forEach(s => s.exercises.forEach(ex => { defs[ex.id] = ex; }));
                 let changed = false;
                 Object.keys(state.plan).forEach(id => {
                     const p = state.plan[id], ex = defs[id];
@@ -3614,7 +3630,8 @@
             }
             function exNameMap() {  // id esercizio → nome (tutte le sessioni, varianti correnti)
                 const m = {}; const defs = {};
-                Object.values(getCurrentSessions()).forEach(sess => sess.exercises.forEach(e => { m[e.id] = e.name; defs[e.id] = e; }));
+                // Programma completo prima, poi quello di oggi: col solo man maker restano i nomi degli esercizi messi da parte
+                Object.values(getCurrentSessions(true)).concat(Object.values(getCurrentSessions())).forEach(sess => sess.exercises.forEach(e => { m[e.id] = e.name; defs[e.id] = e; }));
                 return { names: m, defs };
             }
             function describeExercise(exId, d, names, defs) {
@@ -3635,7 +3652,10 @@
                     + `PROFILO: 43 anni, allenamento a casa con manubri componibili (manubrio vuoto ${state.settings.handleWeight} kg, dischi ${platesText()}; carichi per manubrio con la coppia: ${loadsFor({}).join(', ')} kg; con un manubrio solo: ${loadsFor({ load: 'single' }).join(', ')} kg) + corpo libero. `
                     + `Obiettivo: ${state.settings.objective === 'cut' ? 'definizione (cut)' : 'massa (bulk)'}. Peso corporeo: ${state.settings.weight} kg`
                     + (lastBm ? ` (ultima misura ${lastBm.date}${lastBm.waist ? ', vita ' + lastBm.waist + ' cm' : ''}${lastBm.chest ? ', petto ' + lastBm.chest + ' cm' : ''})` : '') + '.\n'
-                    + `PROGRAMMA: ciclo di 9 settimane (8 lavoro + 1 scarico), due sessioni full body: A il venerdì e B la domenica, ogni muscolo 2 volte a settimana. Primo esercizio di ogni sessione di forza (6–8 rip), gli altri 8–15 rip; serie a 2-3 rip dal cedimento. Quando il carico sale, le serie tornano a quelle base. Se salto un riposo tra le serie è perché sono già recuperato: con le rip piene vuol dire che il peso è leggero e l'app accelera la progressione (+2 rip invece di +1, verso il salto di dischi). Obiettivo: forza e muscoli duri e un po' più pieni. `
+                    + (SOLO_MAN_MAKER
+                        ? `PROGRAMMA: ciclo di 9 settimane (8 lavoro + 1 scarico), due sessioni full body: A il venerdì e B la domenica. Per ora entrambe fatte solo di man maker con la coppia di manubri (${MAN_MAKER.sets} serie × ${MAN_MAKER.reps} rip, ${MAN_MAKER.restSec} s di riposo); serie a 2-3 rip dal cedimento. `
+                        : `PROGRAMMA: ciclo di 9 settimane (8 lavoro + 1 scarico), due sessioni full body: A il venerdì e B la domenica, ogni muscolo 2 volte a settimana. Primo esercizio di ogni sessione di forza (6–8 rip), gli altri 8–15 rip; serie a 2-3 rip dal cedimento. `)
+                    + `Quando il carico sale, le serie tornano a quelle base. Se salto un riposo tra le serie è perché sono già recuperato: con le rip piene vuol dire che il peso è leggero e l'app accelera la progressione (+2 rip invece di +1, verso il salto di dischi). Obiettivo: forza e muscoli duri e un po' più pieni. `
                     + `Ora: blocco ${cyc.blockNum}, settimana ${cyc.cycleWeek}/9, fase "${PROGRESSION[cyc.phaseIdx].label}". `
                     + `Stato fatica ultimi 14 giorni: ${({ green: 'basso', yellow: 'medio', red: 'alto' })[getFatigueLevel()]}.\n\n`;
             }
